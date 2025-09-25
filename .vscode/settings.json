@@ -1,7 +1,0 @@
-{
-  "typescript.preferences.autoImportFileExcludePatterns": [
-    "@ionic/angular/common",
-    "@ionic/angular"
-  ],
-  "liveServer.settings.port": 5501
-}
