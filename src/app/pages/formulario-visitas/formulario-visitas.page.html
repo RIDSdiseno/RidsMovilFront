@@ -1,0 +1,142 @@
+<ion-header>
+  <ion-toolbar>
+    <!-- Título centrado -->
+    <ion-title>Registro de Visitas</ion-title>
+
+    <!-- Imagen al lado derecho -->
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <!-- Estado -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ estado }}</ion-card-title>
+      <ion-card-subtitle>{{ estadoTexto }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Inicio:</strong> {{ inicio | date:'short' }}</p>
+      <p><strong>Término:</strong> {{ fin | date:'short' }}</p>
+      <ion-button expand="block" (click)="iniciarVisita()" [disabled]="visitaEnCurso">Iniciar Visita</ion-button>
+      <ion-button expand="block" (click)="terminarVisita()" [disabled]="!visitaEnCurso">Terminar Visita</ion-button>
+      <ion-button expand="block" fill="outline" (click)="resetFormulario()">Limpiar Datos de Visita</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Formulario -->
+  <form [formGroup]="visitaForm">
+
+    <!-- Datos principales -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Datos principales</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+
+        <ion-item>
+          <ion-label position="stacked">Empresa/Cliente</ion-label>
+          <!-- Usamos formControlName para vincular el campo al FormGroup -->
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+              {{ cliente.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="visitaForm.get('cliente')?.invalid && visitaForm.get('cliente')?.touched">
+          Este campo es obligatorio.
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="stacked">Quién solicita</ion-label>
+          <!-- Usamos formControlName para vincular el campo al FormGroup -->
+          <ion-select placeholder="Selecciona solicitante" formControlName="solicitante">
+            <ion-select-option value="Juan Pérez">Juan Pérez</ion-select-option>
+            <ion-select-option value="María López">María López</ion-select-option>
+            <ion-select-option value="Carlos Díaz">Carlos Díaz</ion-select-option>
+            <ion-select-option value="Ana González">Ana González</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger"
+          *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
+          Este campo es obligatorio.
+        </ion-note>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Solicitud adicional -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Solicitud adicional</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label class="nowrap">Conf. impresoras</ion-label>
+          <ion-checkbox slot="end" formControlName="impresoras"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Conf. teléfonos IP</ion-label>
+          <ion-checkbox slot="end" formControlName="telefonos"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Conf. pie de página</ion-label>
+          <ion-checkbox slot="end" formControlName="pie"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Otra Solicitud...</ion-label>
+          <ion-checkbox slot="end" formControlName="otros" (ionChange)="toggleOtros()"></ion-checkbox>
+        </ion-item>
+        <ion-item *ngIf="visitaForm.get('otros')?.value">
+          <ion-input placeholder="Describe la solicitud" formControlName="otrosDetalle"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lo realizado -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Lo realizado</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-textarea formControlName="realizado" rows="4"
+          placeholder="Describe las tareas realizadas..."></ion-textarea>
+
+        <!-- Errores -->
+        <ion-note color="danger"
+          *ngIf="visitaForm.get('realizado')?.hasError('required') && (visitaForm.get('realizado')?.touched || visitaForm.get('realizado')?.dirty)">
+          Este campo es obligatorio.
+        </ion-note>
+        <ion-note color="danger"
+          *ngIf="visitaForm.get('realizado')?.hasError('minWordsOrChars') && (visitaForm.get('realizado')?.touched || visitaForm.get('realizado')?.dirty)">
+          Debes detallar más (mínimo de palabras y caracteres).
+        </ion-note>
+      </ion-card-content>
+    </ion-card>
+
+  </form>
+
+  <!-- Historial -->
+  <ion-list>
+    <ion-list-header>
+      <ion-label style="font-weight: bold;">Historial</ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let v of visitas">
+      <ion-label>
+        <h2>{{ v.empresa }}</h2>
+        <p>{{ v.solicitante }} - Inicio: {{ v.inicio }}</p>
+        <p *ngIf="v.fin">Fin: {{ v.fin }}</p>
+      </ion-label>
+      <ion-button fill="clear" color="danger" (click)="eliminarVisita(v)">
+        Eliminar
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+</ion-content>
+
+<app-footer-menu></app-footer-menu>
