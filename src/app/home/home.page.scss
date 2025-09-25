@@ -1,0 +1,144 @@
+/* Fondo degradado para ion-content */
+.login-content {
+  --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  align-items: center;
+  text-align: center;
+}
+
+.logo-section {
+  margin-bottom: 40px;
+
+  .logo-title {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+
+  }
+
+  .logo-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+.login-card {
+  background: white;
+  border-radius: 15px;
+  padding: 30px 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  .card-header {
+    margin-bottom: 30px;
+
+    h1 {
+      color: #1976d2;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      color: #666;
+      font-size: 1rem;
+      margin: 0;
+    }
+  }
+}
+
+.login-form {
+
+  .form-item {
+    --background: transparent;
+    --border-color: #e0e0e0;
+    --border-radius: 8px;
+    margin-bottom: 20px;
+
+    ion-label {
+      color: #1976d2;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    ion-input {
+      --background: #f8f9fa;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+  }
+}
+
+.login-btn {
+  --background: #1976d2;
+  --background-hover: #1565c0;
+  --background-activated: #1565c0;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+  height: 48px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+
+  &:hover {
+    --box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+  }
+
+  &[disabled] {
+    --background: #90caf9;
+    --box-shadow: none;
+  }
+}
+
+/* Línea divisoria estilizada */
+.login-card::before {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+  margin: 0 auto 25px auto;
+  border-radius: 2px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 20px;
+  }
+
+  .logo-section .logo-title {
+    font-size: 2rem;
+  }
+
+  .login-card {
+    padding: 30px 25px;
+  }
+}
+
+
+.home-image-container {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 30px;
+
+  img {
+    max-width: 290px;
+    /* ajusta tamaño */
+    height: auto;
+    /* un poco transparente, opcional */
+  }
+}
