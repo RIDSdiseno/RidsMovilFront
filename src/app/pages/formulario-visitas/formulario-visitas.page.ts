@@ -61,12 +61,6 @@ export class FormularioVisitasPage implements OnInit {
     );
 
     this.username = localStorage.getItem('username') || '';
-    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
-    if (this.username && allHistorial[this.username]) {
-      this.visitas = allHistorial[this.username];
-    } else {
-      this.visitas = [];
-    }
   }
 
   iniciarVisita() {
@@ -134,14 +128,6 @@ export class FormularioVisitasPage implements OnInit {
     };
 
     this.visitas.push(data);
-
-    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
-    allHistorial[this.username] = this.visitas;
-    localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
-  }
-
-  eliminarVisita(v: any) {
-    this.visitas = this.visitas.filter(item => item !== v);
 
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     allHistorial[this.username] = this.visitas;

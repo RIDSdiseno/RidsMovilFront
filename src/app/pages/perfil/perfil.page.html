@@ -1,14 +1,50 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Perfil</ion-title>
-    <ion-buttons slot="end" class="formulario-image">
-      <img src="../../../assets/img/LOGO_RIDS.png" alt="Logo RIDS" />
+    <!-- Título centrado -->
+    <ion-title>Perfil de Usuario</ion-title>
+
+    <!-- Imagen al lado derecho -->
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="custom-background ion-padding">
-  <h2>Bienvenido</h2>
+  <h2>Perfil de Usuario</h2>
+
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Perfil</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Historial de Visitas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let visita of visitas">
+            <ion-label>
+              <h2>{{ visita.cliente }}</h2>
+              <p>Solicitante: {{ visita.solicitante }}</p>
+              <p>Inicio: {{ formatoFecha(visita.inicio) }}</p>
+              <p>Fin: {{ formatoFecha(visita.fin) }}</p>
+              <p>Realizado: {{ visita.realizado }}</p>
+            </ion-label>
+            <ion-button fill="clear" color="danger" (click)="eliminarVisita(visita)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <ion-item *ngIf="visitas.length === 0">
+            <ion-label>No hay visitas registradas.</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

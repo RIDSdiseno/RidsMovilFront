@@ -1,13 +1,12 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe  } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import { IonicModule } from '@ionic/angular';
-
 import { PerfilPageRoutingModule } from './perfil-routing.module';
-
 import { PerfilPage } from './perfil.page';
+import { FooterMenuComponent } from 'src/app/components/footer-menu/footer-menu.component'; 
 import { SharedModule } from 'src/app/shared/shared-module';
+
 
 @NgModule({
   imports: [
@@ -18,6 +17,6 @@ import { SharedModule } from 'src/app/shared/shared-module';
     SharedModule
   ],
   declarations: [PerfilPage],
-  
+  providers:[DatePipe],
 })
-export class PerfilPageModule {}
+export class PerfilPageModule { }

@@ -16,12 +16,6 @@ export class FooterMenuComponent  implements OnInit {
     this.router.navigateByUrl(path);
   }
 
-  logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('username');
-    this.router.navigate(['/home']);
-  }
-
   ngOnInit() {}
 
 }

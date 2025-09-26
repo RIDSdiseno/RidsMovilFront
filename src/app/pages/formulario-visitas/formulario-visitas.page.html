@@ -120,22 +120,6 @@
   </form>
 
   <!-- Historial -->
-  <ion-list>
-    <ion-list-header>
-      <ion-label style="font-weight: bold;">Historial</ion-label>
-    </ion-list-header>
-
-    <ion-item *ngFor="let v of visitas">
-      <ion-label>
-        <h2>{{ v.empresa }}</h2>
-        <p>{{ v.solicitante }} - Inicio: {{ v.inicio }}</p>
-        <p *ngIf="v.fin">Fin: {{ v.fin }}</p>
-      </ion-label>
-      <ion-button fill="clear" color="danger" (click)="eliminarVisita(v)">
-        Eliminar
-      </ion-button>
-    </ion-item>
-  </ion-list>
 
 </ion-content>
 
