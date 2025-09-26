@@ -17,4 +17,10 @@ export class ApiService {
   loginTecnicos(credentials:{email:string,password:string}):Observable<any>{
     return this.http.post(`${environment.apiUrl}/auth/login`,credentials)
   }
+  crearVisita(data:any):Observable<any>{
+    return this.http.post(`${environment.apiUrl}/auth/crear_visita`,data);
+  }
+  completarVisita(visitaId: number,data:any):Observable<any>{
+    return this.http.put(`${environment.apiUrl}/auth/finalizar_visita/${visitaId}`,data)
+  }
 }

@@ -40,8 +40,8 @@
         <ion-item>
           <ion-label position="stacked">Empresa/Cliente</ion-label>
           <!-- Usamos formControlName para vincular el campo al FormGroup -->
-          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
-            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente" [(ngModel)]="selectedCliente">
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente">
               {{ cliente.nombre }}
             </ion-select-option>
           </ion-select>

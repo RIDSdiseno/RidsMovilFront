@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../services/api'; // Asegúrate de importar el ApiService
+import { AuthService } from '../services/auth-service';  // Importamos el AuthService para gestionar el login
 
 interface Usuario {
   email: string;
@@ -19,18 +20,15 @@ export class HomePage {
   password: string = '';
   isLoading: boolean = false;
 
-  private usuariosValidos: Usuario[] = [
-    { email: 'admin@example.com', password: '1234' },
-    { email: 'tecnico@example.com', password: '1234' }
-  ];
-
   constructor(
     private router: Router,
     private alertController: AlertController,
     private loadingController: LoadingController,
-    private api: ApiService
+    private api: ApiService,
+    private authService: AuthService // Usamos el servicio de autenticación
   ) { }
 
+  // Método para realizar el login
   async login() {
     if (this.isLoading) return;
 
@@ -43,28 +41,27 @@ export class HomePage {
 
     const credentials = { email: this.username, password: this.password };
 
+    // Llamamos a la API para autenticar al técnico
     this.api.loginTecnicos(credentials).subscribe(
-      async (response:any) => {
+      async (response: any) => {
         await loading.dismiss();
         this.isLoading = false;
 
         if (response && response.token) {
-          // Guardar token y otros datos en localStorage o manejar el estado
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('username', this.username);
-          localStorage.setItem('token', response.token); // Guardar el token
+          // Guardamos el token y otros datos del técnico en el AuthService
+          this.authService.login(response.token, response.user); // Usamos el AuthService para gestionar el login
 
-          // Limpiar campos
+          // Limpiar campos de login
           this.username = '';
           this.password = '';
-
+          console.log(response.token,response.user)
           // Redirigir al dashboard o página principal
           this.router.navigate(['/inicio-footer']);
         } else {
           await this.mostrarError();
         }
       },
-      async (error:any) => {
+      async (error: any) => {
         await loading.dismiss();
         this.isLoading = false;
         console.error('Error al hacer login', error);
@@ -73,6 +70,7 @@ export class HomePage {
     );
   }
 
+  // Método para mostrar error cuando las credenciales son incorrectas
   private async mostrarError() {
     const alert = await this.alertController.create({
       header: 'Error de autenticación',
