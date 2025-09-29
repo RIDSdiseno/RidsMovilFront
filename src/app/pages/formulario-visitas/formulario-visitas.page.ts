@@ -40,6 +40,7 @@ export class FormularioVisitasPage implements OnInit {
     private api: ApiService,
     private toastController: ToastController
   ) {
+    // Inicializar el formulario con validaciones
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
       solicitante: ['', Validators.required],
@@ -53,7 +54,8 @@ export class FormularioVisitasPage implements OnInit {
       realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]]
     });
   }
-
+  
+  // Cargar clientes y datos del técnico al iniciar el componente
   ngOnInit() {
     this.api.getClientes().subscribe(
       (data) => {
@@ -72,7 +74,7 @@ export class FormularioVisitasPage implements OnInit {
       this.showToast('El técnico no está registrado correctamente. Intenta iniciar sesión nuevamente.');
       this.router.navigate(['/login']);  // Redirigir al login si el técnico no está registrado
     }
-
+    
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     if (this.username && allHistorial[this.username]) {
       this.visitas = allHistorial[this.username];
@@ -80,7 +82,8 @@ export class FormularioVisitasPage implements OnInit {
       this.visitas = [];
     }
   }
-
+  
+  // Método para iniciar la visita
   iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
     const clienteObj = this.clientes.find(c => c.id === clienteId);
@@ -105,7 +108,8 @@ export class FormularioVisitasPage implements OnInit {
       tecnicoId: this.tecnicoId,  // Incluimos el técnico
       empresaId: clienteObj.id  // El cliente es la empresa (corregido selectedCliente a clienteObj)
     };
-
+    
+    // Llamada a la API para crear la visita
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
         console.log('Visita iniciada correctamente:', response);
@@ -127,7 +131,8 @@ export class FormularioVisitasPage implements OnInit {
       }
     );
   }
-
+  
+  // Método para terminar la visita
   async terminarVisita() {
     if (!this.visitaId) {
       const alert = await this.alertController.create({
@@ -187,7 +192,8 @@ export class FormularioVisitasPage implements OnInit {
       }
     );
   }
-
+  
+  // Método para reiniciar el formulario
   resetFormulario() {
     this.visitaForm.reset();
     this.inicio = null;
@@ -196,7 +202,8 @@ export class FormularioVisitasPage implements OnInit {
     this.estado = 'Sin iniciar';
     this.estadoTexto = 'Listo para iniciar una visita.';
   }
-
+  
+  // Validador personalizado para mínimo de palabras y caracteres
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value || typeof control.value !== 'string') {
@@ -213,7 +220,8 @@ export class FormularioVisitasPage implements OnInit {
       this.visitaForm.get('otrosDetalle')?.setValue('');
     }
   }
-
+  
+  // Guardar la visita en el almacenamiento local
   guardarVisita() {
     const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
     const finFmt = this.fin ? this.datePipe.transform(this.fin, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
@@ -231,7 +239,7 @@ export class FormularioVisitasPage implements OnInit {
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
   }
-
+  
   eliminarVisita(v: any) {
     this.visitas = this.visitas.filter(item => item !== v);
 
@@ -239,7 +247,7 @@ export class FormularioVisitasPage implements OnInit {
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
   }
-
+  
   async showToast(message: string) {
     const toast = await this.toastController.create({
       message,

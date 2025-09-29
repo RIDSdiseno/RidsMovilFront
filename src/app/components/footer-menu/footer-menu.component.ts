@@ -11,7 +11,7 @@ export class FooterMenuComponent  implements OnInit {
 
   constructor(private router: Router) { }
 
-
+  // Navegar a la ruta especificada
   goTo(path: string) {
     this.router.navigateByUrl(path);
   }

@@ -7,6 +7,7 @@ import { Component, OnInit } from '@angular/core';
   standalone: false,
 })
 export class InicioFooterPage implements OnInit {
+  // Variables para la creación del calendario
   currentTime: string = '';
   currentDate: string = '';
   weekDay: string = '';
@@ -21,7 +22,7 @@ export class InicioFooterPage implements OnInit {
   currentCalendarDate: Date = new Date(); // Usado para navegar entre meses
 
   constructor() { }
-
+  
   ngOnInit() {
     this.updateTime();
     setInterval(() => this.updateTime(), 1000);
@@ -42,7 +43,8 @@ export class InicioFooterPage implements OnInit {
     this.totalDaysThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     this.daysRemaining = this.totalDaysThisMonth - now.getDate();
   }
-
+  
+  // Método para generar el calendario del mes actual
   generateCalendar() {
     const now = this.currentCalendarDate;
 
@@ -74,7 +76,8 @@ export class InicioFooterPage implements OnInit {
 
     this.calendarTitle = `${now.toLocaleString('es-ES', { month: 'long' })} ${now.getFullYear()}`;
   }
-
+  
+  // Navegación entre meses previos
   previousMonth() {
     this.currentCalendarDate = new Date(
       this.currentCalendarDate.getFullYear(),
@@ -83,7 +86,8 @@ export class InicioFooterPage implements OnInit {
     );
     this.generateCalendar();
   }
-
+  
+  // Navegación entre meses proximos
   nextMonth() {
     this.currentCalendarDate = new Date(
       this.currentCalendarDate.getFullYear(),
