@@ -25,8 +25,7 @@ export class PerfilPage implements OnInit {
   visitas: Visita[] = [];
   tecnicoId: number = 0;
 
-  constructor(private api: ApiService, private datePipe: DatePipe) {}
-  constructor(private datePipe: DatePipe, private router: Router) { }
+  constructor(private api: ApiService, private datePipe: DatePipe,private router: Router) {}
 
   ngOnInit() {
    const id = localStorage.getItem('tecnicoId');
@@ -78,9 +77,7 @@ export class PerfilPage implements OnInit {
     const date = new Date(fecha);
     return this.datePipe.transform(date, 'dd/MM/yyyy HH:mm') || '-';
 }
-    const [dia, hora] = fecha.split(' ');
-    return `${dia} ${hora}`;
-  }
+  
   cerrarSesion() {
     localStorage.removeItem('username'); // También puedes usar clear() si quieres borrar todo
     this.router.navigate(['/home']); // Reemplaza '/login' por la ruta de tu login real
