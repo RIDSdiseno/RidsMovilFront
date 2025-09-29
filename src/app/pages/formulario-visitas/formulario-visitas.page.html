@@ -35,11 +35,11 @@
         <!-- Cliente -->
         <ion-item>
           <ion-label position="stacked">Empresa/Cliente</ion-label>
-          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
-            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
-              {{ cliente.nombre }}
-            </ion-select-option>
-          </ion-select>
+            <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
+              <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+                  {{ cliente.nombre }}
+              </ion-select-option>
+            </ion-select>
         </ion-item>
         <ion-note color="danger" *ngIf="visitaForm.get('cliente')?.invalid && visitaForm.get('cliente')?.touched">
           Este campo es obligatorio.
