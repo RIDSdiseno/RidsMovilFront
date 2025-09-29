@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEsCl from '@angular/common/locales/es-CL';
+import { ApiService } from 'src/app/services/api';
 import { Router } from '@angular/router';
 
 
@@ -8,17 +9,10 @@ import { Router } from '@angular/router';
 registerLocaleData(localeEsCl, 'es-CL');
 
 interface Visita {
-  cliente: string;
   solicitante: string;
-  impresoras: boolean;
-  telefonos: boolean;
-  pie: boolean;
-  otros: boolean;
-  otrosDetalle: string;
   realizado: string;
-  inicio: string | null;
-  fin: string | null;
-  username: string;
+  inicio: string;
+  fin: string;
 }
 
 @Component({
@@ -29,11 +23,32 @@ interface Visita {
 })
 export class PerfilPage implements OnInit {
   visitas: Visita[] = [];
-  username: string = '';
+  tecnicoId: number = 0;
 
+  constructor(private api: ApiService, private datePipe: DatePipe) {}
   constructor(private datePipe: DatePipe, private router: Router) { }
 
   ngOnInit() {
+   const id = localStorage.getItem('tecnicoId');
+    if (id) {
+      this.tecnicoId = parseInt(id);
+      this.cargarHistorial();
+    }
+  }
+
+  cargarHistorial() {
+    this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
+      next: (res) => {
+        this.visitas = res.historial || [];
+        console.log(this.visitas)
+      },
+      error: (err) => {
+        console.error('Error al cargar historial:', err);
+      }
+    });
+  }
+ /* eliminarVisita(v: Visita) {
+    this.visitas = this.visitas.filter(item => item !== v);
     this.username = (localStorage.getItem('username') || '').toLowerCase();
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     console.log('Cargando historial para', this.username, allHistorial);
@@ -56,9 +71,13 @@ export class PerfilPage implements OnInit {
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
   }
+  }*/
 
   formatoFecha(fecha: string | null): string {
     if (!fecha) return '-';
+    const date = new Date(fecha);
+    return this.datePipe.transform(date, 'dd/MM/yyyy HH:mm') || '-';
+}
     const [dia, hora] = fecha.split(' ');
     return `${dia} ${hora}`;
   }

@@ -15,6 +15,29 @@
     </ion-col>
   </ion-row>
 
+  <ion-content>
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Historial de Visitas</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-list>
+      <ion-item *ngFor="let visita of visitas">
+        <ion-label>
+          <p>Solicitante: {{ visita.solicitante }}</p>
+          <p>Inicio: {{ formatoFecha(visita.inicio) }}</p>
+          <p>Fin: {{ formatoFecha(visita.fin) }}</p>
+          <p>Realizado: {{ visita.realizado }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item *ngIf="visitas.length === 0">
+        <ion-label>No hay visitas registradas.</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+
+  </ion-content>
   <ion-card>
     <ion-card-header>
       <ion-card-title>Historial de Visitas</ion-card-title>
