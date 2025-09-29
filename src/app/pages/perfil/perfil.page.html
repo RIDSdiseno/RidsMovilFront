@@ -2,7 +2,7 @@
   <ion-toolbar class="custom-header-toolbar">
     <ion-title class="header-title">Perfil de Usuario</ion-title>
     <ion-buttons slot="end">
-      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo"/>
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -29,7 +29,7 @@
           <ion-icon name="clipboard-outline" slot="start" class="icono-visita"></ion-icon>
           <ion-label>
             <h3><strong>{{ visita.solicitante }}</strong></h3> <!-- Mostrar solicitante -->
-            <p><ion-icon name="time-outline"></ion-icon> Inicio: <strong>{{ formatoFecha(visita.inicio) }}</strong></p> 
+            <p><ion-icon name="time-outline"></ion-icon> Inicio: <strong>{{ formatoFecha(visita.inicio) }}</strong></p>
             <p><ion-icon name="checkmark-done-outline"></ion-icon> Fin: <strong>{{ formatoFecha(visita.fin) }}</strong>
             </p>
             <p class="realizado-texto">
@@ -42,7 +42,7 @@
         <ion-item *ngIf="visitas.length === 0">
           <ion-label>
             <ion-icon name="information-circle-outline"></ion-icon>
-            No hay visitas registradas. 
+            No hay visitas registradas.
           </ion-label>
         </ion-item>
       </ion-list>

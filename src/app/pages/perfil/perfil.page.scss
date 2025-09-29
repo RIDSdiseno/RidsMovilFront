@@ -135,10 +135,23 @@ ion-card {
             }
 
             .realizado-texto {
+                display: flex;
+                align-items: flex-start; // Alinea el icono arriba
+                gap: 6px; // Espacio entre el icono y el texto
                 font-style: italic;
                 color: #555;
                 margin-top: 6px;
+                white-space: normal; // Permite salto de línea
+                word-break: break-word; // Rompe palabras largas si es necesario
+                line-height: 1.4;
+
+                ion-icon {
+                    margin-top: 2px;
+                    flex-shrink: 0;
+                    color: #1e88e5; // Igual que los otros íconos
+                }
             }
+
         }
 
         .icono-visita {

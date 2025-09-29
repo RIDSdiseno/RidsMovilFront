@@ -239,15 +239,7 @@ export class FormularioVisitasPage implements OnInit {
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
   }
-  
-  eliminarVisita(v: any) {
-    this.visitas = this.visitas.filter(item => item !== v);
-
-    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
-    allHistorial[this.username] = this.visitas;
-    localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
-  }
-  
+   
   async showToast(message: string) {
     const toast = await this.toastController.create({
       message,

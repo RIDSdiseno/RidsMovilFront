@@ -12,7 +12,7 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ estado }}</ion-card-title> <!-- Mostrar estado actual -->
-      <ion-card-subtitle>{{ estadoTexto }}</ion-card-subtitle> 
+      <ion-card-subtitle>{{ estadoTexto }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
       <p><strong>Inicio:</strong> {{ inicio | date:'dd/MM/yyyy HH:mm' }}</p>
@@ -35,30 +35,33 @@
         <!-- Cliente -->
         <ion-item>
           <ion-label position="stacked">Empresa/Cliente</ion-label>
-            <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
-              <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
-                  {{ cliente.nombre }}
-              </ion-select-option>
-            </ion-select>
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+              {{ cliente.nombre }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
         <ion-note color="danger" *ngIf="visitaForm.get('cliente')?.invalid && visitaForm.get('cliente')?.touched">
           Este campo es obligatorio.
         </ion-note>
 
         <!-- Solicitante -->
-        <ion-item>
-          <ion-label position="stacked">Quién solicita</ion-label>
-          <ion-select placeholder="Selecciona solicitante" formControlName="solicitante">
-            <ion-select-option value="Juan Pérez">Juan Pérez</ion-select-option>
-            <ion-select-option value="María López">María López</ion-select-option>
-            <ion-select-option value="Carlos Díaz">Carlos Díaz</ion-select-option>
-            <ion-select-option value="Ana González">Ana González</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="danger"
-          *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
-          Este campo es obligatorio.
-        </ion-note>
+        <!-- Solo se muestra si hay un cliente seleccionado -->
+        <ng-container *ngIf="visitaForm.get('cliente')?.value">
+          <ion-item>
+            <ion-label position="stacked">Quién solicita</ion-label>
+            <ion-select placeholder="Selecciona solicitante" formControlName="solicitante">
+              <ion-select-option value="Juan Pérez">Juan Pérez</ion-select-option>
+              <ion-select-option value="María López">María López</ion-select-option>
+              <ion-select-option value="Carlos Díaz">Carlos Díaz</ion-select-option>
+              <ion-select-option value="Ana González">Ana González</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-note color="danger"
+            *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
+            Este campo es obligatorio.
+          </ion-note>
+        </ng-container>
 
       </ion-card-content>
     </ion-card>
