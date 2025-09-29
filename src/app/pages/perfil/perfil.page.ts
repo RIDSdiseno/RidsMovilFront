@@ -24,14 +24,19 @@ interface Visita {
 export class PerfilPage implements OnInit {
   visitas: Visita[] = [];
   tecnicoId: number = 0;
+  tecnico: any;
 
   constructor(private api: ApiService, private datePipe: DatePipe,private router: Router) {}
 
   ngOnInit() {
    const id = localStorage.getItem('tecnicoId');
+   const tecnicoData = localStorage.getItem('tecnico')
     if (id) {
       this.tecnicoId = parseInt(id);
       this.cargarHistorial();
+    }
+    if(tecnicoData){
+      this.tecnico = JSON.parse(tecnicoData);
     }
   }
 
