@@ -43,10 +43,12 @@ export class FormularioVisitasPage implements OnInit {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
       solicitante: ['', Validators.required],
-      impresoras: [false],
-      telefonos: [false],
-      pie: [false],
-      otros: [false],
+      actividades: this.fb.group({
+        impresoras: [false],
+        telefonos: [false],
+        pie: [false],
+        otros: [false],
+      }),
       otrosDetalle: [''],
       realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]]
     });
@@ -60,10 +62,7 @@ export class FormularioVisitasPage implements OnInit {
       (error) => {
         console.error('Error al cargar clientes', JSON.stringify(error));
       }
-
     );
-    this.selectedCliente = this.selectedCliente || null;
-    console.log('Selected cliente en ngOnInit:', this.selectedCliente);
 
     // Verificar si el técnico está correctamente logueado y obtener sus datos
     this.username = localStorage.getItem('username') || '';
@@ -83,8 +82,11 @@ export class FormularioVisitasPage implements OnInit {
   }
 
   iniciarVisita() {
-    if (!this.selectedCliente || !this.selectedCliente.id) {
-      this.showToast('Por favor, selecciona un cliente antes de iniciar la visita.');
+    const clienteId = this.visitaForm.value.cliente;
+    const clienteObj = this.clientes.find(c => c.id === clienteId);
+
+    if (!clienteObj) {
+      this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
       return;
     }
 
@@ -96,12 +98,12 @@ export class FormularioVisitasPage implements OnInit {
 
     // Enviar solo el ID de la empresa al backend
     const visitaData = {
-      cliente: this.selectedCliente.id,  // Solo pasamos el ID de la empresa
+      cliente: clienteId,  // Solo pasamos el ID de la empresa
       solicitante: this.visitaForm.value.solicitante,
       realizado: this.visitaForm.value.realizado,
       inicio: this.inicio,
       tecnicoId: this.tecnicoId,  // Incluimos el técnico
-      empresaId: this.selectedCliente.id  // El cliente es la empresa
+      empresaId: clienteObj.id  // El cliente es la empresa (corregido selectedCliente a clienteObj)
     };
 
     this.api.crearVisita(visitaData).subscribe(
@@ -154,15 +156,17 @@ export class FormularioVisitasPage implements OnInit {
     this.estado = 'Completada';
     this.estadoTexto = 'La visita ha sido registrada.';
 
+    const actividades = this.visitaForm.get('actividades')?.value || {};
+
     // Datos para enviar al backend
     const data = {
-      confImpresoras: this.visitaForm.value.impresoras,
-      confTelefonos: this.visitaForm.value.telefonos,
-      confPiePagina: this.visitaForm.value.pie,
-      otros: this.visitaForm.value.otros,
+      confImpresoras: actividades.impresoras,
+      confTelefonos: actividades.telefonos,
+      confPiePagina: actividades.pie,
+      otros: actividades.otros,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
-      solicitante: this.visitaForm.value.solicitante, // Asegúrate de que esto se incluya
-      realizado: this.visitaForm.value.realizado // Asegúrate de que esto se incluya
+      solicitante: this.visitaForm.value.solicitante,
+      realizado: this.visitaForm.value.realizado
     };
 
     // Usamos el ID de la visita para completar la visita
@@ -183,8 +187,6 @@ export class FormularioVisitasPage implements OnInit {
       }
     );
   }
-
-
 
   resetFormulario() {
     this.visitaForm.reset();
@@ -207,7 +209,7 @@ export class FormularioVisitasPage implements OnInit {
   }
 
   toggleOtros() {
-    if (!this.visitaForm.get('otros')?.value) {
+    if (!this.visitaForm.get('actividades.otros')?.value) {
       this.visitaForm.get('otrosDetalle')?.setValue('');
     }
   }
@@ -240,7 +242,7 @@ export class FormularioVisitasPage implements OnInit {
 
   async showToast(message: string) {
     const toast = await this.toastController.create({
-      message: message,
+      message,
       duration: 2000
     });
     toast.present();
