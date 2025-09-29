@@ -44,7 +44,7 @@ export class HomePage {
     const credentials = { email: this.username, password: this.password };
 
     this.api.loginTecnicos(credentials).subscribe(
-      async (response:any) => {
+      async (response: any) => {
         await loading.dismiss();
         this.isLoading = false;
 
@@ -64,7 +64,7 @@ export class HomePage {
           await this.mostrarError();
         }
       },
-      async (error:any) => {
+      async (error: any) => {
         await loading.dismiss();
         this.isLoading = false;
         console.error('Error al hacer login', JSON.stringify(error));

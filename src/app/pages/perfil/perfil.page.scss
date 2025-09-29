@@ -1,3 +1,21 @@
+ion-content {
+    --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+}
+
+@keyframes backgroundFade {
+    0% {
+        --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    }
+
+    50% {
+        --background: linear-gradient(135deg, #f0f8ff 0%, #1e6bb8 100%);
+    }
+
+    100% {
+        --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    }
+}
+
 ion-header {
     text-align: center;
     box-shadow: 0 4px 12px rgba(20, 143, 201, 0.2);
@@ -12,6 +30,86 @@ ion-header {
     }
 }
 
-ion-content {
-    --background: linear-gradient(135deg,  #ffffff 0%, #2c8fe0 100%);
+.formulario-image {
+    img {
+        max-width: 95px;
+        height: auto;
+        opacity: 1;
+    }
+
+    img:hover {
+        transform: rotate(-5deg) scale(1.05);
+    }
+}
+
+.welcome-title {
+    color: #1976d2;
+    font-size: 2.2rem;
+    font-weight: 600;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    animation: fadeInDown 2s ease;
+}
+
+.welcome-subtitle {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 1.5rem;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 2.5s ease;
+}
+
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+ion-card {
+    border: 2px rgb(172, 167, 167);
+    border-radius: 12px;
+    box-shadow: rgb(97, 95, 95);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.btn-cerrar-sesion {
+    --background: #d83636; // Rojo suave
+    --color: white; // Texto blanco
+    --border-radius: 12px; // Bordes redondeados
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); // Sombra suave
+    margin-top: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: transform 0.2s ease-in-out;
+
+    ion-icon {
+        font-size: 20px;
+    }
+
+    &:hover {
+        transform: scale(1.02);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
 }

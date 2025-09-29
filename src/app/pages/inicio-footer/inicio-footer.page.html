@@ -8,38 +8,69 @@
 </ion-header>
 
 <ion-content class="ion-padding" fullscreen="true">
+  <!-- Bienvenida -->
   <ion-row class="ion-justify-content-center ion-padding">
     <ion-col size="12" size-md="8" text-center>
       <h2 class="welcome-title">¡Bienvenido!</h2>
       <p class="welcome-subtitle">Aquí tienes un resumen de tu día.</p>
     </ion-col>
   </ion-row>
+
+  <!-- Reloj y fecha -->
+  <ion-card class="time-card">
+    <ion-card-content class="ion-text-center">
+      <div class="current-time">{{ currentTime }}</div>
+      <div class="current-date">{{ currentDate }}</div>
+    </ion-card-content>
+  </ion-card>
+
   <!-- Calendario -->
   <ion-card class="calendar-card ion-padding">
     <ion-grid>
-      <!-- Encabezados días -->
+
+      <!-- Encabezado de navegación -->
+      <ion-row class="ion-align-items-center ion-justify-content-between calendar-header">
+        <ion-col size="2">
+          <ion-button fill="clear" (click)="previousMonth()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </ion-button>
+        </ion-col>
+
+        <ion-col size="8" class="ion-text-center">
+          <h3>{{ calendarTitle | titlecase }}</h3>
+        </ion-col>
+
+        <ion-col size="2" class="ion-text-right">
+          <ion-button fill="clear" (click)="nextMonth()">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+
+      <!-- Días de la semana -->
       <ion-row>
         <ion-col *ngFor="let day of dayNames" class="ion-text-center">
           <strong>{{ day }}</strong>
         </ion-col>
       </ion-row>
-      <!-- Semanas -->
+
+      <!-- Días del calendario -->
       <ion-row *ngFor="let week of calendarWeeks">
         <ion-col *ngFor="let day of week" class="calendar-day" [class.today]="day.isToday"
           [class.other-month]="day.otherMonth">
           {{ day.date }}
         </ion-col>
       </ion-row>
+
+      <!-- Estadísticas -->
       <ion-card class="stat-card ion-padding">
         <ion-grid>
           <ion-row>
-            <!-- Primer bloque: Días este mes -->
             <ion-col class="ion-text-center">
               <h2>{{ totalDaysThisMonth }}</h2>
               <p>Días este mes</p>
             </ion-col>
 
-            <!-- Segundo bloque: Días restantes -->
             <ion-col class="ion-text-center">
               <h2>{{ daysRemaining }}</h2>
               <p>Días restantes para que paguen</p>
@@ -52,4 +83,4 @@
   </ion-card>
 </ion-content>
 
-  <app-footer-menu></app-footer-menu>
+<app-footer-menu></app-footer-menu>

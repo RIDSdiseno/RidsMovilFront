@@ -1,5 +1,6 @@
 ion-content {
     --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    animation: backgroundFade 15s infinite ease-in-out;
 }
 
 @keyframes backgroundFade {
@@ -35,6 +36,7 @@ ion-header {
         max-width: 95px;
         height: auto;
         opacity: 1;
+        transition: all 0.3s;
     }
 
     img:hover {
@@ -43,10 +45,10 @@ ion-header {
 }
 
 .welcome-title {
-    color: rgb(0, 0, 0);
+    color: #1976d2;
     font-size: 2.2rem;
     font-weight: 700;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    text-shadow: 0 4px 8px rgba(53, 48, 48, 0.15);
     animation: fadeInDown 2s ease;
 }
 
@@ -79,12 +81,51 @@ ion-header {
     }
 }
 
+/* 🕒 Bloque del reloj */
+.time-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(44, 143, 224, 0.1);
+    margin-bottom: 1rem;
+    padding: 1.2rem;
+    text-align: center;
+    animation: fadeIn 1s ease-in;
+
+    .current-time {
+        font-size: 2.8rem;
+        font-weight: bold;
+        color: #1976d2;
+    }
+
+    .current-date {
+        font-size: 1.1rem;
+        color: #444;
+        margin: 8px 0;
+    }
+}
+
+/* 📆 Calendario */
 .calendar-card {
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(44, 143, 224, 0.15);
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(6px);
     transition: all 0.3s;
+}
+
+.calendar-header {
+    margin-bottom: 10px;
+
+    ion-button {
+        --color: #1976d2;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1976d2;
+    }
 }
 
 .calendar-day {
@@ -96,28 +137,29 @@ ion-header {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 1rem;
+
+    &.today {
+        background-color: #2c8fe0 !important;
+        color: white !important;
+        font-weight: 700;
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(44, 143, 224, 0.7);
+        z-index: 1;
+    }
+
+    &.other-month {
+        color: #ccc;
+    }
+
+    &:hover {
+        transform: scale(1.2);
+        background-color: rgba(44, 143, 224, 0.2);
+    }
 }
 
-.calendar-day.today {
-    background-color: #2c8fe0 !important;
-    /* fondo azul */
-    color: white !important;
-    /* texto blanco */
-    font-weight: 700;
-    transform: scale(1.15);
-    box-shadow: 0 0 12px rgba(44, 143, 224, 0.7);
-    z-index: 1;
-}
-
-.calendar-day.other-month {
-    color: #ccc;
-}
-
-.calendar-day:hover {
-    transform: scale(1.2);
-    background-color: rgba(44, 143, 224, 0.2);
-}
-
+/* 📊 Estadísticas */
 .stat-card {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
@@ -125,22 +167,23 @@ ion-header {
     text-align: center;
     box-shadow: 0 6px 20px rgba(44, 143, 224, 0.15);
     transition: transform 0.3s, box-shadow 0.3s;
-}
+    margin-top: 20px;
 
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(44, 143, 224, 0.25);
-}
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(44, 143, 224, 0.25);
+    }
 
-.stat-card h2 {
-    color: #1976d2;
-    font-size: 2rem;
-    margin: 0.3rem 0;
-    transition: color 0.3s;
-}
+    h2 {
+        color: #1976d2;
+        font-size: 2rem;
+        margin: 0.3rem 0;
+        transition: color 0.3s;
+    }
 
-.stat-card p {
-    color: #444;
-    margin: 0;
-    font-size: 0.9rem;
+    p {
+        color: #444;
+        margin: 0;
+        font-size: 0.9rem;
+    }
 }

@@ -1,9 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <!-- Título centrado -->
     <ion-title>Registro de Visitas</ion-title>
-
-    <!-- Imagen al lado derecho -->
     <ion-buttons slot="end">
       <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
     </ion-buttons>
@@ -11,7 +8,6 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-
   <!-- Estado -->
   <ion-card>
     <ion-card-header>
@@ -19,8 +15,8 @@
       <ion-card-subtitle>{{ estadoTexto }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Inicio:</strong> {{ inicio | date:'short' }}</p>
-      <p><strong>Término:</strong> {{ fin | date:'short' }}</p>
+      <p><strong>Inicio:</strong> {{ inicio | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p><strong>Término:</strong> {{ fin | date:'dd/MM/yyyy HH:mm' }}</p>
       <ion-button expand="block" (click)="iniciarVisita()" [disabled]="visitaEnCurso">Iniciar Visita</ion-button>
       <ion-button expand="block" (click)="terminarVisita()" [disabled]="!visitaEnCurso">Terminar Visita</ion-button>
       <ion-button expand="block" fill="outline" (click)="resetFormulario()">Limpiar Datos de Visita</ion-button>
@@ -29,7 +25,6 @@
 
   <!-- Formulario -->
   <form [formGroup]="visitaForm">
-
     <!-- Datos principales -->
     <ion-card>
       <ion-card-header>
@@ -37,9 +32,9 @@
       </ion-card-header>
       <ion-card-content>
 
+        <!-- Cliente -->
         <ion-item>
           <ion-label position="stacked">Empresa/Cliente</ion-label>
-          <!-- Usamos formControlName para vincular el campo al FormGroup -->
           <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
             <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
               {{ cliente.nombre }}
@@ -50,9 +45,9 @@
           Este campo es obligatorio.
         </ion-note>
 
+        <!-- Solicitante -->
         <ion-item>
           <ion-label position="stacked">Quién solicita</ion-label>
-          <!-- Usamos formControlName para vincular el campo al FormGroup -->
           <ion-select placeholder="Selecciona solicitante" formControlName="solicitante">
             <ion-select-option value="Juan Pérez">Juan Pérez</ion-select-option>
             <ion-select-option value="María López">María López</ion-select-option>
@@ -69,7 +64,7 @@
     </ion-card>
 
     <!-- Solicitud adicional -->
-    <ion-card>
+    <ion-card [formGroupName]="'actividades'">
       <ion-card-header>
         <ion-card-title>Solicitud adicional</ion-card-title>
       </ion-card-header>
@@ -88,11 +83,21 @@
         </ion-item>
         <ion-item>
           <ion-label class="nowrap">Otra Solicitud...</ion-label>
-          <ion-checkbox slot="end" formControlName="otros" (ionChange)="toggleOtros()"></ion-checkbox>
+          <ion-checkbox slot="end" formControlName="otros"></ion-checkbox>
         </ion-item>
-        <ion-item *ngIf="visitaForm.get('otros')?.value">
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Campo "otrosDetalle" solo si "otros" está activo -->
+    <ion-card *ngIf="visitaForm.get('actividades.otros')?.value">
+      <ion-card-content>
+        <ion-item>
           <ion-input placeholder="Describe la solicitud" formControlName="otrosDetalle"></ion-input>
         </ion-item>
+        <ion-note color="danger"
+          *ngIf="visitaForm.get('otrosDetalle')?.invalid && visitaForm.get('otrosDetalle')?.touched">
+          Este campo es obligatorio.
+        </ion-note>
       </ion-card-content>
     </ion-card>
 
@@ -105,7 +110,7 @@
         <ion-textarea formControlName="realizado" rows="4"
           placeholder="Describe las tareas realizadas..."></ion-textarea>
 
-        <!-- Errores -->
+        <!-- Validaciones -->
         <ion-note color="danger"
           *ngIf="visitaForm.get('realizado')?.hasError('required') && (visitaForm.get('realizado')?.touched || visitaForm.get('realizado')?.dirty)">
           Este campo es obligatorio.
@@ -116,11 +121,7 @@
         </ion-note>
       </ion-card-content>
     </ion-card>
-
   </form>
-
-  <!-- Historial -->
-
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

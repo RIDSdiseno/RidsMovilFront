@@ -1,12 +1,26 @@
 /* Fondo degradado para ion-content */
 ion-content {
-    --background: linear-gradient(135deg,  #ffffff 0%, #2c8fe0 100%);
+    --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+}
+
+@keyframes backgroundFade {
+    0% {
+        --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    }
+
+    50% {
+        --background: linear-gradient(135deg, #f0f8ff 0%, #1e6bb8 100%);
+    }
+
+    100% {
+        --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    }
 }
 
 ion-card-title {
     font-size: 1.4rem;
     font-weight: 600;
-    color: #000000;
+    color: #1976d2;
 }
 
 ion-header {
@@ -23,22 +37,21 @@ ion-header {
     }
 }
 
-/* Bordes de ion-card */
 .formulario-image {
-    display: flex;
-    align-items: center; 
-    justify-content: flex-end;
-
     img {
         max-width: 95px;
         height: auto;
-        opacity: 1.0;
+        opacity: 1;
+    }
+
+    img:hover {
+        transform: rotate(-5deg) scale(1.05);
     }
 }
 
 ion-card {
     border: 2px rgb(172, 167, 167);
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: rgb(97, 95, 95);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 
@@ -55,8 +68,8 @@ ion-list {
 }
 
 ion-label[position="stacked"] {
-  font-size: 1.2rem !important;   // fuerza el tamaño
-  color: #000;   // opcional
+    font-size: 1.2rem !important; // fuerza el tamaño
+    color: #000; // opcional
 }
 
 ion-item {
@@ -64,7 +77,7 @@ ion-item {
     justify-content: space-between;
     opacity: 0;
     animation: fadeIn 0.5s forwards;
-    border-radius: 10px;
+    border-radius: 12px;
     margin-bottom: 6px;
     transition: background-color 0.3s ease, transform 0.2s ease;
 
@@ -104,7 +117,7 @@ ion-item {
 }
 
 ion-button {
-    border-radius: 25px;
+    border-radius: 12px;
     margin-top: 10px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
@@ -128,7 +141,7 @@ ion-textarea {
     --background: #fff;
     --color: #000;
     --placeholder-color: #aaa;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #ddd;
     padding: 8px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;

@@ -1,9 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <!-- Título centrado -->
     <ion-title>Perfil de Usuario</ion-title>
-
-    <!-- Imagen al lado derecho -->
     <ion-buttons slot="end">
       <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
     </ion-buttons>
@@ -11,40 +8,51 @@
 </ion-header>
 
 <ion-content class="custom-background ion-padding">
-  <h2>Perfil de Usuario</h2>
+  <ion-row class="ion-justify-content-center ion-padding">
+    <ion-col size="12" size-md="8" text-center>
+      <h2 class="welcome-title">Bienvenido, </h2>
+      <h3 class="welcome-subtitle">{{ username }}</h3>
+    </ion-col>
+  </ion-row>
 
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Perfil</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Historial de Visitas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let visita of visitas">
+          <ion-label>
+            <h2>{{ visita.cliente }}</h2>
+            <p><strong>Solicitante:</strong> {{ visita.solicitante }}</p>
+            <p><strong>Inicio:</strong> {{ formatoFecha(visita.inicio) }}</p>
+            <p><strong>Fin:</strong> {{ formatoFecha(visita.fin) }}</p>
+            <p><strong>Actividades:</strong>
+              <span *ngIf="visita.impresoras">🖨️ Impresoras </span>
+              <span *ngIf="visita.telefonos">📞 Teléfonos IP </span>
+              <span *ngIf="visita.pie">🖋️ Pie de página </span>
+              <span *ngIf="visita.otros">📝 Otros: {{ visita.otrosDetalle }}</span>
+            </p>
+            <p><strong>Realizado:</strong> {{ visita.realizado }}</p>
+          </ion-label>
 
-  <ion-content>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Historial de Visitas</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item *ngFor="let visita of visitas">
-            <ion-label>
-              <h2>{{ visita.cliente }}</h2>
-              <p>Solicitante: {{ visita.solicitante }}</p>
-              <p>Inicio: {{ formatoFecha(visita.inicio) }}</p>
-              <p>Fin: {{ formatoFecha(visita.fin) }}</p>
-              <p>Realizado: {{ visita.realizado }}</p>
-            </ion-label>
-            <ion-button fill="clear" color="danger" (click)="eliminarVisita(visita)">
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-button>
-          </ion-item>
-          <ion-item *ngIf="visitas.length === 0">
-            <ion-label>No hay visitas registradas.</ion-label>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-  </ion-content>
+          <ion-button fill="clear" color="danger" (click)="eliminarVisita(visita)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <ion-item *ngIf="visitas.length === 0">
+          <ion-label>No hay visitas registradas.</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button class="btn-cerrar-sesion" expand="block" (click)="cerrarSesion()">
+    <ion-icon name="log-out-outline" slot="start"></ion-icon>
+    Cerrar sesión
+  </ion-button>
+
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

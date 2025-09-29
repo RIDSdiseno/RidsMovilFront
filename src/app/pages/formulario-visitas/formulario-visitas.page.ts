@@ -1,15 +1,18 @@
 import { CommonModule, DatePipe, registerLocaleData } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api';
-
-// Importa la configuración regional para "es-CL"
 import localeEsCl from '@angular/common/locales/es-CL';
+import { AlertController } from '@ionic/angular';
 
-// Registrar la configuración regional "es-CL"
 registerLocaleData(localeEsCl, 'es-CL');
+
+enum EstadoVisita {
+  SIN_INICIAR = 'Sin iniciar',
+  EN_CURSO = 'En curso',
+  COMPLETADA = 'Completada'
+}
 
 @Component({
   selector: 'app-formulario-visitas',
@@ -20,86 +23,116 @@ registerLocaleData(localeEsCl, 'es-CL');
 export class FormularioVisitasPage implements OnInit {
   visitaForm: FormGroup;
   visitas: any[] = [];
+  clientes: any[] = [];
 
   inicio: Date | null = null;
   fin: Date | null = null;
-  estado: string = 'Sin iniciar';
+  estado: EstadoVisita = EstadoVisita.SIN_INICIAR;
   estadoTexto: string = 'Listo para iniciar una visita.';
   visitaEnCurso = false;
   username: string = '';
 
-  clientes: any[] = []; // Array para almacenar los clientes
-  selectedCliente: any; // Cliente seleccionado en el formulario
-
   constructor(
     private fb: FormBuilder,
     private datePipe: DatePipe,
-    private alertController: AlertController,
+    private api: ApiService,
     private router: Router,
-    private api: ApiService
+    private alertController: AlertController
   ) {
     this.visitaForm = this.fb.group({
-      cliente: ['', Validators.required],  // Usamos 'cliente' como formControlName
+      cliente: ['', Validators.required],
       solicitante: ['', Validators.required],
-      impresoras: [false],
-      telefonos: [false],
-      pie: [false],
-      otros: [false],
+      actividades: this.fb.group({
+        impresoras: [false],
+        telefonos: [false],
+        pie: [false],
+        otros: [false],
+      }),
       otrosDetalle: [''],
-      realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]]
+      realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]],
     });
   }
 
   ngOnInit() {
+    this.username = (localStorage.getItem('username') || '').toLowerCase();
     this.api.getClientes().subscribe(
-      (data) => {
-        this.clientes = data;
-      },
-      (error) => {
-        console.error('Error al cargar clientes', JSON.stringify(error));
-      }
+      (data) => this.clientes = data,
+      (error) => console.error('Error al cargar clientes', error)
     );
 
-    this.username = localStorage.getItem('username') || '';
+    this.setupOtrosDetalleValidation();
+    this.visitaForm.disable(); // Deshabilitado por defecto
   }
 
   iniciarVisita() {
     this.inicio = new Date();
-    this.fin = null;
     this.visitaEnCurso = true;
-    this.estado = 'En curso';
+    this.fin = null;
+    this.estado = EstadoVisita.EN_CURSO;
     this.estadoTexto = 'La visita está en curso.';
+    this.visitaForm.enable();
   }
 
   async terminarVisita() {
+    // Marca todos los campos como tocados para activar validaciones en la UI
     this.visitaForm.markAllAsTouched();
+
     if (this.visitaForm.invalid) {
       const alert = await this.alertController.create({
         header: 'Formulario incompleto',
         message: 'Por favor, completa todos los campos obligatorios antes de terminar la visita.',
         buttons: ['Aceptar']
       });
+
       await alert.present();
       return;
     }
 
     this.fin = new Date();
     this.visitaEnCurso = false;
-    this.estado = 'Completada';
+    this.estado = EstadoVisita.COMPLETADA;
     this.estadoTexto = 'La visita ha sido registrada.';
+    this.visitaForm.disable();
+
     this.guardarVisita();
   }
 
   resetFormulario() {
     this.visitaForm.reset();
+    this.visitaForm.disable();
     this.inicio = null;
     this.fin = null;
     this.visitaEnCurso = false;
-    this.estado = 'Sin iniciar';
+    this.estado = EstadoVisita.SIN_INICIAR;
     this.estadoTexto = 'Listo para iniciar una visita.';
   }
 
-  minWordsValidator(minWords: number, minChars: number): ValidatorFn {
+  guardarVisita() {
+    const formValue = this.visitaForm.value;
+
+    const visitaData = {
+      cliente: formValue.cliente,
+      solicitante: formValue.solicitante,
+      ...formValue.actividades,
+      otrosDetalle: formValue.otrosDetalle,
+      realizado: formValue.realizado,
+      inicio: this.formatFecha(this.inicio),
+      fin: this.formatFecha(this.fin),
+      username: this.username
+    };
+
+    this.visitas.push(visitaData);
+
+    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}') as Record<string, any[]>;
+    allHistorial[this.username] = this.visitas;
+    localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
+  }
+
+  private formatFecha(fecha: Date | null): string | null {
+    return fecha ? this.datePipe.transform(fecha, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
+  }
+
+  private minWordsValidator(minWords: number, minChars: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value || typeof control.value !== 'string') {
         return { minWordsOrChars: true };
@@ -110,27 +143,16 @@ export class FormularioVisitasPage implements OnInit {
     };
   }
 
-  toggleOtros() {
-    if (!this.visitaForm.get('otros')?.value) {
-      this.visitaForm.get('otrosDetalle')?.setValue('');
-    }
-  }
-
-  guardarVisita() {
-    const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
-    const finFmt = this.fin ? this.datePipe.transform(this.fin, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
-
-    const data = {
-      ...this.visitaForm.value,
-      inicio: inicioFmt,
-      fin: finFmt,
-      username: this.username
-    };
-
-    this.visitas.push(data);
-
-    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
-    allHistorial[this.username] = this.visitas;
-    localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
+  private setupOtrosDetalleValidation() {
+    this.visitaForm.get('actividades.otros')?.valueChanges.subscribe((isChecked: boolean) => {
+      const otrosDetalle = this.visitaForm.get('otrosDetalle');
+      if (isChecked) {
+        otrosDetalle?.setValidators([Validators.required]);
+      } else {
+        otrosDetalle?.clearValidators();
+        otrosDetalle?.setValue('');
+      }
+      otrosDetalle?.updateValueAndValidity();
+    });
   }
 }

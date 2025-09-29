@@ -4,18 +4,21 @@ import { Component, OnInit } from '@angular/core';
   selector: 'app-inicio-footer',
   templateUrl: './inicio-footer.page.html',
   styleUrls: ['./inicio-footer.page.scss'],
-  standalone:false,
+  standalone: false,
 })
 export class InicioFooterPage implements OnInit {
   currentTime: string = '';
   currentDate: string = '';
   weekDay: string = '';
+
   totalDaysThisMonth: number = 0;
   daysRemaining: number = 0;
 
   dayNames: string[] = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   calendarTitle: string = '';
   calendarWeeks: { date: number; isToday: boolean; otherMonth: boolean }[][] = [];
+
+  currentCalendarDate: Date = new Date(); // Usado para navegar entre meses
 
   constructor() { }
 
@@ -28,14 +31,21 @@ export class InicioFooterPage implements OnInit {
   updateTime() {
     const now = new Date();
     this.currentTime = now.toLocaleTimeString('es-ES', { hour12: false });
-    this.currentDate = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    this.currentDate = now.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
     this.weekDay = now.toLocaleDateString('es-ES', { weekday: 'long' });
+
     this.totalDaysThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     this.daysRemaining = this.totalDaysThisMonth - now.getDate();
   }
 
   generateCalendar() {
-    const now = new Date();
+    const now = this.currentCalendarDate;
+
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
@@ -44,7 +54,7 @@ export class InicioFooterPage implements OnInit {
     startDate.setDate(firstDay.getDate() - dayOfWeek);
 
     const days = [];
-    const currentDateStr = now.toDateString();
+    const today = new Date().toDateString();
 
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
@@ -52,25 +62,34 @@ export class InicioFooterPage implements OnInit {
 
       days.push({
         date: date.getDate(),
-        isToday: date.toDateString() === currentDateStr,
+        isToday: date.toDateString() === today,
         otherMonth: date.getMonth() !== now.getMonth(),
       });
     }
 
-    // Dividir en semanas
     this.calendarWeeks = [];
     for (let i = 0; i < 6; i++) {
       this.calendarWeeks.push(days.slice(i * 7, i * 7 + 7));
     }
 
-    this.calendarTitle = `${firstDay.toLocaleString('es-ES', { month: 'long' })} ${now.getFullYear()}`;
+    this.calendarTitle = `${now.toLocaleString('es-ES', { month: 'long' })} ${now.getFullYear()}`;
   }
 
   previousMonth() {
-    // lógica para cambiar mes
+    this.currentCalendarDate = new Date(
+      this.currentCalendarDate.getFullYear(),
+      this.currentCalendarDate.getMonth() - 1,
+      1
+    );
+    this.generateCalendar();
   }
 
   nextMonth() {
-    // lógica para cambiar mes
+    this.currentCalendarDate = new Date(
+      this.currentCalendarDate.getFullYear(),
+      this.currentCalendarDate.getMonth() + 1,
+      1
+    );
+    this.generateCalendar();
   }
 }
