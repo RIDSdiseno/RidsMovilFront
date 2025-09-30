@@ -1,2 +1,87 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+@media (prefers-color-scheme: dark) {
+    ion-content {
+        --background: linear-gradient(135deg, #1a1a1a 0%, #0d4a7a 100%) !important;
+
+    }
+
+    .login-card {
+        background: black !important;
+    }
+
+    ion-card {
+        background: #121212 !important;
+        border: 1px solid #333 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    ion-input {
+        background-color: black;
+        color: white;
+    }
+
+    ion-textarea {
+        --background: #333030 !important;
+        --color: #ffffff !important;
+        --border-radius: 10px !important;
+    }
+
+    ion-label {
+        color: #ffffff !important;
+
+    }
+
+    h3 {
+        color: #ffffff !important;
+    }
+
+    .time-card {
+        background: #000000 !important;
+
+    }
+
+    .current-date {
+        color: grey !important;
+    }
+
+    .calendar-card {
+        background: #000000 !important;
+    }
+
+    .stat-card {
+        background: rgba(0, 0, 0, 0) !important;
+    }
+
+    img,
+    video,
+    ion-icon {
+        filter: invert(1) hue-rotate(180deg); // revertir imágenes y logos
+    }
+
+    ion-item.historial-item {
+        background: #000000 !important;
+    }
+
+    ion-item {
+        ion-input {
+            --color: #ffffff !important;
+            background: #333030 !important;
+            border-radius: 10px !important;
+        }
+    }
+
+    .realizado-texto {
+        color: #ffffff !important;
+    }
+
+    p {
+        color: #ffffff !important;
+    }
+
+    ion-button[fill="outline"] {
+        --color: rgb(151, 148, 148) !important;
+    }
+
+}

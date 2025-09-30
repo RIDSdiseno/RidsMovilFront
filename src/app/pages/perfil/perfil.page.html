@@ -1,8 +1,8 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Perfil de Usuario</ion-title>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Perfil de Usuario</ion-title>
     <ion-buttons slot="end">
-      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -11,39 +11,43 @@
   <ion-row class="ion-justify-content-center ion-padding">
     <ion-col size="12" size-md="8" text-center>
       <h2 class="welcome-title">Bienvenido, </h2>
-      <h3 class="welcome-subtitle">{{ tecnico?.nombre }}</h3>
+      <h3 class="welcome-subtitle">{{ tecnico?.nombre }}</h3> <!-- Mostrar nombre del técnico -->
     </ion-col>
+    <ion-button class="btn-cerrar-sesion" expand="block" (click)="cerrarSesion()">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      Cerrar sesión
+    </ion-button>
   </ion-row>
 
-  <ion-content>
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>Historial de Visitas</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <ion-list>
-      <ion-item *ngFor="let visita of visitas">
-        <ion-label>
-          <p>Solicitante: {{ visita.solicitante }}</p>
-          <p>Inicio: {{ formatoFecha(visita.inicio) }}</p>
-          <p>Fin: {{ formatoFecha(visita.fin) }}</p>
-          <p>Realizado: {{ visita.realizado }}</p>
-        </ion-label>
-      </ion-item>
-      <ion-item *ngIf="visitas.length === 0">
-        <ion-label>No hay visitas registradas.</ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-card-content>
-</ion-card>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Historial de Visitas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list class="historial-lista">
+        <ion-item *ngFor="let visita of visitas" class="historial-item">
+          <ion-icon name="clipboard-outline" slot="start" class="icono-visita"></ion-icon>
+          <ion-label>
+            <h3><strong>{{ visita.solicitante }}</strong></h3> <!-- Mostrar solicitante -->
+            <p><ion-icon name="time-outline"></ion-icon> Inicio: <strong>{{ formatoFecha(visita.inicio) }}</strong></p>
+            <p><ion-icon name="checkmark-done-outline"></ion-icon> Fin: <strong>{{ formatoFecha(visita.fin) }}</strong>
+            </p>
+            <p class="realizado-texto">
+              <ion-icon name="document-text-outline"></ion-icon>
+              {{ visita.realizado }} <!-- Mostrar descripción del trabajo realizado -->
+            </p>
+          </ion-label>
+        </ion-item>
 
-  </ion-content>
-  
-
-  <ion-button class="btn-cerrar-sesion" expand="block" (click)="cerrarSesion()">
-    <ion-icon name="log-out-outline" slot="start"></ion-icon>
-    Cerrar sesión
-  </ion-button>
+        <ion-item *ngIf="visitas.length === 0">
+          <ion-label>
+            <ion-icon name="information-circle-outline"></ion-icon>
+            No hay visitas registradas.
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 
 </ion-content>
 

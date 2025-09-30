@@ -15,11 +15,12 @@ interface Usuario {
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
+// Componente para la página de inicio de sesión
 export class HomePage {
   username: string = '';
   password: string = '';
   isLoading: boolean = false;
-
+  
   constructor(
     private router: Router,
     private alertController: AlertController,

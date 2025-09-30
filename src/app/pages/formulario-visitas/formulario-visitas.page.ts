@@ -41,6 +41,7 @@ busquedaSolicitante: string = '';
     private api: ApiService,
     private toastController: ToastController,
   ) {
+    // Inicializar el formulario con validaciones
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
       solicitante: ['', Validators.required],
@@ -153,7 +154,8 @@ buscarSolicitante(event: any) {
       tecnicoId: this.tecnicoId,
       empresaId: clienteObj.id
     };
-
+    
+    // Llamada a la API para crear la visita
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
         this.estado = 'En curso';
@@ -172,7 +174,8 @@ buscarSolicitante(event: any) {
       }
     );
   }
-
+  
+  // Método para terminar la visita
   async terminarVisita() {
     if (!this.visitaId) {
       const alert = await this.alertController.create({
@@ -228,7 +231,8 @@ buscarSolicitante(event: any) {
       }
     );
   }
-
+  
+  // Método para reiniciar el formulario
   resetFormulario() {
     this.visitaForm.reset();
     this.inicio = null;
@@ -239,7 +243,8 @@ buscarSolicitante(event: any) {
     this.visitaId = null;
     this.filtradosSolicitantes = [];
   }
-
+  
+  // Validador personalizado para mínimo de palabras y caracteres
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value || typeof control.value !== 'string') {

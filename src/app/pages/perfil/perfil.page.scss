@@ -2,6 +2,7 @@ ion-content {
     --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
 }
 
+// Animación para el fondo
 @keyframes backgroundFade {
     0% {
         --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
@@ -16,32 +17,32 @@ ion-content {
     }
 }
 
-ion-header {
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(20, 143, 201, 0.2);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
+.custom-header-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
 
-    ion-title {
-        font-size: 1.6rem;
+    .header-title {
+        font-size: 1.4rem;
         font-weight: 700;
-        color: #000000;
-        transition: all 0.3s;
+        color: #1976d2;
+        text-align: left;
+        white-space: nowrap;
+        /* Evita que se divida en varias líneas */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /* Agrega "..." si se pasa */
+    }
+
+    .header-logo {
+        height: 38px;
+        max-width: 120px;
+        object-fit: contain;
     }
 }
 
-.formulario-image {
-    img {
-        max-width: 95px;
-        height: auto;
-        opacity: 1;
-    }
-
-    img:hover {
-        transform: rotate(-5deg) scale(1.05);
-    }
-}
-
+// Estilos para los títulos 
 .welcome-title {
     color: #1976d2;
     font-size: 2.2rem;
@@ -51,12 +52,13 @@ ion-header {
 }
 
 .welcome-subtitle {
-    color: rgba(0, 0, 0, 0.9);
-    font-size: 1.5rem;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    color: #444;
+    font-size: 1.7rem;
+    text-shadow: 0 2px 6px #000000(0, 0, 0, 0.15);
     animation: fadeIn 2.5s ease;
 }
 
+// Animaciones para los títulos
 @keyframes fadeInDown {
     0% {
         opacity: 0;
@@ -88,6 +90,74 @@ ion-card {
     &:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    ion-card-title {
+        text-align: center;
+        background: #1976d2;
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.historial-lista {
+    ion-item.historial-item {
+        background: #f7f9fc;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease-in-out;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        ion-label {
+            p {
+                margin: 4px 0;
+                color: #333;
+                font-size: 0.95rem;
+
+                ion-icon {
+                    color: #1e88e5;
+                    margin-right: 6px;
+                }
+            }
+
+            h3 {
+                margin-bottom: 6px;
+                color: #1976d2;
+                font-size: 1.1rem;
+            }
+
+            .realizado-texto {
+                display: flex;
+                align-items: flex-start; // Alinea el icono arriba
+                gap: 6px; // Espacio entre el icono y el texto
+                font-style: italic;
+                color: #555;
+                margin-top: 6px;
+                white-space: normal; // Permite salto de línea
+                word-break: break-word; // Rompe palabras largas si es necesario
+                line-height: 1.4;
+
+                ion-icon {
+                    margin-top: 2px;
+                    flex-shrink: 0;
+                    color: #1e88e5; // Igual que los otros íconos
+                }
+            }
+
+        }
+
+        .icono-visita {
+            font-size: 24px;
+            color: #1976d2;
+            margin-right: 8px;
+        }
     }
 }
 

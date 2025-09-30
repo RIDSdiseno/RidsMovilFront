@@ -1,19 +1,22 @@
-.custom-footer {
-  position: absolute;  /* Fija el footer en la parte inferior */
-  bottom: 0;
-  width: 100%;  /* Hace que el footer ocupe todo el ancho */
-  z-index: 100;  /* Asegura que el footer esté sobre el contenido */
-}
+.custom-footer { 
+  position: relative;
+  width: 100%;
+  z-index: 100;
 
-.custom-footer ion-toolbar {
-  --background: rgba(38, 114, 190, 0.966);  /* Mantener tu color de fondo */
-  --color: #fff;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-  border-radius: 0 0 10px 10px;
+  ion-toolbar {
+    --background: rgba(46, 102, 158, 0.966);
+    --color: #fff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 0 0 10px 10px;
+    padding: 0.5rem 1rem;
+  }
 }
 
 .footer-buttons {
   display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap; // Permite que los botones se ajusten en móviles
+  width: 100%;
   gap: 6px;
 }
 
@@ -21,19 +24,20 @@
   --color: #fff;
   font-weight: bold;
   border-radius: 12px;
-  padding: 6px 12px;
   transition: all 0.3s ease-in-out;
   position: relative;
   overflow: hidden;
+  flex: 1 1 30%; // Responsivo: ocupa 30% y se adapta
 
   ion-icon {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin-right: 6px;
     transition: transform 0.3s ease;
   }
 
   span {
     transition: color 0.3s ease;
+    font-size: 0.9rem;
   }
 
   &:hover {
@@ -50,15 +54,4 @@
     transform: scale(0.95);
     background: rgba(255, 255, 255, 0.25);
   }
-
-  ion-content {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;  /* Asegura que el contenido ocupe toda la altura disponible */
-}
-
-.content-body {
-  flex: 1;  /* Esto hace que el contenido principal ocupe el espacio disponible */
-}
-
 }

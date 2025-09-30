@@ -1,8 +1,8 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Registro de Visitas</ion-title>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Registro de Visitas</ion-title>
     <ion-buttons slot="end">
-      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" />
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -11,7 +11,7 @@
   <!-- Estado -->
   <ion-card>
     <ion-card-header>
-      <ion-card-title>{{ estado }}</ion-card-title>
+      <ion-card-title>{{ estado }}</ion-card-title> <!-- Mostrar estado actual -->
       <ion-card-subtitle>{{ estadoTexto }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
@@ -35,11 +35,11 @@
         <!-- Cliente -->
         <ion-item>
           <ion-label position="stacked">Empresa/Cliente</ion-label>
-            <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
-              <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
-                  {{ cliente.nombre }}
-              </ion-select-option>
-            </ion-select>
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+              {{ cliente.nombre }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
         <ion-note color="danger" *ngIf="visitaForm.get('cliente')?.invalid && visitaForm.get('cliente')?.touched">
           Este campo es obligatorio.
