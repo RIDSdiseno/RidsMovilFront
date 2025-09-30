@@ -1,13 +1,11 @@
-import { CommonModule, DatePipe, registerLocaleData } from '@angular/common';
+import { DatePipe, registerLocaleData } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, ToastController } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api';
 import localeEsCl from '@angular/common/locales/es-CL';
-import { ToastController } from '@ionic/angular';
 
-// Registrar la configuración regional "es-CL"
 registerLocaleData(localeEsCl, 'es-CL');
 
 @Component({
@@ -17,9 +15,11 @@ registerLocaleData(localeEsCl, 'es-CL');
   standalone: false,
 })
 export class FormularioVisitasPage implements OnInit {
-  visitaId: number | null = null; // Aquí definimos la propiedad visitaId
+  visitaId: number | null = null;
   visitaForm: FormGroup;
   visitas: any[] = [];
+  filtradosSolicitantes: any[] = [];
+  todosSolicitantes: any[] = []; // Aquí almacenamos todos los solicitantes
 
   inicio: Date | null = null;
   fin: Date | null = null;
@@ -27,10 +27,11 @@ export class FormularioVisitasPage implements OnInit {
   estadoTexto: string = 'Listo para iniciar una visita.';
   visitaEnCurso = false;
   username: string = '';
-  tecnicoId: string = '';  // Variable para almacenar el ID del técnico
-
-  clientes: any[] = []; // Array para almacenar los clientes
-  selectedCliente: any; // Cliente seleccionado en el formulario
+  tecnicoId: string = '';
+filtradosSolicitantesUI: any[] = [];
+busquedaSolicitante: string = '';
+  clientes: any[] = [];
+    empresaId: number = 0;  // Guardar el ID de la empresa seleccionada
 
   constructor(
     private fb: FormBuilder,
@@ -38,7 +39,7 @@ export class FormularioVisitasPage implements OnInit {
     private alertController: AlertController,
     private router: Router,
     private api: ApiService,
-    private toastController: ToastController
+    private toastController: ToastController,
   ) {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
@@ -52,34 +53,82 @@ export class FormularioVisitasPage implements OnInit {
       otrosDetalle: [''],
       realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]]
     });
+
+    // Limpiar "otrosDetalle" si "otros" cambia a false
+    this.visitaForm.get('actividades.otros')?.valueChanges.subscribe((val) => {
+      if (!val) {
+        this.visitaForm.get('otrosDetalle')?.setValue('');
+        this.visitaForm.get('otrosDetalle')?.clearValidators();
+        this.visitaForm.get('otrosDetalle')?.updateValueAndValidity();
+      } else {
+        this.visitaForm.get('otrosDetalle')?.setValidators([Validators.required]);
+        this.visitaForm.get('otrosDetalle')?.updateValueAndValidity();
+      }
+    });
   }
 
   ngOnInit() {
+    // Cargar clientes
     this.api.getClientes().subscribe(
       (data) => {
         this.clientes = data;
       },
       (error) => {
-        console.error('Error al cargar clientes', JSON.stringify(error));
+        console.error('Error al cargar clientes', error);
       }
     );
 
-    // Verificar si el técnico está correctamente logueado y obtener sus datos
+    
+
+    this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
+  console.log('Cliente seleccionado:', clienteId);
+  this.empresaId = clienteId;
+  if (clienteId) {
+    this.api.getSolicitantes(clienteId).subscribe(
+      (res) => {
+        console.log('Solicitantes API:', res);
+        this.todosSolicitantes = res.solicitantes || res || [];
+        this.filtradosSolicitantes = [...this.todosSolicitantes];
+        console.log('filtradosSolicitantes inicial:', this.filtradosSolicitantes);
+      },
+      (error) => {
+        console.error('Error al cargar solicitantes:', error);
+      }
+    );
+  } else {
+    this.todosSolicitantes = [];
+    this.filtradosSolicitantes = [];
+  }
+});
+    // Obtener datos técnicos del localStorage
     this.username = localStorage.getItem('username') || '';
     this.tecnicoId = localStorage.getItem('tecnicoId') || '';
 
     if (!this.tecnicoId) {
       this.showToast('El técnico no está registrado correctamente. Intenta iniciar sesión nuevamente.');
-      this.router.navigate(['/login']);  // Redirigir al login si el técnico no está registrado
+      this.router.navigate(['/login']);
     }
 
+    // Cargar historial local
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     if (this.username && allHistorial[this.username]) {
       this.visitas = allHistorial[this.username];
     } else {
       this.visitas = [];
     }
+    
   }
+buscarSolicitante(event: any) {
+  const valorBusqueda = event.detail?.value?.toLowerCase() || '';  // Obtener el valor escrito en el campo de búsqueda
+  console.log('Valor de búsqueda:', valorBusqueda);
+  
+  // Filtrar solicitantes
+  this.filtradosSolicitantes = this.todosSolicitantes.filter(solicitante =>
+    solicitante.nombre.toLowerCase().includes(valorBusqueda)  // Filtra por nombre
+  );
+  
+  console.log('Solicitantes filtrados:', this.filtradosSolicitantes);
+}
 
   iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
@@ -96,25 +145,21 @@ export class FormularioVisitasPage implements OnInit {
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
 
-    // Enviar solo el ID de la empresa al backend
     const visitaData = {
-      cliente: clienteId,  // Solo pasamos el ID de la empresa
+      cliente: clienteId,
       solicitante: this.visitaForm.value.solicitante,
       realizado: this.visitaForm.value.realizado,
       inicio: this.inicio,
-      tecnicoId: this.tecnicoId,  // Incluimos el técnico
-      empresaId: clienteObj.id  // El cliente es la empresa (corregido selectedCliente a clienteObj)
+      tecnicoId: this.tecnicoId,
+      empresaId: clienteObj.id
     };
 
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
-        console.log('Visita iniciada correctamente:', response);
         this.estado = 'En curso';
         this.estadoTexto = 'La visita ha comenzado.';
-
-        // Guardamos el ID de la visita después de crearla
-        this.visitaId = response.visita.id; // Guarda el ID de la visita creada
-        console.log('ID de la visita creada:', this.visitaId);  // Para confirmar que se guarda correctamente
+        this.visitaId = response.visita.id;
+        this.showToast('Visita iniciada correctamente.');
       },
       async (error) => {
         const alert = await this.alertController.create({
@@ -139,7 +184,6 @@ export class FormularioVisitasPage implements OnInit {
       return;
     }
 
-    // Verificar que el formulario esté completo
     this.visitaForm.markAllAsTouched();
     if (this.visitaForm.invalid) {
       const alert = await this.alertController.create({
@@ -158,7 +202,6 @@ export class FormularioVisitasPage implements OnInit {
 
     const actividades = this.visitaForm.get('actividades')?.value || {};
 
-    // Datos para enviar al backend
     const data = {
       confImpresoras: actividades.impresoras,
       confTelefonos: actividades.telefonos,
@@ -169,11 +212,9 @@ export class FormularioVisitasPage implements OnInit {
       realizado: this.visitaForm.value.realizado
     };
 
-    // Usamos el ID de la visita para completar la visita
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
-        console.log('Visita finalizada correctamente:', response);
-        this.guardarVisita(); // Guardar localmente
+        this.guardarVisita();
         this.showToast('Visita finalizada con éxito');
       },
       async (error) => {
@@ -195,6 +236,8 @@ export class FormularioVisitasPage implements OnInit {
     this.visitaEnCurso = false;
     this.estado = 'Sin iniciar';
     this.estadoTexto = 'Listo para iniciar una visita.';
+    this.visitaId = null;
+    this.filtradosSolicitantes = [];
   }
 
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
@@ -206,12 +249,6 @@ export class FormularioVisitasPage implements OnInit {
       const charCount = control.value.trim().length;
       return (wordCount < minWords && charCount < minChars) ? { minWordsOrChars: true } : null;
     };
-  }
-
-  toggleOtros() {
-    if (!this.visitaForm.get('actividades.otros')?.value) {
-      this.visitaForm.get('otrosDetalle')?.setValue('');
-    }
   }
 
   guardarVisita() {
@@ -232,19 +269,11 @@ export class FormularioVisitasPage implements OnInit {
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
   }
 
-  eliminarVisita(v: any) {
-    this.visitas = this.visitas.filter(item => item !== v);
-
-    const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
-    allHistorial[this.username] = this.visitas;
-    localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));
-  }
-
   async showToast(message: string) {
     const toast = await this.toastController.create({
       message,
       duration: 2000
     });
-    toast.present();
+    await toast.present();
   }
 }

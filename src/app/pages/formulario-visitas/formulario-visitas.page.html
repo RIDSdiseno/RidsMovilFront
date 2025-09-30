@@ -46,19 +46,23 @@
         </ion-note>
 
         <!-- Solicitante -->
-        <ion-item>
-          <ion-label position="stacked">Quién solicita</ion-label>
-          <ion-select placeholder="Selecciona solicitante" formControlName="solicitante">
-            <ion-select-option value="Juan Pérez">Juan Pérez</ion-select-option>
-            <ion-select-option value="María López">María López</ion-select-option>
-            <ion-select-option value="Carlos Díaz">Carlos Díaz</ion-select-option>
-            <ion-select-option value="Ana González">Ana González</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="danger"
-          *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
-          Este campo es obligatorio.
-        </ion-note>
+        <!-- Solicitante -->
+
+<ion-item>
+  <ion-label position="stacked">Solicitante</ion-label>
+  <ion-select formControlName="solicitante" placeholder="Selecciona solicitante" interface="popover">
+    
+    <ion-select-option *ngFor="let solicitante of filtradosSolicitantes" [value]="solicitante.id">
+      {{ solicitante.nombre }}
+    </ion-select-option>
+  </ion-select>
+</ion-item>
+
+
+<ion-note color="danger"
+  *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
+  Este campo es obligatorio.
+</ion-note>
 
       </ion-card-content>
     </ion-card>
@@ -122,6 +126,7 @@
       </ion-card-content>
     </ion-card>
   </form>
+  
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

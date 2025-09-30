@@ -43,4 +43,9 @@ export class ApiService {
   return this.http.get<any>(`${environment.apiUrl}/auth/historial/${tecnicoId}`,{headers});
 }
 
+  getSolicitantes(empresaId: number): Observable<any> {
+  return this.http.get(`${environment.apiUrl}/auth/solicitantes?empresaId=${empresaId}`);
+}
+
+
 }

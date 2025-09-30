@@ -58,23 +58,23 @@ export class HomePage {
           // Redirigir al dashboard o página principal
           this.router.navigate(['/inicio-footer']);
         } else {
-          await this.mostrarError();
+          await this.mostrarError(this.username);
         }
       },
       async (error: any) => {
         await loading.dismiss();
         this.isLoading = false;
         console.error('Error al hacer login', JSON.stringify(error));
-        await this.mostrarError();
+        await this.mostrarError(error);
       }
     );
   }
 
   // Método para mostrar error cuando las credenciales son incorrectas
-  private async mostrarError() {
+  private async mostrarError(e:any) {
     const alert = await this.alertController.create({
       header: 'Error de autenticación',
-      message: 'Usuario o contraseña incorrectos.',
+      message: JSON.stringify(e),
       buttons: ['Aceptar']
     });
 

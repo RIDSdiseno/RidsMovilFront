@@ -8,6 +8,7 @@ import { FormularioVisitasPageRoutingModule } from './formulario-visitas-routing
 
 import { FormularioVisitasPage } from './formulario-visitas.page';
 import { SharedModule } from 'src/app/shared/shared-module';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 @NgModule({
   imports: [
@@ -20,6 +21,7 @@ import { SharedModule } from 'src/app/shared/shared-module';
   ],
   declarations: [FormularioVisitasPage,],
   providers:[DatePipe],
-  exports:[FormularioVisitasPageRoutingModule,]
+  exports:[FormularioVisitasPageRoutingModule,],
+  schemas:[CUSTOM_ELEMENTS_SCHEMA]
 })
 export class FormularioVisitasPageModule {}

@@ -1,0 +1,16 @@
+<ion-content>
+  <ion-searchbar
+    [(ngModel)]="searchTerm"
+    (ionInput)="filterSolicitantes()"
+    placeholder="Buscar solicitante">
+  </ion-searchbar>
+
+  <ion-list>
+    <ion-item 
+      *ngFor="let solicitante of filteredSolicitantes" 
+      button 
+      (click)="seleccionar(solicitante)">
+      {{ solicitante.nombre }}
+    </ion-item>
+  </ion-list>
+</ion-content>
