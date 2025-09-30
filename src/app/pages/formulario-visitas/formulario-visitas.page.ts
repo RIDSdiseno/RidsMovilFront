@@ -21,6 +21,11 @@ export class FormularioVisitasPage implements OnInit {
   filtradosSolicitantes: any[] = [];
   todosSolicitantes: any[] = []; // Aquí almacenamos todos los solicitantes
 
+ mostrarListaSolicitantes = false;
+busquedaSolicitante = '';
+nombreSolicitanteSeleccionado = '';
+
+
   inicio: Date | null = null;
   fin: Date | null = null;
   estado: string = 'Sin iniciar';
@@ -29,7 +34,6 @@ export class FormularioVisitasPage implements OnInit {
   username: string = '';
   tecnicoId: string = '';
 filtradosSolicitantesUI: any[] = [];
-busquedaSolicitante: string = '';
   clientes: any[] = [];
     empresaId: number = 0;  // Guardar el ID de la empresa seleccionada
 
@@ -45,6 +49,7 @@ busquedaSolicitante: string = '';
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
       solicitante: ['', Validators.required],
+      busquedaSolicitante: [''],
       actividades: this.fb.group({
         impresoras: [false],
         telefonos: [false],
@@ -81,7 +86,7 @@ busquedaSolicitante: string = '';
 
     
 
-    this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
+  this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
   console.log('Cliente seleccionado:', clienteId);
   this.empresaId = clienteId;
   if (clienteId) {
@@ -90,7 +95,6 @@ busquedaSolicitante: string = '';
         console.log('Solicitantes API:', res);
         this.todosSolicitantes = res.solicitantes || res || [];
         this.filtradosSolicitantes = [...this.todosSolicitantes];
-        console.log('filtradosSolicitantes inicial:', this.filtradosSolicitantes);
       },
       (error) => {
         console.error('Error al cargar solicitantes:', error);
@@ -119,17 +123,26 @@ busquedaSolicitante: string = '';
     }
     
   }
-buscarSolicitante(event: any) {
-  const valorBusqueda = event.detail?.value?.toLowerCase() || '';  // Obtener el valor escrito en el campo de búsqueda
-  console.log('Valor de búsqueda:', valorBusqueda);
-  
-  // Filtrar solicitantes
-  this.filtradosSolicitantes = this.todosSolicitantes.filter(solicitante =>
-    solicitante.nombre.toLowerCase().includes(valorBusqueda)  // Filtra por nombre
-  );
-  
-  console.log('Solicitantes filtrados:', this.filtradosSolicitantes);
+  abrirListaSolicitantes() {
+  this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
 }
+
+seleccionarSolicitante(s: any) {
+  this.nombreSolicitanteSeleccionado = s.nombre;
+  this.visitaForm.get('solicitante')?.setValue(s.nombre);  // Asignamos el nombre del solicitante al formulario
+  this.mostrarListaSolicitantes = false;
+  this.busquedaSolicitante = '';
+  this.filtradosSolicitantes = [...this.todosSolicitantes]; // Restaurar lista completa después de seleccionar un solicitante
+}
+
+filtrarSolicitantes() {
+  const term = this.visitaForm.get('busquedaSolicitante')?.value.toLowerCase() || '';
+  this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
+    s.nombre.toLowerCase().includes(term)
+  );
+  console.log('Solicitantes filtrados:', this.filtradosSolicitantes);  // Verificar resultados filtrados
+}
+
 
   iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
@@ -202,8 +215,15 @@ buscarSolicitante(event: any) {
     this.visitaEnCurso = false;
     this.estado = 'Completada';
     this.estadoTexto = 'La visita ha sido registrada.';
-
     const actividades = this.visitaForm.get('actividades')?.value || {};
+    const solicitante = this.visitaForm.get('solicitante')?.value;
+    
+    console.log('Solicitante seleccionado:', solicitante)
+    
+  if (!solicitante || typeof solicitante !== 'string' || solicitante.trim().length === 0) {
+    this.showToast('Por favor, selecciona un solicitante válido.');
+  return;
+}
 
     const data = {
       confImpresoras: actividades.impresoras,
@@ -211,7 +231,7 @@ buscarSolicitante(event: any) {
       confPiePagina: actividades.pie,
       otros: actividades.otros,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
-      solicitante: this.visitaForm.value.solicitante,
+      solicitante,
       realizado: this.visitaForm.value.realizado
     };
 

@@ -48,16 +48,34 @@
         <!-- Solicitante -->
         <!-- Solicitante -->
 
-<ion-item>
+<ion-item (click)="abrirListaSolicitantes()">
   <ion-label position="stacked">Solicitante</ion-label>
-  <ion-select formControlName="solicitante" placeholder="Selecciona solicitante" interface="popover">
-    
-    <ion-select-option *ngFor="let solicitante of filtradosSolicitantes" [value]="solicitante.id">
-      {{ solicitante.nombre }}
-    </ion-select-option>
-  </ion-select>
+  <ion-input
+    formControlName="solicitante"
+    [value]="nombreSolicitanteSeleccionado"
+    placeholder="Selecciona solicitante"
+    readonly
+  ></ion-input>
 </ion-item>
 
+<!-- Lista desplegable debajo del input -->
+<ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card">
+  <ion-searchbar
+  formControlName="busquedaSolicitante"
+  (ionInput)="filtrarSolicitantes()"
+  placeholder="Buscar solicitante..."
+></ion-searchbar>
+
+  <ion-list>
+    <ion-item
+      button
+      *ngFor="let s of filtradosSolicitantes"
+      (click)="seleccionarSolicitante(s)"
+    >
+      {{ s.nombre }}
+    </ion-item>
+  </ion-list>
+</ion-card>
 
 <ion-note color="danger"
   *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
