@@ -14,24 +14,6 @@
   text-align: center;
 }
 
-.logo-section {
-  margin-bottom: 40px;
-
-  .logo-title {
-    color: white;
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin: 0 0 8px 0;
-
-  }
-
-  .logo-subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    margin: 0;
-    font-style: italic;
-  }
-}
 // Tarjeta de login
 .login-card {
   background: white;
@@ -73,7 +55,8 @@
     }
 
     ion-input {
-      --background: #f8f9fa;
+      --background: var(--ion-input-background);
+      --color: var(--ion-text-color);
       --padding-start: 12px;
       --padding-end: 12px;
       border-radius: 8px;
