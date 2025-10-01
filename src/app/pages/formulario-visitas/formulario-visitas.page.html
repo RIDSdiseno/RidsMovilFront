@@ -34,8 +34,9 @@
 
         <!-- Cliente -->
         <ion-item>
-          <ion-label position="stacked">Empresa/Cliente</ion-label>
-          <ion-select formControlName="cliente" placeholder="Selecciona un cliente">
+          <ion-label position="stacked">Empresa / Cliente</ion-label>
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente" interface="popover"
+            (ionChange)="abrirListaSolicitantes()">
             <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
               {{ cliente.nombre }}
             </ion-select-option>
@@ -45,23 +46,30 @@
           Este campo es obligatorio.
         </ion-note>
 
-        <!-- Solicitante -->
-        <!-- Solicitante -->
-
-        <ion-item (click)="abrirListaSolicitantes()">
-          <ion-label position="stacked">Solicitante</ion-label>
-          <ion-input formControlName="solicitante" [value]="nombreSolicitanteSeleccionado"
-            placeholder="Selecciona solicitante" readonly></ion-input>
+        <!-- Solicitante con dropdown moderno -->
+        <ion-item lines="none" class="solicitante-item">
+          <ion-label position="stacked" class="input-label">Solicitante</ion-label>
+          <ion-input formControlName="solicitante" readonly [value]="nombreSolicitanteSeleccionado"
+            (click)="abrirListaSolicitantes()" class="input-solicitante" placeholder="Selecciona un solicitante...">
+          </ion-input>
         </ion-item>
 
-        <!-- Lista desplegable debajo del input -->
+        <!-- Solo se muestra cuando está activo -->
         <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card">
-          <ion-searchbar formControlName="busquedaSolicitante" (ionInput)="filtrarSolicitantes()"
-            placeholder="Buscar solicitante..."></ion-searchbar>
 
-          <ion-list>
+          <!-- Barra de búsqueda (ya NO dentro del ion-input) -->
+          <ion-searchbar class="searchbar-solicitante" placeholder="Buscar por nombre..."
+            formControlName="busquedaSolicitante" debounce="300" (ionInput)="filtrarSolicitantes()">
+          </ion-searchbar>
+
+          <!-- Lista de solicitantes -->
+          <ion-list class="lista-solicitantes">
             <ion-item button *ngFor="let s of filtradosSolicitantes" (click)="seleccionarSolicitante(s)">
-              {{ s.nombre }}
+              <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+              <ion-label>{{ s.nombre }}</ion-label>
+            </ion-item>
+            <ion-item *ngIf="filtradosSolicitantes.length === 0">
+              <ion-label color="medium">No se encontraron resultados</ion-label>
             </ion-item>
           </ion-list>
         </ion-card>

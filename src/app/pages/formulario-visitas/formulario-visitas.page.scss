@@ -18,26 +18,28 @@ ion-content {
 }
 
 .custom-header-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
 
-  .header-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1976d2;
-    text-align: left;
-    white-space: nowrap; /* Evita que se divida en varias líneas */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Agrega "..." si se pasa */
-  }
+    .header-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1976d2;
+        text-align: left;
+        white-space: nowrap;
+        /* Evita que se divida en varias líneas */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /* Agrega "..." si se pasa */
+    }
 
-  .header-logo {
-    height: 38px;
-    max-width: 120px;
-    object-fit: contain;
-  }
+    .header-logo {
+        height: 38px;
+        max-width: 120px;
+        object-fit: contain;
+    }
 }
 
 ion-card-title {
@@ -159,4 +161,39 @@ ion-card.estado {
 
 .estado-completada {
     background-color: #e0f7fa;
+}
+
+/* ========== Mejoras visuales para selector de solicitantes filtrado ========== */
+/* Quitar padding del card contenedor */
+.dropdown-card {
+  padding: 0px;
+  --padding-start: 0px;
+  --padding-end: 0px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* opcional, para mejorar aspecto */
+}
+
+/* Eliminar márgenes internos del ion-searchbar */
+.searchbar-solicitante {
+  margin: 0;
+  padding: 0;
+  --padding-start: 0px;
+  --padding-end: 0px;
+  --icon-margin: 8px;
+  --box-shadow: none;
+}
+
+/* Eliminar margen/padding de la lista */
+.lista-solicitantes {
+  max-height: 250px; /* Necesario para que funcione overflow-y */
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+}
+/* Quitar relleno de cada item para que alinee con el input */
+ion-item {
+  --inner-padding-end: 0px;
+  --inner-padding-start: 0px;
+  --padding-start: 12px; /* igual que el input por defecto */
 }

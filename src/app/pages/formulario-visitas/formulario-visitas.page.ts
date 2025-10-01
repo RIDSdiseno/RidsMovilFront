@@ -83,18 +83,16 @@ export class FormularioVisitasPage implements OnInit {
         console.error('Error al cargar clientes', error);
       }
     );
-    
+
     // Actualizar solicitantes cuando se seleccione un cliente
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
       console.log('Cliente seleccionado:', clienteId);
       this.empresaId = clienteId;
       if (clienteId) {
-        this.api.getSolicitantes(clienteId).subscribe(
-          (res) => {
-            console.log('Solicitantes API:', res);
-            this.todosSolicitantes = res.solicitantes || res || [];
-            this.filtradosSolicitantes = [...this.todosSolicitantes];
-          },
+        this.api.getSolicitantes(clienteId).subscribe((res) => {
+          this.todosSolicitantes = res.solicitantes || res || [];
+          this.filtradosSolicitantes = [...this.todosSolicitantes];
+        },
           (error) => {
             console.error('Error al cargar solicitantes:', error);
           }
@@ -125,9 +123,15 @@ export class FormularioVisitasPage implements OnInit {
   }
   // Método para mostrar/ocultar la lista de solicitantes
   abrirListaSolicitantes() {
+    if (!this.visitaForm.get('cliente')?.value) {
+      this.showToast('Debes seleccionar una empresa antes de elegir un solicitante.');
+      return;
+    }
     this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
   }
-  
+
+
+
   // Método para seleccionar un solicitante de la lista
   seleccionarSolicitante(s: any) {
     this.nombreSolicitanteSeleccionado = s.nombre;
@@ -136,7 +140,7 @@ export class FormularioVisitasPage implements OnInit {
     this.busquedaSolicitante = '';
     this.filtradosSolicitantes = [...this.todosSolicitantes]; // Restaurar lista completa después de seleccionar un solicitante
   }
-  
+
   // Método para filtrar solicitantes según la búsqueda
   filtrarSolicitantes() {
     const term = this.visitaForm.get('busquedaSolicitante')?.value.toLowerCase() || '';
@@ -161,7 +165,7 @@ export class FormularioVisitasPage implements OnInit {
     this.visitaEnCurso = true;
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
-    
+
     // Datos para la creación de la visita
     const visitaData = {
       cliente: clienteId,
@@ -214,7 +218,7 @@ export class FormularioVisitasPage implements OnInit {
       await alert.present();
       return;
     }
-    
+
     // Finalizar la visita
     this.fin = new Date();
     this.visitaEnCurso = false;
@@ -229,7 +233,7 @@ export class FormularioVisitasPage implements OnInit {
       this.showToast('Por favor, selecciona un solicitante válido.');
       return;
     }
-    
+
     // Datos para completar la visita
     const data = {
       confImpresoras: actividades.impresoras,
@@ -240,7 +244,7 @@ export class FormularioVisitasPage implements OnInit {
       solicitante,
       realizado: this.visitaForm.value.realizado
     };
-    
+
     // Llamada a la API para completar la visita
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
@@ -282,7 +286,7 @@ export class FormularioVisitasPage implements OnInit {
       return (wordCount < minWords && charCount < minChars) ? { minWordsOrChars: true } : null;
     };
   }
-  
+
   // Método para guardar la visita en el almacenamiento local
   guardarVisita() {
     const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
@@ -296,7 +300,7 @@ export class FormularioVisitasPage implements OnInit {
     };
 
     this.visitas.push(data);
-    
+
     // Guardar en localStorage
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     allHistorial[this.username] = this.visitas;
