@@ -52,7 +52,8 @@ ion-content {
 }
 
 .welcome-subtitle {
-    color: #444;
+    color: #3f3d3d;
+    font-weight: 500;
     font-size: 1.7rem;
     text-shadow: 0 2px 6px #000000(0, 0, 0, 0.15);
     animation: fadeIn 2.5s ease;
@@ -92,73 +93,106 @@ ion-card {
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
-    ion-card-title {
-        text-align: center;
-        background: #1976d2;
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    ion-card-title.titulo-historial {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        /* Espacio entre icono y texto */
+        font-weight: 600;
+        font-size: 1.3rem;
+        color: #222;
+    }
+
+    /* Ajustar tamaño y color del icono en el título */
+    ion-card-title.titulo-historial ion-icon {
+        font-size: 24px;
+        color: #3b82f6;
     }
 }
 
+
+.titulo-historial {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #333;
+}
+
 .historial-lista {
-    ion-item.historial-item {
-        background: #f7f9fc;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        padding: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s ease-in-out;
+    padding: 0;
+}
 
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
+.historial-item {
+    --background: #f9f9f9;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
 
-        ion-label {
-            p {
-                margin: 4px 0;
-                color: #333;
-                font-size: 0.95rem;
+.icono-avatar {
+    font-size: 28px;
+    color: #3b82f6;
+    background: #e0e7ff;
+    border-radius: 50%;
+    padding: 8px;
+}
 
-                ion-icon {
-                    color: #1e88e5;
-                    margin-right: 6px;
-                }
-            }
+.empresa-nombre {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1976d2;
+    margin-bottom: 2px;
+}
 
-            h3 {
-                margin-bottom: 6px;
-                color: #1976d2;
-                font-size: 1.1rem;
-            }
+.solicitante-nombre {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 4px;
+}
 
-            .realizado-texto {
-                display: flex;
-                align-items: flex-start; // Alinea el icono arriba
-                gap: 6px; // Espacio entre el icono y el texto
-                font-style: italic;
-                color: #555;
-                margin-top: 6px;
-                white-space: normal; // Permite salto de línea
-                word-break: break-word; // Rompe palabras largas si es necesario
-                line-height: 1.4;
+.detalle-visita p {
+    font-size: 0.9rem;
+    margin: 2px 0;
+}
 
-                ion-icon {
-                    margin-top: 2px;
-                    flex-shrink: 0;
-                    color: #1e88e5; // Igual que los otros íconos
-                }
-            }
+.realizado-texto {
+    margin-top: 6px;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
 
-        }
+.sin-visitas {
+    text-align: center;
+    font-style: italic;
+    color: #6b7280;
+}
 
-        .icono-visita {
-            font-size: 24px;
-            color: #1976d2;
-            margin-right: 8px;
-        }
-    }
+/* Para alinear icono + texto en línea y centrado vertical */
+.detalle-visita p,
+.realizado-texto,
+.sin-visitas {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* Espacio entre icono y texto */
+    font-size: 0.95rem;
+    color: #444;
+}
+
+/* Opcional: tamaño y color del icono para uniformidad */
+.detalle-visita ion-icon,
+.realizado-texto ion-icon,
+.sin-visitas ion-icon {
+    font-size: 18px;
+    color: #3b82f6;
+}
+
+/* Ajustes específicos para que el icono no desplace el texto */
+.historial-item ion-label h2,
+.historial-item ion-label h3 {
+    margin: 0;
+    padding: 0;
 }
 
 .btn-cerrar-sesion {

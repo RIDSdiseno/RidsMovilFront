@@ -17,24 +17,31 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
     }
 
+    ion-card-header {
+        ion-card-title {
+            color: white !important;
+        }
+    }
+
     ion-input {
         background-color: black;
         color: white;
     }
 
     ion-textarea {
-        --background: #333030 !important;
+        --background: transparent !important;
         --color: #ffffff !important;
         --border-radius: 10px !important;
     }
 
-    ion-label {
-        color: #ffffff !important;
-
+    ion-item {
+        ion-label {
+            color: white !important;
+        }
     }
 
     h3 {
-        color: #ffffff !important;
+        color: #efe9e9 !important;
     }
 
     .time-card {
@@ -60,16 +67,16 @@
         filter: invert(1) hue-rotate(180deg); // revertir imágenes y logos
     }
 
-    ion-item.historial-item {
-        background: #000000 !important;
-    }
-
     ion-item {
         ion-input {
             --color: #ffffff !important;
-            background: #333030 !important;
+            background: transparent !important;
             border-radius: 10px !important;
         }
+    }
+
+    ion-label {
+        color: #ffffff !important;
     }
 
     .realizado-texto {
@@ -82,6 +89,11 @@
 
     ion-button[fill="outline"] {
         --color: rgb(151, 148, 148) !important;
+    }
+
+    .historial-item {
+        --background: #1e1e1e !important;
+        box-shadow: 0 1px 4px rgba(255, 255, 255, 0.05) !important;
     }
 
 }

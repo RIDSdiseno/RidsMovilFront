@@ -21,9 +21,9 @@ export class FormularioVisitasPage implements OnInit {
   filtradosSolicitantes: any[] = [];
   todosSolicitantes: any[] = []; // Aquí almacenamos todos los solicitantes
 
- mostrarListaSolicitantes = false;
-busquedaSolicitante = '';
-nombreSolicitanteSeleccionado = '';
+  mostrarListaSolicitantes = false;
+  busquedaSolicitante = '';
+  nombreSolicitanteSeleccionado = '';
 
 
   inicio: Date | null = null;
@@ -33,9 +33,9 @@ nombreSolicitanteSeleccionado = '';
   visitaEnCurso = false;
   username: string = '';
   tecnicoId: string = '';
-filtradosSolicitantesUI: any[] = [];
+  filtradosSolicitantesUI: any[] = [];
   clientes: any[] = [];
-    empresaId: number = 0;  // Guardar el ID de la empresa seleccionada
+  empresaId: number = 0;  // Guardar el ID de la empresa seleccionada
 
   constructor(
     private fb: FormBuilder,
@@ -83,28 +83,28 @@ filtradosSolicitantesUI: any[] = [];
         console.error('Error al cargar clientes', error);
       }
     );
-
     
-
-  this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
-  console.log('Cliente seleccionado:', clienteId);
-  this.empresaId = clienteId;
-  if (clienteId) {
-    this.api.getSolicitantes(clienteId).subscribe(
-      (res) => {
-        console.log('Solicitantes API:', res);
-        this.todosSolicitantes = res.solicitantes || res || [];
-        this.filtradosSolicitantes = [...this.todosSolicitantes];
-      },
-      (error) => {
-        console.error('Error al cargar solicitantes:', error);
+    // Actualizar solicitantes cuando se seleccione un cliente
+    this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
+      console.log('Cliente seleccionado:', clienteId);
+      this.empresaId = clienteId;
+      if (clienteId) {
+        this.api.getSolicitantes(clienteId).subscribe(
+          (res) => {
+            console.log('Solicitantes API:', res);
+            this.todosSolicitantes = res.solicitantes || res || [];
+            this.filtradosSolicitantes = [...this.todosSolicitantes];
+          },
+          (error) => {
+            console.error('Error al cargar solicitantes:', error);
+          }
+        );
+      } else {
+        this.todosSolicitantes = [];
+        this.filtradosSolicitantes = [];
       }
-    );
-  } else {
-    this.todosSolicitantes = [];
-    this.filtradosSolicitantes = [];
-  }
-});
+    });
+
     // Obtener datos técnicos del localStorage
     this.username = localStorage.getItem('username') || '';
     this.tecnicoId = localStorage.getItem('tecnicoId') || '';
@@ -121,27 +121,30 @@ filtradosSolicitantesUI: any[] = [];
     } else {
       this.visitas = [];
     }
-    
+
   }
+  // Método para mostrar/ocultar la lista de solicitantes
   abrirListaSolicitantes() {
-  this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
-}
-
-seleccionarSolicitante(s: any) {
-  this.nombreSolicitanteSeleccionado = s.nombre;
-  this.visitaForm.get('solicitante')?.setValue(s.nombre);  // Asignamos el nombre del solicitante al formulario
-  this.mostrarListaSolicitantes = false;
-  this.busquedaSolicitante = '';
-  this.filtradosSolicitantes = [...this.todosSolicitantes]; // Restaurar lista completa después de seleccionar un solicitante
-}
-
-filtrarSolicitantes() {
-  const term = this.visitaForm.get('busquedaSolicitante')?.value.toLowerCase() || '';
-  this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
-    s.nombre.toLowerCase().includes(term)
-  );
-  console.log('Solicitantes filtrados:', this.filtradosSolicitantes);  // Verificar resultados filtrados
-}
+    this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
+  }
+  
+  // Método para seleccionar un solicitante de la lista
+  seleccionarSolicitante(s: any) {
+    this.nombreSolicitanteSeleccionado = s.nombre;
+    this.visitaForm.get('solicitante')?.setValue(s.nombre);  // Asignamos el nombre del solicitante al formulario
+    this.mostrarListaSolicitantes = false;
+    this.busquedaSolicitante = '';
+    this.filtradosSolicitantes = [...this.todosSolicitantes]; // Restaurar lista completa después de seleccionar un solicitante
+  }
+  
+  // Método para filtrar solicitantes según la búsqueda
+  filtrarSolicitantes() {
+    const term = this.visitaForm.get('busquedaSolicitante')?.value.toLowerCase() || '';
+    this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
+      s.nombre.toLowerCase().includes(term)
+    );
+    console.log('Solicitantes filtrados:', this.filtradosSolicitantes);  // Verificar resultados filtrados
+  }
 
 
   iniciarVisita() {
@@ -158,7 +161,8 @@ filtrarSolicitantes() {
     this.visitaEnCurso = true;
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
-
+    
+    // Datos para la creación de la visita
     const visitaData = {
       cliente: clienteId,
       solicitante: this.visitaForm.value.solicitante,
@@ -167,7 +171,7 @@ filtrarSolicitantes() {
       tecnicoId: this.tecnicoId,
       empresaId: clienteObj.id
     };
-    
+
     // Llamada a la API para crear la visita
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
@@ -187,7 +191,7 @@ filtrarSolicitantes() {
       }
     );
   }
-  
+
   // Método para terminar la visita
   async terminarVisita() {
     if (!this.visitaId) {
@@ -210,21 +214,23 @@ filtrarSolicitantes() {
       await alert.present();
       return;
     }
-
+    
+    // Finalizar la visita
     this.fin = new Date();
     this.visitaEnCurso = false;
     this.estado = 'Completada';
     this.estadoTexto = 'La visita ha sido registrada.';
     const actividades = this.visitaForm.get('actividades')?.value || {};
     const solicitante = this.visitaForm.get('solicitante')?.value;
-    
-    console.log('Solicitante seleccionado:', solicitante)
-    
-  if (!solicitante || typeof solicitante !== 'string' || solicitante.trim().length === 0) {
-    this.showToast('Por favor, selecciona un solicitante válido.');
-  return;
-}
 
+    console.log('Solicitante seleccionado:', solicitante)
+
+    if (!solicitante || typeof solicitante !== 'string' || solicitante.trim().length === 0) {
+      this.showToast('Por favor, selecciona un solicitante válido.');
+      return;
+    }
+    
+    // Datos para completar la visita
     const data = {
       confImpresoras: actividades.impresoras,
       confTelefonos: actividades.telefonos,
@@ -234,7 +240,8 @@ filtrarSolicitantes() {
       solicitante,
       realizado: this.visitaForm.value.realizado
     };
-
+    
+    // Llamada a la API para completar la visita
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
         this.guardarVisita();
@@ -251,7 +258,7 @@ filtrarSolicitantes() {
       }
     );
   }
-  
+
   // Método para reiniciar el formulario
   resetFormulario() {
     this.visitaForm.reset();
@@ -263,7 +270,7 @@ filtrarSolicitantes() {
     this.visitaId = null;
     this.filtradosSolicitantes = [];
   }
-  
+
   // Validador personalizado para mínimo de palabras y caracteres
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -275,7 +282,8 @@ filtrarSolicitantes() {
       return (wordCount < minWords && charCount < minChars) ? { minWordsOrChars: true } : null;
     };
   }
-
+  
+  // Método para guardar la visita en el almacenamiento local
   guardarVisita() {
     const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
     const finFmt = this.fin ? this.datePipe.transform(this.fin, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
@@ -288,7 +296,8 @@ filtrarSolicitantes() {
     };
 
     this.visitas.push(data);
-
+    
+    // Guardar en localStorage
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));

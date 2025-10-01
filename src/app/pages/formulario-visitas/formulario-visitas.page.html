@@ -48,39 +48,28 @@
         <!-- Solicitante -->
         <!-- Solicitante -->
 
-<ion-item (click)="abrirListaSolicitantes()">
-  <ion-label position="stacked">Solicitante</ion-label>
-  <ion-input
-    formControlName="solicitante"
-    [value]="nombreSolicitanteSeleccionado"
-    placeholder="Selecciona solicitante"
-    readonly
-  ></ion-input>
-</ion-item>
+        <ion-item (click)="abrirListaSolicitantes()">
+          <ion-label position="stacked">Solicitante</ion-label>
+          <ion-input formControlName="solicitante" [value]="nombreSolicitanteSeleccionado"
+            placeholder="Selecciona solicitante" readonly></ion-input>
+        </ion-item>
 
-<!-- Lista desplegable debajo del input -->
-<ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card">
-  <ion-searchbar
-  formControlName="busquedaSolicitante"
-  (ionInput)="filtrarSolicitantes()"
-  placeholder="Buscar solicitante..."
-></ion-searchbar>
+        <!-- Lista desplegable debajo del input -->
+        <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card">
+          <ion-searchbar formControlName="busquedaSolicitante" (ionInput)="filtrarSolicitantes()"
+            placeholder="Buscar solicitante..."></ion-searchbar>
 
-  <ion-list>
-    <ion-item
-      button
-      *ngFor="let s of filtradosSolicitantes"
-      (click)="seleccionarSolicitante(s)"
-    >
-      {{ s.nombre }}
-    </ion-item>
-  </ion-list>
-</ion-card>
+          <ion-list>
+            <ion-item button *ngFor="let s of filtradosSolicitantes" (click)="seleccionarSolicitante(s)">
+              {{ s.nombre }}
+            </ion-item>
+          </ion-list>
+        </ion-card>
 
-<ion-note color="danger"
-  *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
-  Este campo es obligatorio.
-</ion-note>
+        <ion-note color="danger"
+          *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
+          Este campo es obligatorio.
+        </ion-note>
 
       </ion-card-content>
     </ion-card>
@@ -144,7 +133,7 @@
       </ion-card-content>
     </ion-card>
   </form>
-  
+
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

@@ -14,7 +14,14 @@ interface Visita {
   realizado: string;
   inicio: string;
   fin: string;
+  cliente: { // Información del cliente
+    nombre: string;
+    empresa: { // Información de la empresa
+      nombre: string;
+    }
+  };
 }
+
 
 @Component({
   selector: 'app-perfil',
@@ -27,18 +34,20 @@ export class PerfilPage implements ViewWillEnter {
   visitas: Visita[] = []; // Array para almacenar las visitas
   tecnicoId: number = 0; //
   tecnico: any; // Objeto para almacenar los datos del técnico
+  clientes: any[] = []; // Lista de clientes
 
-  constructor( 
+
+  constructor(
     private api: ApiService,
     private datePipe: DatePipe,
     private router: Router
-  ) {}
+  ) { }
 
   // Se llama cada vez que entras a esta página
   ionViewWillEnter() {
     const id = localStorage.getItem('tecnicoId');
     const tecnicoData = localStorage.getItem('tecnico');
-
+    // Cargar lista de clientes
     if (id) {
       this.tecnicoId = parseInt(id, 10);
       this.cargarHistorial();
@@ -50,13 +59,23 @@ export class PerfilPage implements ViewWillEnter {
       this.tecnico = null;
     }
   }
-  
+
   // Método para cargar el historial de visitas del técnico
   cargarHistorial() {
     this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
       next: (res) => {
-        this.visitas = res.historial || [];
-        console.log(this.visitas);
+        console.log('Respuesta completa del historial:');
+        console.log(JSON.stringify(res, null, 2));  // <-- esto sí funcionará
+
+        const historial = res.historial || [];
+
+        this.visitas = historial.map((visita: any) => {
+          const cliente = this.clientes.find(c => +c.id === +visita.clienteId); // ← si existe
+          return {
+            ...visita,
+            nombreCliente: cliente ? cliente.nombre : 'Cliente desconocido'
+          };
+        });
       },
       error: (err) => {
         console.error('Error al cargar historial:', err);

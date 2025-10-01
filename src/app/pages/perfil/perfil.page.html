@@ -21,33 +21,48 @@
 
   <ion-card>
     <ion-card-header>
-      <ion-card-title>Historial de Visitas</ion-card-title>
+      <ion-card-title class="titulo-historial"><ion-icon name="information-circle-outline"></ion-icon> Historial de
+        Visitas</ion-card-title>
     </ion-card-header>
+
     <ion-card-content>
       <ion-list class="historial-lista">
+
         <ion-item *ngFor="let visita of visitas" class="historial-item">
-          <ion-icon name="clipboard-outline" slot="start" class="icono-visita"></ion-icon>
+          <ion-avatar slot="start">
+            <ion-icon name="clipboard-outline" class="icono-avatar"></ion-icon>
+          </ion-avatar>
+
           <ion-label>
-            <h3><strong>{{ visita.solicitante }}</strong></h3> <!-- Mostrar solicitante -->
-            <p><ion-icon name="time-outline"></ion-icon> Inicio: <strong>{{ formatoFecha(visita.inicio) }}</strong></p>
-            <p><ion-icon name="checkmark-done-outline"></ion-icon> Fin: <strong>{{ formatoFecha(visita.fin) }}</strong>
-            </p>
+            <h2 class="empresa-nombre">{{ visita.cliente?.empresa?.nombre || 'Empresa desconocida' }}</h2>
+            <!-- Nombre de la empresa o texto por defecto -->
+            <h3 class="solicitante-nombre"> {{ visita.solicitante }}</h3> <!-- Nombre del solicitante -->
+
+            <div class="detalle-visita">
+              <p><ion-icon name="time-outline"></ion-icon> <strong>Inicio:</strong> {{ formatoFecha(visita.inicio) }}
+              </p>
+              <p><ion-icon name="checkmark-done-outline"></ion-icon> <strong>Fin:</strong> {{ formatoFecha(visita.fin)
+                }}</p>
+            </div>
+
             <p class="realizado-texto">
               <ion-icon name="document-text-outline"></ion-icon>
-              {{ visita.realizado }} <!-- Mostrar descripción del trabajo realizado -->
+              {{ visita.realizado }}
             </p>
           </ion-label>
         </ion-item>
 
         <ion-item *ngIf="visitas.length === 0">
-          <ion-label>
+          <ion-label class="sin-visitas">
             <ion-icon name="information-circle-outline"></ion-icon>
             No hay visitas registradas.
           </ion-label>
         </ion-item>
+
       </ion-list>
     </ion-card-content>
   </ion-card>
+
 
 </ion-content>
 
