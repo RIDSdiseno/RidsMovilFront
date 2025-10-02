@@ -121,25 +121,47 @@
     </ion-card>
 
     <!-- Lo realizado -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Lo realizado</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-textarea formControlName="realizado" rows="4"
-          placeholder="Describe las tareas realizadas..."></ion-textarea>
+<ion-card [formGroupName]="'actividades'">
+  <ion-card-header>
+    <ion-card-title>Lo realizado</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <!-- Nueva sección para seleccionar las actividades realizadas -->
+    <ion-item>
+      <ion-label class="nowrap">Conf. CCleaner</ion-label>
+      <ion-checkbox slot="end" formControlName="ccleaner"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Conf. Actualizaciones</ion-label>
+      <ion-checkbox slot="end" formControlName="actualizaciones"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Conf. Antivirus</ion-label>
+      <ion-checkbox slot="end" formControlName="antivirus"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Conf. Estado de Disco</ion-label>
+      <ion-checkbox slot="end" formControlName="estadoDisco"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap"l>Licencia Windows</ion-label>
+      <ion-checkbox slot="end" formControlName="licenciaWindows"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Licencia Office</ion-label>
+      <ion-checkbox slot="end" formControlName="licenciaOffice"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Rendimiento del equipo</ion-label>
+      <ion-checkbox slot="end" formControlName="rendimientoEquipo"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label class="nowrap">Mantenimiento de reloj</ion-label>
+      <ion-checkbox slot="end" formControlName="mantenimientoReloj"></ion-checkbox>
+    </ion-item>
+  </ion-card-content>
+</ion-card>
 
-        <!-- Validaciones -->
-        <ion-note color="danger"
-          *ngIf="visitaForm.get('realizado')?.hasError('required') && (visitaForm.get('realizado')?.touched || visitaForm.get('realizado')?.dirty)">
-          Este campo es obligatorio.
-        </ion-note>
-        <ion-note color="danger"
-          *ngIf="visitaForm.get('realizado')?.hasError('minWordsOrChars') && (visitaForm.get('realizado')?.touched || visitaForm.get('realizado')?.dirty)">
-          Debes detallar más (mínimo de palabras y caracteres).
-        </ion-note>
-      </ion-card-content>
-    </ion-card>
   </form>
 
 </ion-content>

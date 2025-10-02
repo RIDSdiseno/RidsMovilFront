@@ -55,9 +55,16 @@ export class FormularioVisitasPage implements OnInit {
         telefonos: [false],
         pie: [false],
         otros: [false],
+        ccleaner: [true],    // Todos seleccionados por defecto
+        actualizaciones: [true],  // Todos seleccionados por defecto
+        estadoDisco: [true], // Todos seleccionados por defecto
+        antivirus: [true],   // Todos seleccionados por defecto
+        licenciaWindows: [true], // Todos seleccionados por defecto
+        licenciaOffice: [true],  // Todos seleccionados por defecto
+        rendimientoEquipo: [true],  // Todos seleccionados por defecto
+        mantenimientoReloj: [true]  // Todos seleccionados por defecto
       }),
       otrosDetalle: [''],
-      realizado: ['', [Validators.required, this.minWordsValidator(2, 10)]]
     });
 
     // Limpiar "otrosDetalle" si "otros" cambia a false
@@ -84,6 +91,29 @@ export class FormularioVisitasPage implements OnInit {
       }
     );
 
+    // Recuperar datos existentes si es necesario
+  if (this.visitaId) {
+    this.api.crearVisita(this.visitaId).subscribe((visitaData) => {
+      const actividades = visitaData.actividades || {};
+      // Si existen actividades previas, actualizar los valores
+      this.visitaForm.patchValue({
+        actividades: {
+          impresoras: actividades.impresoras ?? true,
+          telefonos: actividades.telefonos ?? true,
+          pie: actividades.pie ?? true,
+          otros: actividades.otros ?? true,
+          ccleaner: actividades.ccleaner ?? true,
+          actualizaciones: actividades.actualizaciones ?? true,
+          antivirus: actividades.antivirus ?? true,
+          estadoDisco: actividades.estadoDisco ?? true,
+          licenciaWindows: actividades.licenciaWindows ?? true,
+          licenciaOffice: actividades.licenciaOffice ?? true,
+          rendimientoEquipo: actividades.rendimientoEquipo ?? true,
+          mantenimientoReloj: actividades.mantenimientoReloj ?? true
+        }
+      });
+    });
+  }
     // Actualizar solicitantes cuando se seleccione un cliente
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
       console.log('Cliente seleccionado:', clienteId);
@@ -240,6 +270,14 @@ export class FormularioVisitasPage implements OnInit {
       confTelefonos: actividades.telefonos,
       confPiePagina: actividades.pie,
       otros: actividades.otros,
+      ccleaner: actividades.ccleaner,
+      actualizaciones: actividades.actualizaciones,
+      antivirus: actividades.antivirus,
+      estadoDisco: actividades.estadoDisco,
+      licenciaWindows: actividades.licenciaWindows,
+      licenciaOffice: actividades.licenciaOffice,
+      rendimientoEquipo: actividades.rendimientoEquipo,
+      mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitante,
       realizado: this.visitaForm.value.realizado
