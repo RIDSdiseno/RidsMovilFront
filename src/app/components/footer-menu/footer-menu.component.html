@@ -1,22 +1,18 @@
 <ion-footer class="custom-footer">
   <ion-toolbar>
-    <ion-buttons slot="start" class="footer-buttons">
-      <ion-button (click)="goTo('/inicio-footer')" class="footer-btn">
-        <ion-icon slot="start" name="home-outline"></ion-icon>
-        <span>Inicio</span>
+    <div class="footer-buttons">
+      <ion-button fill="clear" (click)="goTo('/inicio-footer')" class="footer-icon-btn">
+        <ion-icon name="home-outline"></ion-icon>
       </ion-button>
-      <ion-button (click)="goTo('/formulario-visitas')" class="footer-btn">
-        <ion-icon slot="start" name="list-outline"></ion-icon>
-        <span>Visitas</span>
+      <ion-button fill="clear" (click)="goTo('/formulario-visitas')" class="footer-icon-btn">
+        <ion-icon name="list-outline"></ion-icon>
       </ion-button>
-      <ion-button (click)="goTo('/perfil')" class="footer-btn">
-        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-        <span>Equipos</span>
+      <ion-button fill="clear" (click)="goTo('/equipos')" class="footer-icon-btn">
+        <ion-icon name="people-outline"></ion-icon>
       </ion-button>
-      <ion-button (click)="goTo('/perfil')" class="footer-btn">
-        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-        <span>Perfil</span>
+      <ion-button fill="clear" (click)="goTo('/perfil')" class="footer-icon-btn">
+        <ion-icon name="person-circle-outline"></ion-icon>
       </ion-button>
-    </ion-buttons>
+    </div>
   </ion-toolbar>
 </ion-footer>

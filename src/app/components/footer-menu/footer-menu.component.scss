@@ -1,57 +1,43 @@
-.custom-footer { 
-  position: relative;
+.custom-footer {
   width: 100%;
   z-index: 100;
 
   ion-toolbar {
-    --background: rgba(46, 102, 158, 0.966);
+     // o tu color preferido
     --color: #fff;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-    border-radius: 0 0 10px 10px;
-    padding: 0.5rem 1rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 12px 12px 0 0;
+    padding: 0;
   }
 }
 
 .footer-buttons {
   display: flex;
   justify-content: space-around;
-  flex-wrap: wrap; // Permite que los botones se ajusten en móviles
+  align-items: center;
   width: 100%;
-  gap: 6px;
+  padding: 6px 0;
 }
 
-.footer-btn {
-  --color: #fff;
-  font-weight: bold;
-  border-radius: 12px;
-  transition: all 0.3s ease-in-out;
-  position: relative;
-  overflow: hidden;
-  flex: 1 1 30%; // Responsivo: ocupa 30% y se adapta
+.footer-icon-btn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --padding-start: 0;
+  --padding-end: 0;
+  --background: transparent;
+  --box-shadow: none;
+  --border-radius: 0;
+  color: white;
+  height: 48px;
 
   ion-icon {
-    font-size: 1.4rem;
-    margin-right: 6px;
-    transition: transform 0.3s ease;
+    font-size: 1.6rem;
+    transition: transform 0.2s ease;
   }
 
-  span {
-    transition: color 0.3s ease;
-    font-size: 0.9rem;
-  }
-
-  &:hover {
-    --background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-
-    ion-icon {
-      transform: scale(1.2);
-    }
-  }
-
-  &:active {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.25);
+  &:active ion-icon {
+    transform: scale(1.2);
   }
 }

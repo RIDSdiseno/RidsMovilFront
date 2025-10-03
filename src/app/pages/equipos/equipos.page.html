@@ -1,15 +1,130 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>equipos</ion-title>
+<ion-header>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Gestión de Equipos</ion-title>
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" class="header-logo" />
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">equipos</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Buscador por serial -->
+   <br>
+  <ion-card class="search-section">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="search-outline" class="card-icon"></ion-icon>
+          Buscar por Serial
+      </ion-card-title>
+      <ion-card-subtitle>Encuentra equipos por su número de serie</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item class="form-item" lines="none">
+        <ion-icon name="barcode-outline" slot="start" class="input-icon"></ion-icon>
+        <ion-input [(ngModel)]="searchTerm" (ionInput)="filterEquipment()" placeholder="Ingrese la serial del equipo..."
+          clearInput class="custom-input">
+        </ion-input>
+      </ion-item>
+
+      <!-- Contador de resultados -->
+      <div class="results-count" *ngIf="searchTerm && searchTerm.length > 0">
+        <span>{{filteredEquipment.length}} resultado(s) encontrado(s)</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Panel de edición con mejoras visuales -->
+  <ion-card *ngIf="selectedEquipo" class="edit-card slide-in">
+    <!-- Botón flotante de cerrar (X) -->
+    <ion-button fill="clear" color="light" class="close-btn" (click)="cancelEdit()">
+      <ion-icon name="close-outline"></ion-icon>
+    </ion-button>
+
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="create-outline" class="card-icon"></ion-icon>
+        Editar Equipo
+      </ion-card-title>
+      <ion-card-subtitle>Modifica la información del equipo seleccionado</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="equipment-preview">
+        <h3>{{ selectedEquipo.marca }} {{ selectedEquipo.modelo }}</h3>
+        <p>Serial: {{ selectedEquipo.serial }}</p>
+      </div>
+
+      <div class="form-grid">
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked" class="input-label">
+            <ion-icon name="hardware-chip-outline" class="welcome-icon"></ion-icon>
+            Disco
+          </ion-label>
+          <ion-input [(ngModel)]="selectedEquipo.disco" class="custom-input"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked" class="input-label">
+            <ion-icon name="speedometer-outline" class="label-icon"></ion-icon>
+            Procesador
+          </ion-label>
+          <ion-input [(ngModel)]="selectedEquipo.procesador" class="custom-input"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked" class="input-label">
+            <ion-icon name="layers-outline" class="label-icon"></ion-icon>
+            RAM
+          </ion-label>
+          <ion-input [(ngModel)]="selectedEquipo.ram" class="custom-input"></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="action-buttons">
+        <ion-button expand="block" fill="outline" color="medium" (click)="cancelEdit()" class="cancel-btn">
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          Cancelar
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de Equipos -->
+  <ion-card class="equipment-list">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="list-outline" class="card-icon"></ion-icon>
+        Lista de Equipos
+      </ion-card-title>
+      <ion-card-subtitle>Haz clic en un equipo para editarlo</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-list lines="none">
+      <ion-item *ngFor="let equipo of filteredEquipment" (click)="selectEquipo(equipo)" button class="equipment-item"
+        [class.selected]="selectedEquipo && selectedEquipo.serial === equipo.serial">
+        <ion-icon name="desktop-outline" slot="start" class="item-icon"></ion-icon>
+        <ion-label class="item-content">
+          <h2>{{ equipo.marca }} {{ equipo.modelo }}</h2>
+          <p>Serial: {{ equipo.serial }}</p>
+          <div class="specs">
+            <span class="spec-tag" *ngIf="equipo.disco">{{ equipo.disco }}</span>
+            <span class="spec-tag" *ngIf="equipo.procesador">{{ equipo.procesador }}</span>
+            <span class="spec-tag" *ngIf="equipo.ram">{{ equipo.ram }}</span>
+          </div>
+        </ion-label>
+        <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
+      </ion-item>
+    </ion-list>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div class="empty-state" *ngIf="filteredEquipment.length === 0">
+      <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+      <h3>No se encontraron equipos</h3>
+      <p *ngIf="searchTerm && searchTerm.length > 0">Intenta con otro término de búsqueda</p>
+      <p *ngIf="!searchTerm || searchTerm.length === 0">No hay equipos registrados en el sistema</p>
+    </div>
+  </ion-card>
 </ion-content>
 
 <app-footer-menu></app-footer-menu>
