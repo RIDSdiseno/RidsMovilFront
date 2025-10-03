@@ -84,6 +84,7 @@ export class FormularioVisitasPage implements OnInit {
     // Cargar clientes
     this.api.getClientes().subscribe(
       (data) => {
+        console.log('Clientes cargados:', data);
         this.clientes = data;
       },
       (error) => {
@@ -116,22 +117,23 @@ export class FormularioVisitasPage implements OnInit {
   }
     // Actualizar solicitantes cuando se seleccione un cliente
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
-      console.log('Cliente seleccionado:', clienteId);
-      this.empresaId = clienteId;
-      if (clienteId) {
-        this.api.getSolicitantes(clienteId).subscribe((res) => {
-          this.todosSolicitantes = res.solicitantes || res || [];
-          this.filtradosSolicitantes = [...this.todosSolicitantes];
-        },
-          (error) => {
-            console.error('Error al cargar solicitantes:', error);
-          }
-        );
-      } else {
-        this.todosSolicitantes = [];
-        this.filtradosSolicitantes = [];
+  console.log('Cliente seleccionado:', clienteId);
+  this.empresaId = clienteId; // Asegúrate de que este valor esté siendo asignado correctamente
+  if (clienteId) {
+    this.api.getSolicitantes(clienteId).subscribe((res) => {
+      this.todosSolicitantes = res.solicitantes || res || [];
+      this.filtradosSolicitantes = [...this.todosSolicitantes];
+    },
+      (error) => {
+        console.error('Error al cargar solicitantes:', error);
       }
-    });
+    );
+  } else {
+    this.todosSolicitantes = [];
+    this.filtradosSolicitantes = [];
+  }
+});
+
 
     // Obtener datos técnicos del localStorage
     this.username = localStorage.getItem('username') || '';
@@ -183,12 +185,16 @@ export class FormularioVisitasPage implements OnInit {
 
   iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
-    const clienteObj = this.clientes.find(c => c.id === clienteId);
+    console.log('Cliente seleccionado para iniciar visita:', clienteId);
+    const clienteObj = this.clientes.find(c => c.id_empresa === clienteId);
+    console.log('Cliente encontrado:', clienteObj); 
+
 
     if (!clienteObj) {
-      this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
-      return;
-    }
+    this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
+    return;
+  }
+
 
     this.inicio = new Date();
     this.fin = null;
@@ -203,7 +209,7 @@ export class FormularioVisitasPage implements OnInit {
       realizado: this.visitaForm.value.realizado,
       inicio: this.inicio,
       tecnicoId: this.tecnicoId,
-      empresaId: clienteObj.id
+      empresaId: clienteObj.id_empresa
     };
 
     // Llamada a la API para crear la visita
@@ -211,7 +217,8 @@ export class FormularioVisitasPage implements OnInit {
       (response: any) => {
         this.estado = 'En curso';
         this.estadoTexto = 'La visita ha comenzado.';
-        this.visitaId = response.visita.id;
+        this.visitaId = response.visita.id_visita;
+        console.log('Visita ID asignada:', this.visitaId);
         this.showToast('Visita iniciada correctamente.');
       },
       async (error) => {

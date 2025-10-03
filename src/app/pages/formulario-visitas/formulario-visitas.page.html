@@ -37,7 +37,7 @@
           <ion-label position="stacked">Empresa / Cliente</ion-label>
           <ion-select formControlName="cliente" placeholder="Selecciona un cliente" interface="popover"
             (ionChange)="abrirListaSolicitantes()">
-            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id">
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
               {{ cliente.nombre }}
             </ion-select-option>
           </ion-select>

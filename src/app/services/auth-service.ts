@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,8 +18,7 @@ export class AuthService {
   login(token: string, user: any): void {
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('token', token); // Guardamos el token
-    localStorage.setItem('tecnico', JSON.stringify(user)); // Guardamos la información del técnico
-    localStorage.setItem('tecnicoId', user.id); // También guardamos el ID del técnico, si es necesario
+    localStorage.setItem('tecnicoId', user.id_tecnico); // Guardamos solo el ID del técnico, si es necesario
   }
 
   // Obtener el token de acceso
@@ -25,16 +26,15 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  // Obtener los datos del técnico
-  getTecnico(): any {
-    return JSON.parse(localStorage.getItem('tecnico') || '{}');
+  // Obtener el ID del técnico
+  getTecnicoId(): string | null {
+    return localStorage.getItem('tecnicoId');
   }
 
   // Cerrar sesión
   logout(): void {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
-    localStorage.removeItem('tecnico');
     localStorage.removeItem('tecnicoId');
   }
 }
