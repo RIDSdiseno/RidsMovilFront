@@ -59,8 +59,11 @@ export class ApiService {
     return this.http.get(`${environment.apiUrl}/auth/equipos`, { headers });
   }
 
-  actualizarEquipo(id: number, data: any): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/equipos/${id}`, data);
-  }
+  actualizarEquipo(
+  id: number,
+  data: Partial<{ disco: string; procesador: string; ram: string }>
+) {
+  return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data);
+}
 
 }

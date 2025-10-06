@@ -11,9 +11,9 @@ export class EquiposPage implements OnInit {
   equipment: any[] = [];
   filteredEquipment: any[] = [];
   searchTerm: string = '';
-  selectedEquipo: any = null;
+  selectedEquipo: any = null; // { ...equipo, _original: {...equipo} }
 
-  constructor(private api: ApiService) { }
+  constructor(private api: ApiService) {}
 
   ngOnInit() {
     this.loadEquipment();
@@ -24,10 +24,11 @@ export class EquiposPage implements OnInit {
   }
 
   selectEquipo(equipo: any) {
-    // Clonamos el objeto para no modificar directamente la lista mientras se edita
-    this.selectedEquipo = { ...equipo,
-      id:equipo.id_equipo
-     };
+    // Clonamos y guardamos copia original para comparar cambios
+    this.selectedEquipo = {
+      ...equipo,
+      _original: { ...equipo } // guarda el original completo
+    };
   }
 
   loadEquipment() {
@@ -45,7 +46,6 @@ export class EquiposPage implements OnInit {
         }
 
         this.filteredEquipment = [...this.equipment];
-
         console.log('Total equipos:', this.equipment.length);
       },
       error: (error) => {
@@ -67,27 +67,48 @@ export class EquiposPage implements OnInit {
   }
 
   guardarCambios() {
-    if (!this.selectedEquipo || !this.selectedEquipo.id) {
+    if (!this.selectedEquipo || !this.selectedEquipo.id_equipo) {
       console.warn('No hay equipo seleccionado');
       return;
     }
 
-    const payload = {
-      disco: this.selectedEquipo.disco,
-      procesador: this.selectedEquipo.procesador,
-      ram: this.selectedEquipo.ram
-    };
+    const id = this.selectedEquipo.id_equipo;
+    const original = this.selectedEquipo._original || {};
 
-    this.api.actualizarEquipo(this.selectedEquipo.id, payload).subscribe({
+    // Normaliza strings (trim). Si quieres evitar guardar vacío, puedes no incluirlos si quedan "".
+    const trim = (v: any) =>
+      v === null || v === undefined ? '' : String(v).trim();
+
+    const disco = trim(this.selectedEquipo.disco);
+    const procesador = trim(this.selectedEquipo.procesador);
+    const ram = trim(this.selectedEquipo.ram);
+
+    const payload: any = {};
+    if (disco !== trim(original.disco)) payload.disco = disco;
+    if (procesador !== trim(original.procesador)) payload.procesador = procesador;
+    if (ram !== trim(original.ram)) payload.ram = ram;
+
+    // Si no hay cambios, salir
+    if (Object.keys(payload).length === 0) {
+      console.warn('No hay cambios para guardar');
+      this.cancelEdit();
+      return;
+    }
+
+    this.api.actualizarEquipo(id, payload).subscribe({
       next: (response) => {
         console.log('Equipo Actualizado', response);
 
-        // Actualizar lista local
-        const index = this.equipment.findIndex(eq => eq.id === this.selectedEquipo.id);
-        if (index !== -1) {
-          this.equipment[index] = { ...this.equipment[index], ...payload };
-          this.filteredEquipment = [...this.equipment]; // Actualiza vista filtrada
+        // Actualizar lista local por id_equipo
+        const idx = this.equipment.findIndex(eq => eq.id_equipo === id);
+        if (idx !== -1) {
+          this.equipment[idx] = { ...this.equipment[idx], ...payload };
         }
+
+        // Refrescar la lista filtrada (para que se refleje en UI)
+        this.filteredEquipment = this.filteredEquipment.map(eq =>
+          eq.id_equipo === id ? { ...eq, ...payload } : eq
+        );
 
         this.cancelEdit(); // Cierra panel de edición
       },
@@ -96,5 +117,4 @@ export class EquiposPage implements OnInit {
       }
     });
   }
-
 }
