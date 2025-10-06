@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api';
 
 @Component({
@@ -13,7 +13,7 @@ export class EquiposPage implements OnInit {
   searchTerm: string = '';
   selectedEquipo: any = null;
 
-  constructor(private api: ApiService) { }
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.loadEquipment();
@@ -25,9 +25,10 @@ export class EquiposPage implements OnInit {
 
   selectEquipo(equipo: any) {
     // Clonamos el objeto para no modificar directamente la lista mientras se edita
-    this.selectedEquipo = { ...equipo,
-      id:equipo.id_equipo
-     };
+    this.selectedEquipo = {
+      ...equipo,
+      id: equipo.id_equipo
+    };
   }
 
   loadEquipment() {
@@ -85,8 +86,19 @@ export class EquiposPage implements OnInit {
         // Actualizar lista local
         const index = this.equipment.findIndex(eq => eq.id === this.selectedEquipo.id);
         if (index !== -1) {
-          this.equipment[index] = { ...this.equipment[index], ...payload };
-          this.filteredEquipment = [...this.equipment]; // Actualiza vista filtrada
+          // this.equipment[index] = { ...this.equipment[index], ...payload };
+          // this.filteredEquipment = [...this.equipment]; // Actualiza vista filtrada
+          this.equipment = [
+            ...this.equipment.slice(0, index),
+            response.equipo, // ← datos frescos del backend
+            ...this.equipment.slice(index + 1)
+          ];
+          this.filteredEquipment = [...this.equipment];
+
+
+          console.log('Lista de equipos actualizada:', this.equipment);
+
+          this.cdr.detectChanges();
         }
 
         this.cancelEdit(); // Cierra panel de edición

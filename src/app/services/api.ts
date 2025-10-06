@@ -60,7 +60,7 @@ export class ApiService {
   }
 
   actualizarEquipo(id: number, data: any): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/equipos/${id}`, data);
+    return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data);
   }
 
 }
