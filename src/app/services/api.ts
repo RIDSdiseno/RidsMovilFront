@@ -38,6 +38,14 @@ export class ApiService {
     return this.http.put(`${environment.apiUrl}/auth/finalizar_visita/${visitaId}`, data, { headers })
   }
 
+  logout(): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(
+      `${environment.apiUrl}/auth/logout`,
+      {},
+      { withCredentials: false } // <- MANDATORIO: así se envía la cookie 'rt'
+    );
+  }
+
   getHistorialPorTecnico(tecnicoId: number) {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({
