@@ -15,9 +15,11 @@ export class ApiService {
   getClientes(): Observable<any> {
     return this.http.get(`${environment.apiUrl}/auth/clientes`); // Usa la apiUrl definida en environment.ts
   }
+
   loginTecnicos(credentials: { email: string, password: string }): Observable<any> {
     return this.http.post(`${environment.apiUrl}/auth/login`, credentials)
   }
+
   crearVisita(data: any): Observable<any> {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({
@@ -26,6 +28,7 @@ export class ApiService {
 
     return this.http.post(`${environment.apiUrl}/auth/crear_visita`, data, { headers });
   }
+
   completarVisita(visitaId: number, data: any): Observable<any> {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({
@@ -56,5 +59,8 @@ export class ApiService {
     return this.http.get(`${environment.apiUrl}/auth/equipos`, { headers });
   }
 
+  actualizarEquipo(id: number, data: any): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/equipos/${id}`, data);
+  }
 
 }

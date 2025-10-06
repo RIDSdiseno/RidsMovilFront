@@ -63,31 +63,28 @@ export class PerfilPage implements ViewWillEnter {
 
   // Método para cargar el historial de visitas del técnico
   // Método para cargar el historial de visitas del técnico
-// Método para cargar el historial de visitas del técnico
-cargarHistorial() {
-  this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
-    next: (res) => {
-      console.log('Respuesta completa del historial:');
-      console.log(JSON.stringify(res, null, 2));  // Esto mostrará la respuesta completa
+  // Método para cargar el historial de visitas del técnico
+  cargarHistorial() {
+    this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
+      next: (res) => {
+        console.log('Respuesta completa del historial:', res);  // Esto mostrará la respuesta completa
 
-      const historial = res.historial || [];
+        const historial = res.historial || [];
 
-      this.visitas = historial.map((visita: any) => {
-        // Aquí accedemos correctamente al nombre de la empresa desde solicitanteRef
-        const empresa = visita.solicitanteRef?.empresa;
-        return {
-          ...visita,
-          nombreCliente: empresa ? empresa.nombre : 'Empresa desconocida'  // Modificamos esto
-        };
-      });
-    },
-    error: (err) => {
-      console.error('Error al cargar historial:', err);
-    }
-  });
-}
-
-
+        this.visitas = historial.map((visita: any) => {
+          // Aquí accedemos correctamente al nombre de la empresa desde solicitanteRef
+          const empresa = visita.solicitanteRef?.empresa;
+          return {
+            ...visita,
+            nombreCliente: empresa ? empresa.nombre : 'Empresa desconocida'  // Modificamos esto
+          };
+        });
+      },
+      error: (err) => {
+        console.error('Error al cargar historial:', err);
+      }
+    });
+  }
 
   formatoFecha(fecha: string | null): string {
     if (!fecha) return '-';

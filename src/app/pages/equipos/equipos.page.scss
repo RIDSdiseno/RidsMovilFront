@@ -204,22 +204,44 @@ ion-card-header {
     .action-buttons {
         display: flex;
         flex-direction: column;
+        gap: 10px;
 
         .save-btn,
         .cancel-btn {
             border-radius: 12px;
             font-weight: 600;
             height: 48px;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(44, 143, 224, 0.1);
+            transition: transform 0.2s ease;
 
             ion-icon {
                 font-size: 1.2rem;
             }
+
+            &:active {
+                transform: scale(0.98);
+            }
+        }
+    }
+}
+
+@media (min-width: 768px) {
+    .action-buttons {
+        flex-direction: row !important;
+
+        ion-button {
+            flex: 1;
         }
     }
 }
 
 // MEJORAS EN LA LISTA DE EQUIPOS
 .equipment-list {
+    max-height: 400px; // o el valor que tú necesites
+    overflow-y: auto;
+    scroll-behavior: smooth;
+
     ion-list {
         padding: 0;
         margin: 0;
@@ -230,7 +252,18 @@ ion-card-header {
         --padding-start: 16px;
         --padding-end: 12px;
         border-bottom: 1px solid #f0f0f0;
-        transition: var(--transition);
+
+        &:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        &:nth-child(3) {
+            animation-delay: 0.15s;
+        }
 
         &:last-child {
             border-bottom: none;
@@ -354,26 +387,71 @@ ion-card-header {
 
         ion-button {
             flex: 1;
+            transition: transform 0.1s ease-in-out;
+
+            &:active {
+                transform: scale(0.96);
+            }
+        }
+
+        .equipment-item {
+            --min-height: 90px;
+            --padding-start: 24px;
+
+            .item-content h2 {
+                font-size: 1.15rem;
+            }
         }
     }
 
-    .equipment-item {
-        --min-height: 90px;
-        --padding-start: 24px;
+    // MEJORAS ADICIONALES PARA PANTALLAS GRANDES
+    @media (min-width: 1200px) {
 
-        .item-content h2 {
-            font-size: 1.15rem;
+        .welcome-card,
+        .search-section,
+        .equipment-list,
+        .edit-card {
+            max-width: 1000px;
         }
     }
 }
 
-// MEJORAS ADICIONALES PARA PANTALLAS GRANDES
-@media (min-width: 1200px) {
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
 
-    .welcome-card,
-    .search-section,
-    .equipment-list,
-    .edit-card {
-        max-width: 1000px;
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.edit-card.slide-in {
+    animation: scaleIn 0.3s ease-out;
+}
+
+.results-count {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
     }
 }

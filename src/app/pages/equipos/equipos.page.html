@@ -9,14 +9,15 @@
 
 <ion-content [fullscreen]="true">
   <!-- Buscador por serial -->
-   <br>
+  <br>
   <ion-card class="search-section">
     <ion-card-header>
       <ion-card-title>
         <ion-icon name="search-outline" class="card-icon"></ion-icon>
-          Buscar por Serial
+        Buscar por Serial
       </ion-card-title>
-      <ion-card-subtitle>Encuentra equipos por su número de serie</ion-card-subtitle>
+      <ion-card-subtitle>Total de equipos: {{ equipment.length }}</ion-card-subtitle>
+      <ion-card-subtitle>Encuentra equipos por su número de serie: </ion-card-subtitle>
     </ion-card-header>
 
     <ion-card-content>
@@ -71,7 +72,6 @@
           </ion-label>
           <ion-input [(ngModel)]="selectedEquipo.procesador" class="custom-input"></ion-input>
         </ion-item>
-
         <ion-item class="form-item" lines="none">
           <ion-label position="stacked" class="input-label">
             <ion-icon name="layers-outline" class="label-icon"></ion-icon>
@@ -79,14 +79,19 @@
           </ion-label>
           <ion-input [(ngModel)]="selectedEquipo.ram" class="custom-input"></ion-input>
         </ion-item>
+        <br>
       </div>
-
       <div class="action-buttons">
+        <ion-button expand="block" fill="outline" class="save-btn" (click)="guardarCambios()">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Guardar
+        </ion-button>
         <ion-button expand="block" fill="outline" color="medium" (click)="cancelEdit()" class="cancel-btn">
           <ion-icon name="close-outline" slot="start"></ion-icon>
           Cancelar
         </ion-button>
       </div>
+
     </ion-card-content>
   </ion-card>
 

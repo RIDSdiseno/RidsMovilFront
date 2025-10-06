@@ -7,6 +7,14 @@
 
     }
 
+    .custom-header-toolbar {
+        --background: #121212 !important;
+
+        .header-title {
+            color: white !important;
+        }
+    }
+
     .login-card {
         background: black !important;
     }
