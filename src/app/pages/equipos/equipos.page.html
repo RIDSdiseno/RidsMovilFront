@@ -79,6 +79,13 @@
           </ion-label>
           <ion-input [(ngModel)]="selectedEquipo.ram" class="custom-input"></ion-input>
         </ion-item>
+         <ion-item class="form-item" lines="none">
+    <ion-label position="stacked" class="input-label">
+      <ion-icon name="disc-outline" class="label-icon"></ion-icon>
+      Tipo de Disco Duro
+    </ion-label>
+    <ion-input [(ngModel)]="selectedEquipo.tipoDd" class="custom-input" placeholder="Ej: SSD, HDD, M.2"></ion-input>
+  </ion-item>
         <br>
       </div>
       <div class="action-buttons">

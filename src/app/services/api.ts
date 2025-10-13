@@ -69,9 +69,14 @@ export class ApiService {
 
   actualizarEquipo(
   id: number,
-  data: Partial<{ disco: string; procesador: string; ram: string }>
+  data: Partial<{ disco: string; procesador: string; ram: string; tipoDd: string }>
 ) {
-  return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data);
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data, { headers });
 }
 
 }

@@ -29,6 +29,8 @@ export class EquiposPage implements OnInit {
       ...equipo,
       _original: { ...equipo } // guarda el original completo
     };
+    console.log(this.selectedEquipo);
+
   }
 
   loadEquipment() {
@@ -75,20 +77,20 @@ export class EquiposPage implements OnInit {
     const id = this.selectedEquipo.id_equipo;
     const original = this.selectedEquipo._original || {};
 
-    // Normaliza strings (trim). Si quieres evitar guardar vacío, puedes no incluirlos si quedan "".
     const trim = (v: any) =>
       v === null || v === undefined ? '' : String(v).trim();
 
     const disco = trim(this.selectedEquipo.disco);
     const procesador = trim(this.selectedEquipo.procesador);
     const ram = trim(this.selectedEquipo.ram);
+    const tipoDd = trim(this.selectedEquipo.tipoDd); // 👈 nuevo campo
 
     const payload: any = {};
     if (disco !== trim(original.disco)) payload.disco = disco;
     if (procesador !== trim(original.procesador)) payload.procesador = procesador;
     if (ram !== trim(original.ram)) payload.ram = ram;
+    if (tipoDd !== trim(original.tipoDd)) payload.tipoDd = tipoDd; // 👈 comparar y agregar si cambió
 
-    // Si no hay cambios, salir
     if (Object.keys(payload).length === 0) {
       console.warn('No hay cambios para guardar');
       this.cancelEdit();
@@ -99,18 +101,16 @@ export class EquiposPage implements OnInit {
       next: (response) => {
         console.log('Equipo Actualizado', response);
 
-        // Actualizar lista local por id_equipo
         const idx = this.equipment.findIndex(eq => eq.id_equipo === id);
         if (idx !== -1) {
           this.equipment[idx] = { ...this.equipment[idx], ...payload };
         }
 
-        // Refrescar la lista filtrada (para que se refleje en UI)
         this.filteredEquipment = this.filteredEquipment.map(eq =>
           eq.id_equipo === id ? { ...eq, ...payload } : eq
         );
 
-        this.cancelEdit(); // Cierra panel de edición
+        this.cancelEdit();
       },
       error: (err) => {
         console.error('Error al guardar cambios:', err);
