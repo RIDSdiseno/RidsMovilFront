@@ -48,7 +48,7 @@ export class FormularioVisitasPage implements OnInit {
     // Inicializar el formulario con validaciones
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
-      solicitante: ['', Validators.required],
+      solicitante: [[], Validators.required],
       busquedaSolicitante: [''],
       actividades: this.fb.group({
         impresoras: [false],
@@ -93,46 +93,48 @@ export class FormularioVisitasPage implements OnInit {
     );
 
     // Recuperar datos existentes si es necesario
-  if (this.visitaId) {
-    this.api.crearVisita(this.visitaId).subscribe((visitaData) => {
-      const actividades = visitaData.actividades || {};
-      // Si existen actividades previas, actualizar los valores
-      this.visitaForm.patchValue({
-        actividades: {
-          impresoras: actividades.impresoras ?? true,
-          telefonos: actividades.telefonos ?? true,
-          pie: actividades.pie ?? true,
-          otros: actividades.otros ?? true,
-          ccleaner: actividades.ccleaner ?? true,
-          actualizaciones: actividades.actualizaciones ?? true,
-          antivirus: actividades.antivirus ?? true,
-          estadoDisco: actividades.estadoDisco ?? true,
-          licenciaWindows: actividades.licenciaWindows ?? true,
-          licenciaOffice: actividades.licenciaOffice ?? true,
-          rendimientoEquipo: actividades.rendimientoEquipo ?? true,
-          mantenimientoReloj: actividades.mantenimientoReloj ?? true
-        }
+    if (this.visitaId) {
+      this.api.crearVisita(this.visitaId).subscribe((visitaData) => {
+        const actividades = visitaData.actividades || {};
+        // Si existen actividades previas, actualizar los valores
+        this.visitaForm.patchValue({
+          actividades: {
+            impresoras: actividades.impresoras ?? true,
+            telefonos: actividades.telefonos ?? true,
+            pie: actividades.pie ?? true,
+            otros: actividades.otros ?? true,
+            ccleaner: actividades.ccleaner ?? true,
+            actualizaciones: actividades.actualizaciones ?? true,
+            antivirus: actividades.antivirus ?? true,
+            estadoDisco: actividades.estadoDisco ?? true,
+            licenciaWindows: actividades.licenciaWindows ?? true,
+            licenciaOffice: actividades.licenciaOffice ?? true,
+            rendimientoEquipo: actividades.rendimientoEquipo ?? true,
+            mantenimientoReloj: actividades.mantenimientoReloj ?? true
+          }
+        });
       });
-    });
-  }
+    }
     // Actualizar solicitantes cuando se seleccione un cliente
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
-  console.log('Cliente seleccionado:', clienteId);
-  this.empresaId = clienteId; // Asegúrate de que este valor esté siendo asignado correctamente
-  if (clienteId) {
-    this.api.getSolicitantes(clienteId).subscribe((res) => {
-      this.todosSolicitantes = res.solicitantes || res || [];
-      this.filtradosSolicitantes = [...this.todosSolicitantes];
-    },
-      (error) => {
-        console.error('Error al cargar solicitantes:', error);
+      console.log('Cliente seleccionado:', clienteId);
+      this.empresaId = clienteId; // Asegúrate de que este valor esté siendo asignado correctamente
+      if (clienteId) {
+        this.api.getSolicitantes(clienteId).subscribe((res) => {
+          this.todosSolicitantes = res.solicitantes || res || [];
+          this.filtradosSolicitantes = [...this.todosSolicitantes];
+
+          console.log(this.filtradosSolicitantes)
+        },
+          (error) => {
+            console.error('Error al cargar solicitantes:', error);
+          }
+        );
+      } else {
+        this.todosSolicitantes = [];
+        this.filtradosSolicitantes = [];
       }
-    );
-  } else {
-    this.todosSolicitantes = [];
-    this.filtradosSolicitantes = [];
-  }
-});
+    });
 
 
     // Obtener datos técnicos del localStorage
@@ -162,15 +164,25 @@ export class FormularioVisitasPage implements OnInit {
     this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
   }
 
-
-
   // Método para seleccionar un solicitante de la lista
   seleccionarSolicitante(s: any) {
-    this.nombreSolicitanteSeleccionado = s.nombre;
-    this.visitaForm.get('solicitante')?.setValue(s.nombre);  // Asignamos el nombre del solicitante al formulario
-    this.mostrarListaSolicitantes = false;
-    this.busquedaSolicitante = '';
-    this.filtradosSolicitantes = [...this.todosSolicitantes]; // Restaurar lista completa después de seleccionar un solicitante
+    const seleccionActual = this.visitaForm.get('solicitante')?.value || [];
+    const existe = seleccionActual.find((item: any) => item.id_solicitante === s.id_solicitante);
+
+    let nuevaSeleccion;
+
+    if (existe) {
+      // Si ya está seleccionado, lo quitamos
+      nuevaSeleccion = seleccionActual.filter((item: any) => item.id_solicitante !== s.id_solicitante);
+    } else {
+      // Si no está seleccionado, lo agregamos
+      nuevaSeleccion = [...seleccionActual, s];
+    }
+
+    this.visitaForm.get('solicitante')?.setValue(nuevaSeleccion);
+
+    // Actualiza el texto mostrado con los nombres seleccionados
+    this.nombreSolicitanteSeleccionado = nuevaSeleccion.map((item: any) => item.nombre).join(', ');
   }
 
   // Método para filtrar solicitantes según la búsqueda
@@ -182,18 +194,31 @@ export class FormularioVisitasPage implements OnInit {
     console.log('Solicitantes filtrados:', this.filtradosSolicitantes);  // Verificar resultados filtrados
   }
 
+  esSolicitanteSeleccionado(s: any): boolean {
+    return this.visitaForm.value.solicitante?.some(
+      (item: any) => item.id_solicitante === s.id_solicitante
+    );
+  }
+
+  eliminarSolicitante(s: any) {
+    const actual = this.visitaForm.value.solicitante || [];
+    const filtrados = actual.filter(
+      (item: any) => item.id_solicitante !== s.id_solicitante
+    );
+    this.visitaForm.patchValue({ solicitante: filtrados });
+  }
 
   iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
     console.log('Cliente seleccionado para iniciar visita:', clienteId);
     const clienteObj = this.clientes.find(c => c.id_empresa === clienteId);
-    console.log('Cliente encontrado:', clienteObj); 
+    console.log('Cliente encontrado:', clienteObj);
 
 
     if (!clienteObj) {
-    this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
-    return;
-  }
+      this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
+      return;
+    }
 
 
     this.inicio = new Date();
@@ -266,8 +291,8 @@ export class FormularioVisitasPage implements OnInit {
 
     console.log('Solicitante seleccionado:', solicitante)
 
-    if (!solicitante || typeof solicitante !== 'string' || solicitante.trim().length === 0) {
-      this.showToast('Por favor, selecciona un solicitante válido.');
+    if (!solicitante || solicitante.length === 0) {
+      this.showToast('Por favor, selecciona al menos un solicitante.');
       return;
     }
 

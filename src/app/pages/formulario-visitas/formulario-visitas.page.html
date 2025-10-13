@@ -18,7 +18,7 @@
       <p><strong>Inicio:</strong> {{ inicio | date:'dd/MM/yyyy HH:mm' }}</p>
       <p><strong>Término:</strong> {{ fin | date:'dd/MM/yyyy HH:mm' }}</p>
       <ion-button expand="block" (click)="iniciarVisita()" [disabled]="visitaEnCurso">Iniciar Visita</ion-button>
-      <ion-button expand="block" (click)="terminarVisita()" [disabled]="!visitaEnCurso">Terminar Visita</ion-button>
+      <ion-button expand="block" (click)="terminarVisita()" [disabled]="!visitaEnCurso">Guardar Visita</ion-button>
       <ion-button expand="block" fill="outline" (click)="resetFormulario()">Limpiar Datos de Visita</ion-button>
     </ion-card-content>
   </ion-card>
@@ -46,37 +46,108 @@
           Este campo es obligatorio.
         </ion-note>
 
-        <!-- Solicitante con dropdown moderno -->
+        <!-- Selector de Solicitantes - Diseño Mejorado -->
         <ion-item lines="none" class="solicitante-item">
-          <ion-label position="stacked" class="input-label">Solicitante</ion-label>
-          <ion-input formControlName="solicitante" readonly [value]="nombreSolicitanteSeleccionado"
-            (click)="abrirListaSolicitantes()" class="input-solicitante" placeholder="Selecciona un solicitante...">
-          </ion-input>
+          <ion-label position="stacked" class="input-label">
+            <div class="label-header">
+              <span>Solicitantes</span>
+              <span class="counter" [class.has-selection]="visitaForm.value.solicitante?.length > 0">
+                {{ visitaForm.value.solicitante?.length || 0 }} seleccionados
+              </span>
+            </div>
+          </ion-label>
+
+          <!-- Input que abre el selector -->
+          <div class="selector-trigger" (click)="abrirListaSolicitantes()"
+            [class.has-selection]="visitaForm.value.solicitante?.length > 0">
+            <div class="trigger-content">
+              <ion-icon name="person-outline" class="trigger-icon"></ion-icon>
+              <span class="trigger-text">
+                {{ visitaForm.value.solicitante?.length > 0 ? 'Ver seleccionados' : 'Seleccionar solicitantes' }}
+              </span>
+              <ion-icon [name]="mostrarListaSolicitantes ? 'chevron-up' : 'chevron-down'" class="trigger-arrow">
+              </ion-icon>
+            </div>
+          </div>
         </ion-item>
 
-        <!-- Solo se muestra cuando está activo -->
-        <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card">
-
-          <!-- Barra de búsqueda (ya NO dentro del ion-input) -->
-          <ion-searchbar class="searchbar-solicitante" placeholder="Buscar por nombre..."
-            formControlName="busquedaSolicitante" debounce="300" (ionInput)="filtrarSolicitantes()">
-          </ion-searchbar>
-
-          <!-- Lista de solicitantes -->
-          <ion-list class="lista-solicitantes">
-            <ion-item button *ngFor="let s of filtradosSolicitantes" (click)="seleccionarSolicitante(s)">
-              <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+        <!-- Chips de selección (siempre visibles cuando hay selección) -->
+        <div *ngIf="visitaForm.value.solicitante?.length > 0" class="chips-section">
+          <div class="section-header">
+            <span class="section-title">Solicitantes seleccionados</span>
+          </div>
+          <div class="chips-container">
+            <ion-chip *ngFor="let s of visitaForm.value.solicitante" color="primary" class="selection-chip">
+              <ion-avatar *ngIf="s.iniciales" class="avatar-chip">
+                <span>{{ s.iniciales }}</span>
+              </ion-avatar>
               <ion-label>{{ s.nombre }}</ion-label>
+              <ion-icon name="close-circle" (click)="eliminarSolicitante(s)" class="remove-icon"></ion-icon>
+            </ion-chip>
+          </div>
+        </div>
+
+        <!-- Panel de selección desplegable -->
+        <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card modern-dropdown">
+          <div class="dropdown-header">
+            <h3 class="dropdown-title">Seleccionar Solicitantes</h3>
+            <ion-button fill="clear" size="small" (click)="mostrarListaSolicitantes = false" class="close-btn">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </div>
+
+          <!-- Barra de búsqueda mejorada -->
+          <div class="search-section">
+            <ion-searchbar class="searchbar-solicitante" placeholder="Buscar solicitantes..."
+              formControlName="busquedaSolicitante" debounce="300" (ionInput)="filtrarSolicitantes()" animated>
+            </ion-searchbar>
+            <div class="search-stats" *ngIf="filtradosSolicitantes.length > 0">
+              {{ filtradosSolicitantes.length }} resultado{{ filtradosSolicitantes.length !== 1 ? 's' : '' }}
+            </div>
+          </div>
+
+          <!-- Lista de solicitantes mejorada -->
+          <ion-list class="lista-solicitantes modern-list" lines="none">
+            <ion-item *ngFor="let s of filtradosSolicitantes" button (click)="seleccionarSolicitante(s)"
+              [class.selected]="esSolicitanteSeleccionado(s)" class="solicitante-item-list">
+
+              <!-- Información del solicitante -->
+              <ion-label class="solicitante-info">
+                <h3>{{ s.nombre }}</h3>
+              </ion-label>
+
+              <!-- Estado de selección -->
+              <div slot="end" class="selection-indicator">
+                <ion-icon [name]="esSolicitanteSeleccionado(s) ? 'checkmark-circle' : 'ellipse-outline'"
+                  [color]="esSolicitanteSeleccionado(s) ? 'primary' : 'medium'" class="check-icon">
+                </ion-icon>
+              </div>
             </ion-item>
-            <ion-item *ngIf="filtradosSolicitantes.length === 0">
-              <ion-label color="medium">No se encontraron resultados</ion-label>
+
+            <!-- Estado vacío -->
+            <ion-item *ngIf="filtradosSolicitantes.length === 0" class="empty-state">
+              <ion-icon name="search-outline" slot="start" color="medium"></ion-icon>
+              <ion-label color="medium">
+                <h3>No se encontraron solicitantes</h3>
+                <p>Intenta con otros términos de búsqueda</p>
+              </ion-label>
             </ion-item>
           </ion-list>
+
+          <!-- Footer del dropdown -->
+          <div class="dropdown-footer">
+            <ion-button fill="solid" color="primary" (click)="mostrarListaSolicitantes = false" class="done-btn">
+              <ion-icon name="checkmark" slot="start"></ion-icon>
+              Listo
+            </ion-button>
+          </div>
         </ion-card>
 
-        <ion-note color="danger"
+        <!-- Mensaje de error -->
+        <ion-note color="danger" class="error-note"
           *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
-          Este campo es obligatorio.
+          <ion-icon name="warning" slot="start"></ion-icon>
+          Debes seleccionar al menos un solicitante
         </ion-note>
 
       </ion-card-content>
@@ -121,46 +192,46 @@
     </ion-card>
 
     <!-- Lo realizado -->
-<ion-card [formGroupName]="'actividades'">
-  <ion-card-header>
-    <ion-card-title>Lo realizado</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <!-- Nueva sección para seleccionar las actividades realizadas -->
-    <ion-item>
-      <ion-label class="nowrap">Conf. CCleaner</ion-label>
-      <ion-checkbox slot="end" formControlName="ccleaner"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Conf. Actualizaciones</ion-label>
-      <ion-checkbox slot="end" formControlName="actualizaciones"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Conf. Antivirus</ion-label>
-      <ion-checkbox slot="end" formControlName="antivirus"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Conf. Estado de Disco</ion-label>
-      <ion-checkbox slot="end" formControlName="estadoDisco"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap"l>Licencia Windows</ion-label>
-      <ion-checkbox slot="end" formControlName="licenciaWindows"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Licencia Office</ion-label>
-      <ion-checkbox slot="end" formControlName="licenciaOffice"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Rendimiento del equipo</ion-label>
-      <ion-checkbox slot="end" formControlName="rendimientoEquipo"></ion-checkbox>
-    </ion-item>
-    <ion-item>
-      <ion-label class="nowrap">Mantenimiento de reloj</ion-label>
-      <ion-checkbox slot="end" formControlName="mantenimientoReloj"></ion-checkbox>
-    </ion-item>
-  </ion-card-content>
-</ion-card>
+    <ion-card [formGroupName]="'actividades'">
+      <ion-card-header>
+        <ion-card-title>Lo realizado</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Nueva sección para seleccionar las actividades realizadas -->
+        <ion-item>
+          <ion-label class="nowrap">Conf. CCleaner</ion-label>
+          <ion-checkbox slot="end" formControlName="ccleaner"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Conf. Actualizaciones</ion-label>
+          <ion-checkbox slot="end" formControlName="actualizaciones"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Conf. Antivirus</ion-label>
+          <ion-checkbox slot="end" formControlName="antivirus"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Conf. Estado de Disco</ion-label>
+          <ion-checkbox slot="end" formControlName="estadoDisco"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap" l>Licencia Windows</ion-label>
+          <ion-checkbox slot="end" formControlName="licenciaWindows"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Licencia Office</ion-label>
+          <ion-checkbox slot="end" formControlName="licenciaOffice"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Rendimiento del equipo</ion-label>
+          <ion-checkbox slot="end" formControlName="rendimientoEquipo"></ion-checkbox>
+        </ion-item>
+        <ion-item>
+          <ion-label class="nowrap">Mantenimiento de reloj</ion-label>
+          <ion-checkbox slot="end" formControlName="mantenimientoReloj"></ion-checkbox>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
   </form>
 
