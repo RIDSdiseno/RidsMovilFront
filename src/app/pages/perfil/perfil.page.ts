@@ -4,6 +4,7 @@ import localeEsCl from '@angular/common/locales/es-CL';
 import { ApiService } from 'src/app/services/api';
 import { Router } from '@angular/router';
 import { ViewWillEnter } from '@ionic/angular';
+import { finalize } from 'rxjs/operators';
 
 // Registrar la configuración regional "es-CL"
 registerLocaleData(localeEsCl, 'es-CL');
@@ -94,9 +95,22 @@ export class PerfilPage implements ViewWillEnter {
 
   // Método para cerrar sesión
   cerrarSesion() {
-    localStorage.removeItem('username');
-    localStorage.removeItem('tecnico');
-    localStorage.removeItem('tecnicoId');
-    this.router.navigate(['/home']);
-  }
+  this.api.logout()
+    .pipe(finalize(() => {
+      // Limpieza local SIEMPRE
+      localStorage.removeItem('username');
+      localStorage.removeItem('tecnico');
+      localStorage.removeItem('tecnicoId');
+      localStorage.removeItem('access_token'); // por si lo usas en otros flujos
+      this.router.navigate(['/home']);
+    }))
+    .subscribe({
+      next: (res) => {
+        console.log('Logout OK', res);
+      },
+      error: (err) => {
+        console.warn('Logout falló en el server (se limpia igual en cliente):', err);
+      }
+    });
+}
 }
