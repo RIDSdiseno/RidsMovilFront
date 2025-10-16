@@ -1,4 +1,4 @@
 export const environment = {
-  apiUrl: 'https://ridsmovilback.onrender.com/api',
+  apiUrl: 'ridsmovilback-production.up.railway.app/api',
   production: false
 };

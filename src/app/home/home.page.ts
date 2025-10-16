@@ -65,7 +65,7 @@ export class HomePage {
       async (error: any) => {
         await loading.dismiss();
         this.isLoading = false;
-        console.error('Error al hacer login', JSON.stringify(error));
+        console.error('Error al hacer login', error);
         await this.mostrarError(error);
       }
     );
