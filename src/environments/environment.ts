@@ -3,8 +3,8 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  apiUrl: 'https://ridsmovilback.onrender.com/api',
-  production: false
+  apiUrl: 'https://ridsmovilback-production.up.railway.app/api',
+  production: true
 };
 
 /*

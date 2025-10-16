@@ -75,7 +75,7 @@ export class HomePage {
   private async mostrarError(e:any) {
     const alert = await this.alertController.create({
       header: 'Error de autenticación',
-      message: JSON.stringify(e),
+      message: 'Credenciales invalidas',
       buttons: ['Aceptar']
     });
 
