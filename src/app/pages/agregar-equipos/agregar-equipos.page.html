@@ -1,0 +1,308 @@
+<ion-header>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Agregar Equipos</ion-title>
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" class="header-logo" />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding main-content">
+  <div class="content-wrapper">
+    <!-- Card Principal -->
+    <ion-card class="selection-card">
+      <ion-card-header class="card-header">
+        <ion-card-title class="card-title">
+          <ion-icon name="business" class="title-icon"></ion-icon>
+          Selección de Empresa y Solicitante
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content class="card-content">
+        <form [formGroup]="equipoForm">
+          <!-- Empresa -->
+          <div class="form-section">
+            <ion-item class="form-item custom-item" lines="none">
+              <ion-label position="stacked" class="form-label">
+                <ion-icon name="business-outline" class="label-icon"></ion-icon>
+                Empresa *
+              </ion-label>
+              <ion-select formControlName="cliente" placeholder="Selecciona una empresa" interface="action-sheet"
+                class="custom-select">
+                <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
+                  {{ cliente.nombre }}
+                </ion-select-option>
+              </ion-select>
+              <ion-note *ngIf="equipoForm.get('cliente')?.invalid && equipoForm.get('cliente')?.touched"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                Selecciona una empresa
+              </ion-note>
+            </ion-item>
+          </div>
+
+          <!-- Solicitante (INDIVIDUAL) -->
+          <div class="form-section">
+            <ion-item class="form-item custom-item" lines="none" (click)="abrirListaSolicitantes()">
+              <ion-label position="stacked" class="form-label">
+                <ion-icon name="person-outline" class="label-icon"></ion-icon>
+                Solicitante *
+              </ion-label>
+              <ion-input placeholder="Seleccionar solicitante" readonly class="custom-input"
+                [value]="equipoForm.value.solicitante?.nombre || 'Ninguno seleccionado'">
+              </ion-input>
+              <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
+              <ion-note *ngIf="equipoForm.get('solicitante')?.invalid && equipoForm.get('solicitante')?.touched"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                Selecciona un solicitante
+              </ion-note>
+            </ion-item>
+
+            <!-- Chip del solicitante seleccionado -->
+            <div *ngIf="equipoForm.value.solicitante" class="chips-container">
+              <div class="selected-solicitante-card">
+                <div class="solicitante-header">
+                  <h4 class="solicitante-title">Solicitante seleccionado:</h4>
+                  <ion-badge color="primary" class="selection-badge">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    Seleccionado
+                  </ion-badge>
+                </div>
+                <ion-chip class="custom-chip selected-chip" color="primary">
+                  <ion-avatar class="chip-avatar">
+                    <ion-icon name="person-circle-outline"></ion-icon>
+                  </ion-avatar>
+                  <ion-label class="chip-label">
+                    <strong>{{ equipoForm.value.solicitante.nombre }}</strong>
+                    <small *ngIf="equipoForm.value.solicitante.email" class="chip-email">
+                      {{ equipoForm.value.solicitante.email }}
+                    </small>
+                  </ion-label>
+                  <ion-button fill="clear" size="small" (click)="abrirFormularioEquipo()" class="chip-button">
+                    <ion-icon name="add-circle" color="success"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" (click)="eliminarSolicitante()" class="chip-button">
+                    <ion-icon name="close-circle" color="danger"></ion-icon>
+                  </ion-button>
+                </ion-chip>
+
+                <!-- Botón para agregar equipo -->
+                <div class="action-button-container">
+                  <ion-button expand="block" color="primary" (click)="abrirFormularioEquipo()"
+                    class="add-equipo-button">
+                    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                    Agregar Equipo para {{ equipoForm.value.solicitante.nombre }}
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Modal de Solicitantes -->
+    <ion-modal [isOpen]="mostrarListaSolicitantes" class="solicitantes-modal">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Seleccionar Solicitante</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="mostrarListaSolicitantes = false" strong="true">
+                <ion-icon name="close-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          <div class="modal-body">
+            <div class="selection-info">
+              <ion-note color="primary">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                Solo puedes seleccionar un solicitante
+              </ion-note>
+            </div>
+
+            <ion-searchbar formControlName="busquedaSolicitante" debounce="300" placeholder="Buscar solicitante..."
+              class="custom-searchbar">
+            </ion-searchbar>
+
+            <div class="solicitantes-list-container">
+              <ion-list class="solicitantes-list">
+                <ion-item *ngIf="cargandoSolicitantes" class="loading-item">
+                  <ion-spinner slot="start" name="crescent"></ion-spinner>
+                  <ion-label>Cargando solicitantes...</ion-label>
+                </ion-item>
+
+                <ion-item *ngFor="let s of filtradosSolicitantes" (click)="seleccionarSolicitante(s)"
+                  class="solicitante-item" [class.selected]="esSolicitanteSeleccionado(s)"
+                  [class.single-selection]="true">
+                  <ion-avatar slot="start" class="solicitante-avatar">
+                    <ion-icon [name]="esSolicitanteSeleccionado(s) ? 'person-circle' : 'person-circle-outline'"
+                      [color]="esSolicitanteSeleccionado(s) ? 'primary' : 'medium'">
+                    </ion-icon>
+                  </ion-avatar>
+                  <ion-label class="solicitante-label">
+                    <h3>{{ s.nombre }}</h3>
+                    <p>{{ s.email || 'Sin email' }}</p>
+                  </ion-label>
+                  <ion-badge *ngIf="esSolicitanteSeleccionado(s)" color="primary" slot="end">
+                    Seleccionado
+                  </ion-badge>
+                  <ion-icon *ngIf="!esSolicitanteSeleccionado(s)" slot="end" name="ellipse-outline" color="medium"
+                    class="selection-icon">
+                  </ion-icon>
+                </ion-item>
+
+                <ion-item *ngIf="filtradosSolicitantes.length === 0 && !cargandoSolicitantes" class="no-results">
+                  <ion-label color="medium" class="no-results-text">
+                    <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
+                    No se encontraron solicitantes
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+
+            <div class="modal-actions">
+              <ion-button expand="block" (click)="mostrarListaSolicitantes = false" class="done-button">
+                <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                Confirmar Selección
+              </ion-button>
+            </div>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Formulario para agregar equipo (se mantiene igual) -->
+    <ion-card *ngIf="mostrarFormularioEquipo" class="equipo-form-card floating-card">
+      <ion-card-header class="card-header success-header">
+        <ion-card-title class="card-title">
+          <ion-icon name="laptop-outline" class="title-icon"></ion-icon>
+          Agregar Equipo para {{ solicitanteSeleccionadoParaEquipo?.nombre }}
+        </ion-card-title>
+        <ion-card-subtitle class="card-subtitle">
+          Completa la información del equipo
+        </ion-card-subtitle>
+        <ion-button fill="clear" slot="end" (click)="cerrarFormularioEquipo()" class="close-button">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-card-header>
+
+      <ion-card-content class="card-content">
+        <form [formGroup]="equipoIndividualForm">
+          <div class="form-grid">
+            <!-- Campos requeridos -->
+            <div class="form-section required-section">
+              <h4 class="section-title">
+                <ion-icon name="alert-circle-outline" class="section-icon"></ion-icon>
+                Información requerida
+              </h4>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label required">
+                  <ion-icon name="barcode-outline" class="label-icon"></ion-icon>
+                  Serial *
+                </ion-label>
+                <ion-input formControlName="serial" placeholder="Ingresa el serial" class="custom-input"></ion-input>
+              </ion-item>
+              <ion-note
+                *ngIf="equipoIndividualForm.get('serial')?.touched && equipoIndividualForm.get('serial')?.errors"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                El serial es requerido
+              </ion-note>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label required">
+                  <ion-icon name="hardware-chip-outline" class="label-icon"></ion-icon>
+                  Marca *
+                </ion-label>
+                <ion-input formControlName="marca" placeholder="Ingresa la marca" class="custom-input"></ion-input>
+              </ion-item>
+              <ion-note *ngIf="equipoIndividualForm.get('marca')?.touched && equipoIndividualForm.get('marca')?.errors"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                La marca es requerida
+              </ion-note>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label required">
+                  <ion-icon name="settings-outline" class="label-icon"></ion-icon>
+                  Modelo *
+                </ion-label>
+                <ion-input formControlName="modelo" placeholder="Ingresa el modelo" class="custom-input"></ion-input>
+              </ion-item>
+              <ion-note
+                *ngIf="equipoIndividualForm.get('modelo')?.touched && equipoIndividualForm.get('modelo')?.errors"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                El modelo es requerido
+              </ion-note>
+            </div>
+
+            <!-- Campos opcionales -->
+            <div class="form-section optional-section">
+              <h4 class="section-title optional">
+                <ion-icon name="information-circle-outline" class="section-icon"></ion-icon>
+                Información adicional 
+              </h4>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="speedometer-outline" class="label-icon"></ion-icon>
+                  Procesador
+                </ion-label>
+                <ion-input formControlName="procesador" placeholder="Ingresa el procesador"
+                  class="custom-input"></ion-input>
+              </ion-item>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="flash-outline" class="label-icon"></ion-icon>
+                  RAM
+                </ion-label>
+                <ion-input formControlName="ram" placeholder="Ej: 8GB DDR4" class="custom-input"></ion-input>
+              </ion-item>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="save-outline" class="label-icon"></ion-icon>
+                  Disco
+                </ion-label>
+                <ion-input formControlName="disco" placeholder="Ej: 512GB SSD" class="custom-input"></ion-input>
+              </ion-item>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="business-outline" class="label-icon"></ion-icon>
+                  Propiedad
+                </ion-label>
+                <ion-input formControlName="propiedad" placeholder="Ingresa la propiedad"
+                  class="custom-input"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <!-- Botones de acción (simplificado) -->
+          <div class="actions-container">
+            <ion-button expand="block" color="primary" (click)="crearEquipo()" [disabled]="equipoIndividualForm.invalid"
+              class="action-button primary-button">
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              Guardar Equipo
+            </ion-button>
+
+            <ion-button expand="block" fill="outline" color="medium" (click)="cerrarFormularioEquipo()"
+              class="action-button outline-button">
+              <ion-icon name="close-outline" slot="start"></ion-icon>
+              Cancelar
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<app-footer-menu></app-footer-menu>

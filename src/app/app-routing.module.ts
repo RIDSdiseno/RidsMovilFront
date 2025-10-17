@@ -22,9 +22,14 @@ const routes: Routes = [
   {
     path: 'perfil',
     loadChildren: () => import('./pages/perfil/perfil.module').then( m => m.PerfilPageModule)
-  },  {
+  },
+  {
     path: 'equipos',
     loadChildren: () => import('./pages/equipos/equipos.module').then( m => m.EquiposPageModule)
+  },
+  {
+    path: 'agregar-equipos',
+    loadChildren: () => import('./pages/agregar-equipos/agregar-equipos.module').then( m => m.AgregarEquiposPageModule)
   },
 
 ];

@@ -68,15 +68,24 @@ export class ApiService {
   }
 
   actualizarEquipo(
-  id: number,
-  data: Partial<{ disco: string; procesador: string; ram: string; tipoDd: string }>
-) {
-  const token = this.authService.getToken();
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
+    id: number,
+    data: Partial<{ disco: string; procesador: string; ram: string; tipoDd: string }>
+  ) {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
 
-  return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data, { headers });
-}
+    return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data, { headers });
+  }
+
+  crearEquipo(data: any): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+
+    return this.http.post(`${environment.apiUrl}/auth/crearequipo`, data, { headers });
+  }
 
 }
