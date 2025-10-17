@@ -111,4 +111,58 @@ $breakpoint-lg: 1200px;
         box-shadow: 0 1px 4px rgba(255, 255, 255, 0.05) !important;
     }
 
+    .selected-solicitante-card {
+        background: rgba(44, 143, 224, 0.1) !important;
+        border: 2px solid rgba(44, 143, 224, 0.3) !important;
+    }
+
+    .solicitante-avatar {
+        background: rgba(44, 143, 224, 0.2) !important;
+
+    }
+
+    .solicitantes-list-container {
+        background: #2d2d2d !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .solicitante-item {
+        --background: #2d2d2d !important;
+        --color: var(--dark-color) !important;
+        border-bottom: 1px solid #444 !important;
+
+        &:hover:not(.selected) {
+            --background: #3d3d3d !important;
+        }
+
+        &.selected {
+            --background: rgba(44, 143, 224, 0.25) !important;
+            border-left: 4px solid var(--primary-color) !important;
+        }
+    }
+
+    .selected-chip {
+        --background: rgba(44, 143, 224, 0.15) !important;
+        border: 1px solid rgba(44, 143, 224, 0.3) !important;
+
+        .chip-label {
+            color: var(--dark-color) !important;
+        }
+    }
+
+    .custom-input,
+    .custom-select {
+        --background: #2d2d2d !important;
+        --color: var(--dark-color) !important;
+        --placeholder-color: var(--secondary-color) !important;
+        border: 2px solid #444 !important;
+
+        &:focus-within {
+            --background: #3d3d3d !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 3px rgba(44, 143, 224, 0.2) !important;
+        }
+    }
+
+
 }
