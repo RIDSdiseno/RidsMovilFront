@@ -324,6 +324,13 @@ export class FormularioVisitasPage implements OnInit {
 
     console.log('Solicitante seleccionado:', solicitante)
 
+    const seleccion = this.visitaForm.get('solicitante')?.value as any[];
+  if (!Array.isArray(seleccion) || seleccion.length === 0) {
+  this.showToast('Por favor, selecciona al menos un solicitante.');
+  return;
+}
+  console.log('Solicitante seleccionado:', seleccion)
+    // Datos para completar la visita
     if (!solicitante || solicitante.length === 0) {
       this.showToast('Por favor, selecciona al menos un solicitante.');
       return;
@@ -343,7 +350,7 @@ export class FormularioVisitasPage implements OnInit {
       rendimientoEquipo: actividades.rendimientoEquipo,
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
-      solicitante,
+      solicitantes: seleccion,
       realizado: this.visitaForm.value.realizado
     };
 

@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.rids.ridsmovil;
 
 import com.getcapacitor.BridgeActivity;
 

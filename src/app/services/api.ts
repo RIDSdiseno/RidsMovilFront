@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth-service';
-import { environment } from 'src/environments/environment';  // para usar apiUrl desde environment.ts
+import { environment } from 'src/environments/environment.prod';  // para usar apiUrl desde environment.ts
 
 @Injectable({
   providedIn: 'root'

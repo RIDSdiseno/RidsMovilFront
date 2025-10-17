@@ -65,7 +65,7 @@ export class HomePage {
       async (error: any) => {
         await loading.dismiss();
         this.isLoading = false;
-        console.error('Error al hacer login', JSON.stringify(error));
+        console.error('Error al hacer login', error);
         await this.mostrarError(error);
       }
     );
@@ -75,7 +75,7 @@ export class HomePage {
   private async mostrarError(e:any) {
     const alert = await this.alertController.create({
       header: 'Error de autenticación',
-      message: JSON.stringify(e),
+      message: 'Credenciales invalidas',
       buttons: ['Aceptar']
     });
 

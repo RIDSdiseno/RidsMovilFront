@@ -1,9 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.rids.RidsMovilFront',
   appName: 'RidsMovilFront',
   webDir: 'www',
+  bundledWebRuntime: false,
   server: {
     cleartext: true, // Permite conexiones HTTP no seguras en desarrollo
   },
