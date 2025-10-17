@@ -59,6 +59,8 @@ ion-content {
     box-shadow: var(--box-shadow);
     background: #fff;
     transition: var(--transition);
+    overflow-y: auto;
+    scroll-behavior: smooth;
 
     &:hover {
         box-shadow: 0 10px 30px rgba(44, 143, 224, 0.2);
@@ -86,6 +88,9 @@ ion-card-header {
 
 // MEJORAS EN EL FORMULARIO DE BÚSQUEDA
 .search-section {
+
+    position: static;
+
     .input-icon {
         font-size: 1.2rem;
         color: var(--primary-color);
@@ -118,7 +123,7 @@ ion-card-header {
 
 // MEJORAS EN EL PANEL DE EDICIÓN
 .edit-card {
-    position: relative;
+    position: static;
     animation: slideIn 0.3s ease-out;
 
     &.slide-in {
@@ -241,6 +246,7 @@ ion-card-header {
     max-height: 400px; // o el valor que tú necesites
     overflow-y: auto;
     scroll-behavior: smooth;
+    position: static;
 
     ion-list {
         padding: 0;
@@ -453,5 +459,46 @@ ion-card-header {
 
     100% {
         background-position: 200% 0;
+    }
+}
+
+.swipe-indicators {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 1000;
+
+    .indicator {
+        background: rgba(25, 118, 210, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+
+        ion-icon {
+            font-size: 1rem;
+        }
+    }
+}
+
+// En móviles, mostrar solo al hacer swipe
+@media (max-width: 767px) {
+    .swipe-indicators .indicator {
+        opacity: 0;
+
+        &.show {
+            opacity: 0.8;
+        }
     }
 }

@@ -1,5 +1,5 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -15,16 +15,18 @@ registerLocaleData(localeEsCl, 'es-CL');
   standalone: false,
 })
 export class FormularioVisitasPage implements OnInit {
+  private swipeCoord?: [number, number];
+  private swipeTime?: number;
+
   visitaId: number | null = null;
   visitaForm: FormGroup;
   visitas: any[] = [];
   filtradosSolicitantes: any[] = [];
-  todosSolicitantes: any[] = []; // Aquí almacenamos todos los solicitantes
+  todosSolicitantes: any[] = [];
 
   mostrarListaSolicitantes = false;
   busquedaSolicitante = '';
   nombreSolicitanteSeleccionado = '';
-
 
   inicio: Date | null = null;
   fin: Date | null = null;
@@ -35,7 +37,7 @@ export class FormularioVisitasPage implements OnInit {
   tecnicoId: string = '';
   filtradosSolicitantesUI: any[] = [];
   clientes: any[] = [];
-  empresaId: number = 0;  // Guardar el ID de la empresa seleccionada
+  empresaId: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -45,7 +47,6 @@ export class FormularioVisitasPage implements OnInit {
     private api: ApiService,
     private toastController: ToastController,
   ) {
-    // Inicializar el formulario con validaciones
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
       solicitante: [[], Validators.required],
@@ -55,19 +56,18 @@ export class FormularioVisitasPage implements OnInit {
         telefonos: [false],
         pie: [false],
         otros: [false],
-        ccleaner: [true],    // Todos seleccionados por defecto
-        actualizaciones: [true],  // Todos seleccionados por defecto
-        estadoDisco: [true], // Todos seleccionados por defecto
-        antivirus: [true],   // Todos seleccionados por defecto
-        licenciaWindows: [true], // Todos seleccionados por defecto
-        licenciaOffice: [true],  // Todos seleccionados por defecto
-        rendimientoEquipo: [true],  // Todos seleccionados por defecto
-        mantenimientoReloj: [true]  // Todos seleccionados por defecto
+        ccleaner: [true],
+        actualizaciones: [true],
+        estadoDisco: [true],
+        antivirus: [true],
+        licenciaWindows: [true],
+        licenciaOffice: [true],
+        rendimientoEquipo: [true],
+        mantenimientoReloj: [true]
       }),
       otrosDetalle: [''],
     });
 
-    // Limpiar "otrosDetalle" si "otros" cambia a false
     this.visitaForm.get('actividades.otros')?.valueChanges.subscribe((val) => {
       if (!val) {
         this.visitaForm.get('otrosDetalle')?.setValue('');
@@ -81,7 +81,6 @@ export class FormularioVisitasPage implements OnInit {
   }
 
   ngOnInit() {
-    // Cargar clientes
     this.api.getClientes().subscribe(
       (data) => {
         console.log('Clientes cargados:', data);
@@ -92,11 +91,9 @@ export class FormularioVisitasPage implements OnInit {
       }
     );
 
-    // Recuperar datos existentes si es necesario
     if (this.visitaId) {
       this.api.crearVisita(this.visitaId).subscribe((visitaData) => {
         const actividades = visitaData.actividades || {};
-        // Si existen actividades previas, actualizar los valores
         this.visitaForm.patchValue({
           actividades: {
             impresoras: actividades.impresoras ?? true,
@@ -115,15 +112,14 @@ export class FormularioVisitasPage implements OnInit {
         });
       });
     }
-    // Actualizar solicitantes cuando se seleccione un cliente
+
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
       console.log('Cliente seleccionado:', clienteId);
-      this.empresaId = clienteId; // Asegúrate de que este valor esté siendo asignado correctamente
+      this.empresaId = clienteId;
       if (clienteId) {
         this.api.getSolicitantes(clienteId).subscribe((res) => {
           this.todosSolicitantes = res.solicitantes || res || [];
           this.filtradosSolicitantes = [...this.todosSolicitantes];
-
           console.log(this.filtradosSolicitantes)
         },
           (error) => {
@@ -136,8 +132,6 @@ export class FormularioVisitasPage implements OnInit {
       }
     });
 
-
-    // Obtener datos técnicos del localStorage
     this.username = localStorage.getItem('username') || '';
     this.tecnicoId = localStorage.getItem('tecnicoId') || '';
 
@@ -146,16 +140,67 @@ export class FormularioVisitasPage implements OnInit {
       this.router.navigate(['/login']);
     }
 
-    // Cargar historial local
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     if (this.username && allHistorial[this.username]) {
       this.visitas = allHistorial[this.username];
     } else {
       this.visitas = [];
     }
-
   }
-  // Método para mostrar/ocultar la lista de solicitantes
+
+  // ========== GESTOS TÁCTILES PARA CAMBIAR PÁGINAS ==========
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent) {
+    this.swipeCoord = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
+    this.swipeTime = new Date().getTime();
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent) {
+    if (!this.swipeCoord || !this.swipeTime) return;
+
+    const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
+    const time = new Date().getTime();
+
+    const direction = [coord[0] - this.swipeCoord[0], coord[1] - this.swipeCoord[1]];
+    const duration = time - this.swipeTime;
+
+    // Detectar swipe horizontal (más de 30px en X y menos en Y)
+    if (duration < 1000 && Math.abs(direction[0]) > 30 && Math.abs(direction[0]) > Math.abs(direction[1] * 3)) {
+      if (direction[0] > 0) {
+        this.goToPreviousPage(); // Swipe derecho - Página anterior
+      } else {
+        this.goToNextPage(); // Swipe izquierdo - Página siguiente
+      }
+    }
+  }
+
+  goToNextPage() {
+    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
+    const currentIndex = pageOrder.indexOf(this.router.url);
+
+    if (currentIndex !== -1 && currentIndex < pageOrder.length - 1) {
+      this.router.navigate([pageOrder[currentIndex + 1]]);
+    } else {
+      // Si es la última página, ir a la primera
+      this.router.navigate([pageOrder[0]]);
+    }
+  }
+
+  goToPreviousPage() {
+    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
+    const currentIndex = pageOrder.indexOf(this.router.url);
+
+    if (currentIndex !== -1 && currentIndex > 0) {
+      this.router.navigate([pageOrder[currentIndex - 1]]);
+    } else {
+      // Si es la primera página, ir a la última
+      this.router.navigate([pageOrder[pageOrder.length - 1]]);
+    }
+  }
+  // ========== FIN GESTOS TÁCTILES ==========
+
+  // Los demás métodos se mantienen igual...
   abrirListaSolicitantes() {
     if (!this.visitaForm.get('cliente')?.value) {
       this.showToast('Debes seleccionar una empresa antes de elegir un solicitante.');
@@ -164,7 +209,6 @@ export class FormularioVisitasPage implements OnInit {
     this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
   }
 
-  // Método para seleccionar un solicitante de la lista
   seleccionarSolicitante(s: any) {
     const seleccionActual = this.visitaForm.get('solicitante')?.value || [];
     const existe = seleccionActual.find((item: any) => item.id_solicitante === s.id_solicitante);
@@ -172,26 +216,21 @@ export class FormularioVisitasPage implements OnInit {
     let nuevaSeleccion;
 
     if (existe) {
-      // Si ya está seleccionado, lo quitamos
       nuevaSeleccion = seleccionActual.filter((item: any) => item.id_solicitante !== s.id_solicitante);
     } else {
-      // Si no está seleccionado, lo agregamos
       nuevaSeleccion = [...seleccionActual, s];
     }
 
     this.visitaForm.get('solicitante')?.setValue(nuevaSeleccion);
-
-    // Actualiza el texto mostrado con los nombres seleccionados
     this.nombreSolicitanteSeleccionado = nuevaSeleccion.map((item: any) => item.nombre).join(', ');
   }
 
-  // Método para filtrar solicitantes según la búsqueda
   filtrarSolicitantes() {
     const term = this.visitaForm.get('busquedaSolicitante')?.value.toLowerCase() || '';
     this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
       s.nombre.toLowerCase().includes(term)
     );
-    console.log('Solicitantes filtrados:', this.filtradosSolicitantes);  // Verificar resultados filtrados
+    console.log('Solicitantes filtrados:', this.filtradosSolicitantes);
   }
 
   esSolicitanteSeleccionado(s: any): boolean {
@@ -214,12 +253,10 @@ export class FormularioVisitasPage implements OnInit {
     const clienteObj = this.clientes.find(c => c.id_empresa === clienteId);
     console.log('Cliente encontrado:', clienteObj);
 
-
     if (!clienteObj) {
       this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
       return;
     }
-
 
     this.inicio = new Date();
     this.fin = null;
@@ -227,7 +264,6 @@ export class FormularioVisitasPage implements OnInit {
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
 
-    // Datos para la creación de la visita
     const visitaData = {
       cliente: clienteId,
       solicitante: this.visitaForm.value.solicitante,
@@ -237,7 +273,6 @@ export class FormularioVisitasPage implements OnInit {
       empresaId: clienteObj.id_empresa
     };
 
-    // Llamada a la API para crear la visita
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
         this.estado = 'En curso';
@@ -258,7 +293,6 @@ export class FormularioVisitasPage implements OnInit {
     );
   }
 
-  // Método para terminar la visita
   async terminarVisita() {
     if (!this.visitaId) {
       const alert = await this.alertController.create({
@@ -281,7 +315,6 @@ export class FormularioVisitasPage implements OnInit {
       return;
     }
 
-    // Finalizar la visita
     this.fin = new Date();
     this.visitaEnCurso = false;
     this.estado = 'Completada';
@@ -296,7 +329,6 @@ export class FormularioVisitasPage implements OnInit {
       return;
     }
 
-    // Datos para completar la visita
     const data = {
       confImpresoras: actividades.impresoras,
       confTelefonos: actividades.telefonos,
@@ -315,7 +347,6 @@ export class FormularioVisitasPage implements OnInit {
       realizado: this.visitaForm.value.realizado
     };
 
-    // Llamada a la API para completar la visita
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
         this.guardarVisita();
@@ -333,7 +364,6 @@ export class FormularioVisitasPage implements OnInit {
     );
   }
 
-  // Método para reiniciar el formulario
   resetFormulario() {
     this.visitaForm.reset();
     this.inicio = null;
@@ -345,7 +375,6 @@ export class FormularioVisitasPage implements OnInit {
     this.filtradosSolicitantes = [];
   }
 
-  // Validador personalizado para mínimo de palabras y caracteres
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value || typeof control.value !== 'string') {
@@ -357,7 +386,6 @@ export class FormularioVisitasPage implements OnInit {
     };
   }
 
-  // Método para guardar la visita en el almacenamiento local
   guardarVisita() {
     const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
     const finFmt = this.fin ? this.datePipe.transform(this.fin, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
@@ -371,7 +399,6 @@ export class FormularioVisitasPage implements OnInit {
 
     this.visitas.push(data);
 
-    // Guardar en localStorage
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
     allHistorial[this.username] = this.visitas;
     localStorage.setItem('visitas_registro', JSON.stringify(allHistorial));

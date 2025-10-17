@@ -1,6 +1,13 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
 
+// Breakpoints globales
+$breakpoint-xs: 480px;
+$breakpoint-sm: 768px;
+$breakpoint-md: 992px;
+$breakpoint-lg: 1200px;
+
+
 @media (prefers-color-scheme: dark) {
     ion-content {
         --background: linear-gradient(135deg, #1a1a1a 0%, #0d4a7a 100%) !important;

@@ -533,3 +533,40 @@ ion-item {
         border-radius: 0;
     }
 }
+
+.swipe-indicators {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 1000;
+
+    .indicator {
+        background: rgba(25, 118, 210, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+
+        ion-icon {
+            font-size: 1rem;
+        }
+    }
+}
+
+// En móviles, mostrar solo al hacer swipe
+@media (max-width: 767px) {
+    .swipe-indicators .indicator {
+        opacity: 0;
+    }
+}

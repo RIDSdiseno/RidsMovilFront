@@ -128,6 +128,7 @@ ion-card {
 
 .historial-lista {
     padding: 0;
+    overflow-y: auto;
 }
 
 .historial-item {
@@ -224,4 +225,59 @@ ion-card {
     &:active {
         transform: scale(0.98);
     }
+}
+
+// Estilos para los indicadores de swipe
+.swipe-indicators {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 1000;
+
+    .indicator {
+        background: rgba(25, 118, 210, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+
+        ion-icon {
+            font-size: 1rem;
+        }
+    }
+}
+
+// En móviles, mostrar solo al hacer swipe
+@media (max-width: 767px) {
+    .swipe-indicators .indicator {
+        opacity: 0;
+    }
+}
+
+// Para tablets y desktop, mantener visible pero tenue
+@media (min-width: 768px) {
+    .swipe-indicators .indicator {
+        opacity: 0.3;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+// Asegurar que los indicadores no interfieran con el contenido del perfil
+ion-content {
+    position: relative;
+    z-index: 1;
 }

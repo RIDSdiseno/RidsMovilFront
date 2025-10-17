@@ -1,34 +1,34 @@
-<!--Login-->
-<ion-content class="login-content">
-  <div class="login-container">
-    <br><br>
-    <!-- Login Card -->
-    <div class="login-card">
-      <div class="card-header">
-        <h1>Iniciar Sesión</h1>
-        <p>Accede a tu cuenta</p>
-      </div>
-      <!-- Formulario de login -->
-      <form (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
-        <ion-item class="form-item">
-          <ion-label position="stacked">Usuario</ion-label>
-          <ion-input type="text" [(ngModel)]="username" name="username" required placeholder="Ingresa tu usuario">
-          </ion-input>
-        </ion-item>
+<ion-content class="login-content ion-padding">
+  <div class="login-inner">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <div class="card-header">
+          <h1>Iniciar Sesión</h1>
+          <p>Accede a tu cuenta</p>
+        </div>
 
-        <ion-item class="form-item">
-          <ion-label position="stacked">Contraseña</ion-label>
-          <ion-input type="password" [(ngModel)]="password" name="password" required
-            placeholder="Ingresa tu contraseña">
-          </ion-input>
-        </ion-item>
+        <form (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
+          <ion-item class="form-item">
+            <ion-label position="stacked">Usuario</ion-label>
+            <ion-input type="text" [(ngModel)]="username" name="username" required placeholder="Ingresa tu usuario">
+            </ion-input>
+          </ion-item>
 
-        <ion-button type="submit" expand="block" [disabled]="!loginForm.valid" class="login-btn">
-          INGRESAR
-        </ion-button>
-      </form>
-      <div class="home-image-container">
-        <img src="assets\img\LOGO_RIDS.png" alt="Decoración Home" />
+          <ion-item class="form-item">
+            <ion-label position="stacked">Contraseña</ion-label>
+            <ion-input type="password" [(ngModel)]="password" name="password" required
+              placeholder="Ingresa tu contraseña">
+            </ion-input>
+          </ion-item>
+
+          <ion-button type="submit" expand="block" [disabled]="!loginForm.valid" class="login-btn">
+            INGRESAR
+          </ion-button>
+        </form>
+
+        <div class="home-image-container">
+          <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" />
+        </div>
       </div>
     </div>
   </div>

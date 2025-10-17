@@ -1,25 +1,84 @@
-/* Fondo degradado para ion-content */
+/* Fondo del contenido */
 .login-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+  height: 100%;
+}
+
+/* Capa interna que controla el centrado */
+.login-inner {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-}
-
-.login-container {
+  min-height: 100%;
+  height: 100vh;
   width: 100%;
-  max-width: 400px;
-  align-items: center;
-  text-align: center;
+  padding: 20px;
+
+  // Tablets en landscape
+  @media (max-width: 1024px) and (orientation: landscape) {
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
 }
 
-// Tarjeta de login
+/* Contenedor principal */
+.login-wrapper {
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+
+  // Tablets pequeñas (7-8")
+  @media (min-width: 600px) and (max-width: 768px) {
+    max-width: 450px;
+  }
+
+  // Tablets medianas (9-10")
+  @media (min-width: 769px) and (max-width: 1024px) {
+    max-width: 500px;
+  }
+
+  // Tablets grandes y pantallas pequeñas (11"+)
+  @media (min-width: 1025px) and (max-width: 1366px) {
+    max-width: 480px;
+  }
+
+  // Pantallas grandes
+  @media (min-width: 1367px) {
+    max-width: 500px;
+  }
+}
+
+/* Tarjeta */
 .login-card {
   background: white;
   border-radius: 15px;
   padding: 30px 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  // Tablets
+  @media (min-width: 600px) and (max-width: 1024px) {
+    padding: 40px 35px;
+
+    .card-header {
+      margin-bottom: 35px;
+
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  // Pantallas grandes
+  @media (min-width: 1025px) {
+    padding: 45px 40px;
+  }
 
   .card-header {
     margin-bottom: 30px;
@@ -39,14 +98,28 @@
   }
 }
 
-// Estilos para el formulario de login
+/* Formulario */
 .login-form {
-
   .form-item {
     --background: transparent;
     --border-color: #e0e0e0;
     --border-radius: 8px;
     margin-bottom: 20px;
+
+    // Tablets
+    @media (min-width: 600px) and (max-width: 1024px) {
+      margin-bottom: 25px;
+
+      ion-label {
+        font-size: 1.1rem;
+      }
+
+      ion-input {
+        font-size: 1.1rem;
+        --padding-start: 16px;
+        --padding-end: 16px;
+      }
+    }
 
     ion-label {
       color: #1976d2;
@@ -55,8 +128,6 @@
     }
 
     ion-input {
-      --background: var(--ion-input-background);
-      --color: var(--ion-text-color);
       --padding-start: 12px;
       --padding-end: 12px;
       border-radius: 8px;
@@ -65,20 +136,21 @@
   }
 }
 
+/* Botón */
 .login-btn {
   --background: #1976d2;
-  --background-hover: #1565c0;
-  --background-activated: #1565c0;
   --border-radius: 8px;
   --box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
   height: 48px;
   font-weight: 600;
   font-size: 1.1rem;
-  letter-spacing: 0.5px;
   margin-top: 10px;
 
-  &:hover {
-    --box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+  // Tablets
+  @media (min-width: 600px) and (max-width: 1024px) {
+    height: 52px;
+    font-size: 1.2rem;
+    margin-top: 15px;
   }
 
   &[disabled] {
@@ -87,7 +159,7 @@
   }
 }
 
-/* Línea divisoria estilizada */
+/* Línea decorativa */
 .login-card::before {
   content: '';
   display: block;
@@ -96,33 +168,77 @@
   background: linear-gradient(90deg, #1976d2, #42a5f5);
   margin: 0 auto 25px auto;
   border-radius: 2px;
+
+  // Tablets
+  @media (min-width: 600px) and (max-width: 1024px) {
+    width: 100px;
+    height: 4px;
+    margin-bottom: 30px;
+  }
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .login-container {
-    padding: 20px;
+/* Imagen */
+.home-image-container {
+  text-align: center;
+  margin-top: 30px;
+
+  // Tablets en landscape
+  @media (max-width: 1024px) and (orientation: landscape) {
+    margin-top: 20px;
+
+    img {
+      max-width: 180px;
+    }
   }
 
-  .logo-section .logo-title {
-    font-size: 2rem;
+  img {
+    max-width: 220px;
+    height: auto;
+
+    // Tablets
+    @media (min-width: 600px) and (max-width: 1024px) {
+      max-width: 260px;
+    }
+  }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 480px) {
+  .login-inner {
+    padding: 15px;
   }
 
   .login-card {
-    padding: 30px 25px;
+    padding: 25px 20px;
+  }
+
+  .card-header h1 {
+    font-size: 1.6rem;
   }
 }
 
-// Contenedor de la imagen principal
-.home-image-container {
-  text-align: center;
-  margin-bottom: 30px;
-  margin-top: 30px;
+/* Optimización específica para iPad Pro y tablets de alta resolución */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait) {
+  .login-wrapper {
+    max-width: 520px;
+  }
 
-  img {
-    max-width: 290px;
-    /* ajusta tamaño */
-    height: auto;
-    /* un poco transparente, opcional */
+  .login-card {
+    padding: 50px 45px;
+  }
+}
+
+/* Para pantallas muy grandes pero manteniendo proporciones */
+@media (min-width: 1920px) {
+  .login-wrapper {
+    max-width: 550px;
+  }
+
+  .login-card {
+    padding: 50px 45px;
+
+    .card-header h1 {
+      font-size: 2.4rem;
+    }
   }
 }

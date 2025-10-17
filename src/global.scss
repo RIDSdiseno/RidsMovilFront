@@ -58,3 +58,69 @@ p {
 li {
     color: var(--ion-text-color);
 }
+
+@media (orientation: portrait) {
+    .header-logo {
+        width: 80%;
+    }
+}
+
+@media (orientation: landscape) {
+    .header-logo {
+        width: 50%;
+    }
+}
+
+/* Permite flex en ion-content */
+ion-content::part(scroll) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Permite flex en ion-content */
+ion-content::part(scroll) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+// En archivo global o de componentes compartidos
+.shared-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+    @media (min-width: 600px) and (max-width: 1024px) {
+        padding: 40px 35px;
+    }
+
+    @media (min-width: 1025px) {
+        padding: 45px 40px;
+    }
+}
+
+.shared-button {
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 600;
+
+    @media (min-width: 600px) and (max-width: 1024px) {
+        height: 52px;
+        font-size: 1.2rem;
+    }
+}
+
+.shared-form-item {
+    margin-bottom: 20px;
+
+    @media (min-width: 600px) and (max-width: 1024px) {
+        margin-bottom: 25px;
+
+        ion-label,
+        ion-input {
+            font-size: 1.1rem;
+        }
+    }
+}
