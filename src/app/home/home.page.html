@@ -7,6 +7,7 @@
           <p>Accede a tu cuenta</p>
         </div>
 
+        <!-- Formulario de login -->
         <form (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
           <ion-item class="form-item">
             <ion-label position="stacked">Usuario</ion-label>
@@ -21,12 +22,16 @@
             </ion-input>
           </ion-item>
 
-        <ion-button type="submit" expand="block" [disabled]="!loginForm.valid" class="login-btn">
-          INGRESAR
-        </ion-button>
-      </form>
-      <div class="home-image-container">
-        <img src="../assets/img/LOGO_RIDS.png" alt="Decoración Home" />
+          <ion-button type="submit" expand="block" [disabled]="!loginForm.valid" class="login-btn">
+            INGRESAR
+          </ion-button>
+        </form>
+
+        <!-- Logo de la app -->
+        <div class="home-image-container">
+          <img src="../assets/img/LOGO_RIDS.png" alt="Logo RIDS" />
+        </div>
+
       </div>
     </div>
   </div>
