@@ -88,4 +88,22 @@ export class ApiService {
     return this.http.post(`${environment.apiUrl}/auth/crearequipo`, data, { headers });
   }
 
+  // Método para crear solicitante
+  // Método para crear usuario (solicitante en backend)
+  crearUsuario(usuarioData: {
+    nombre: string;
+    empresaId: number;
+    email?: string;
+    telefono?: string;
+    clienteId?: number | null;
+  }): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    });
+
+    return this.http.post(`${environment.apiUrl}/auth/createSolicitante`, usuarioData, { headers });
+  }
+
 }

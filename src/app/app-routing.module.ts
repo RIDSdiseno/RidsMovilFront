@@ -30,7 +30,11 @@ const routes: Routes = [
   {
     path: 'agregar-equipos',
     loadChildren: () => import('./pages/agregar-equipos/agregar-equipos.module').then( m => m.AgregarEquiposPageModule)
+  },  {
+    path: 'agregar-usuario',
+    loadChildren: () => import('./pages/agregar-usuario/agregar-usuario.module').then( m => m.AgregarUsuarioPageModule)
   },
+
 
 ];
 

@@ -55,7 +55,7 @@ export class EquiposPage implements OnInit {
 
   goToNextPage() {
     const currentUrl = this.router.url;
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
+    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/agregar-equipos', '/perfil'];
     const currentIndex = pageOrder.indexOf(currentUrl);
 
     if (currentIndex !== -1 && currentIndex < pageOrder.length - 1) {
@@ -68,7 +68,7 @@ export class EquiposPage implements OnInit {
 
   goToPreviousPage() {
     const currentUrl = this.router.url;
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
+    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/agregar-equipos', '/perfil'];
     const currentIndex = pageOrder.indexOf(currentUrl);
 
     if (currentIndex !== -1 && currentIndex > 0) {
@@ -94,6 +94,7 @@ export class EquiposPage implements OnInit {
 
   loadEquipment() {
     console.log('Solicitando datos de equipos a la API...');
+    const startTime = Date.now();
 
     this.api.getEquipos().subscribe({
       next: (response) => {
@@ -108,6 +109,10 @@ export class EquiposPage implements OnInit {
 
         this.filteredEquipment = [...this.equipment];
         console.log('Total equipos:', this.equipment.length);
+
+        const endTime = Date.now();
+        console.log(` TIEMPO DE CARGA: ${endTime - startTime}ms`);
+
       },
       error: (error) => {
         console.error('Error al cargar equipos:', error);

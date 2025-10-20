@@ -23,10 +23,8 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
   mostrarFormularioEquipo = false;
   solicitanteSeleccionadoParaEquipo: any = null;
 
-  // Variables para el swipe
-  private swipeCoord?: [number, number];
-  private swipeTime?: number;
-  private swipeEnabled = true; // Control para habilitar/deshabilitar swipe
+  // NUEVA VARIABLE: Para almacenar el nombre de la empresa seleccionada
+  empresaSeleccionadaNombre: string = '';
 
   private destroy$ = new Subject<void>();
 
@@ -50,7 +48,7 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
       procesador: [''],
       ram: [''],
       disco: [''],
-      propiedad: ['']
+      propiedad: [''] // Este campo se auto-completará
     });
   }
 
@@ -62,8 +60,11 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
     ).subscribe((clienteId) => {
       if (clienteId) {
         this.cargarSolicitantes(clienteId);
+        // NUEVO: Actualizar el nombre de la empresa cuando se selecciona
+        this.actualizarNombreEmpresa(clienteId);
       } else {
         this.limpiarSolicitantes();
+        this.empresaSeleccionadaNombre = ''; // Limpiar cuando no hay selección
       }
     });
 
@@ -74,127 +75,27 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
     ).subscribe(term => this.filtrarSolicitantes(term));
   }
 
+  // NUEVO MÉTODO: Obtener el nombre de la empresa seleccionada
+  actualizarNombreEmpresa(clienteId: string) {
+    const empresa = this.clientes.find(c => c.id_empresa === Number(clienteId));
+    this.empresaSeleccionadaNombre = empresa ? empresa.nombre : '';
+
+    // Si el formulario de equipo está abierto, actualizar el campo propiedad
+    if (this.mostrarFormularioEquipo && this.empresaSeleccionadaNombre) {
+      this.equipoIndividualForm.patchValue({
+        propiedad: this.empresaSeleccionadaNombre
+      });
+    }
+  }
+
+  // NUEVO MÉTODO: Obtener nombre de empresa para mostrar
+  getEmpresaSeleccionadaNombre(): string {
+    return this.empresaSeleccionadaNombre || 'No seleccionada';
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  // MEJORA: Gestos táctiles mejorados con prevención de conflictos
-  @HostListener('touchstart', ['$event'])
-  onTouchStart(event: TouchEvent) {
-    // No procesar swipe si hay modales abiertos o formularios activos
-    if (this.mostrarListaSolicitantes || this.mostrarFormularioEquipo) {
-      return;
-    }
-
-    // No procesar si el toque es en un input, botón o elemento interactivo
-    const target = event.target as HTMLElement;
-    if (this.isInteractiveElement(target)) {
-      return;
-    }
-
-    this.swipeCoord = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    this.swipeTime = new Date().getTime();
-  }
-
-  @HostListener('touchend', ['$event'])
-  onTouchEnd(event: TouchEvent) {
-    // No procesar swipe si hay modales abiertos o formularios activos
-    if (this.mostrarListaSolicitantes || this.mostrarFormularioEquipo) {
-      return;
-    }
-
-    if (!this.swipeCoord || !this.swipeTime) return;
-
-    const target = event.target as HTMLElement;
-    if (this.isInteractiveElement(target)) {
-      return;
-    }
-
-    const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    const time = new Date().getTime();
-
-    const direction = [coord[0] - this.swipeCoord[0], coord[1] - this.swipeCoord[1]];
-    const duration = time - this.swipeTime;
-
-    // MEJORA: Detección más precisa de swipe horizontal
-    if (duration < 1000 &&
-      Math.abs(direction[0]) > 50 && // Aumentado a 50px para mayor precisión
-      Math.abs(direction[0]) > Math.abs(direction[1]) * 2) { // Mejor relación X/Y
-
-      if (direction[0] > 0) {
-        this.goToPreviousPage(); // Swipe derecho
-      } else {
-        this.goToNextPage(); // Swipe izquierdo
-      }
-    }
-
-    // Resetear coordenadas
-    this.swipeCoord = undefined;
-    this.swipeTime = undefined;
-  }
-
-  // MEJORA: Método para detectar elementos interactivos
-  private isInteractiveElement(element: HTMLElement): boolean {
-    const interactiveTags = ['INPUT', 'BUTTON', 'ION-BUTTON', 'ION-SELECT', 'ION-CHECKBOX', 'ION-RADIO'];
-    const interactiveRoles = ['button', 'link', 'checkbox', 'radio', 'slider'];
-
-    // Verificar por tag name
-    if (interactiveTags.includes(element.tagName)) {
-      return true;
-    }
-
-    // Verificar por role
-    const role = element.getAttribute('role');
-    if (role && interactiveRoles.includes(role)) {
-      return true;
-    }
-
-    // Verificar si es contenido editable
-    if (element.isContentEditable) {
-      return true;
-    }
-
-    // Verificar si tiene un padre interactivo
-    let parent = element.parentElement;
-    while (parent) {
-      if (interactiveTags.includes(parent.tagName) ||
-        (parent.getAttribute('role') && interactiveRoles.includes(parent.getAttribute('role')!))) {
-        return true;
-      }
-      parent = parent.parentElement;
-    }
-
-    return false;
-  }
-
-  goToNextPage() {
-    const currentUrl = this.router.url;
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
-    const currentIndex = pageOrder.indexOf(currentUrl);
-
-    if (currentIndex !== -1 && currentIndex < pageOrder.length - 1) {
-      this.router.navigate([pageOrder[currentIndex + 1]]);
-    } else {
-      this.router.navigate([pageOrder[0]]);
-    }
-  }
-
-  goToPreviousPage() {
-    const currentUrl = this.router.url;
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
-    const currentIndex = pageOrder.indexOf(currentUrl);
-
-    if (currentIndex !== -1 && currentIndex > 0) {
-      this.router.navigate([pageOrder[currentIndex - 1]]);
-    } else {
-      this.router.navigate([pageOrder[pageOrder.length - 1]]);
-    }
-  }
-
-  // MEJORA: Método para habilitar/deshabilitar swipe temporalmente
-  setSwipeEnabled(enabled: boolean) {
-    this.swipeEnabled = enabled;
   }
 
   seleccionarSolicitante(s: any) {
@@ -224,23 +125,27 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
     this.solicitanteSeleccionadoParaEquipo = solicitante;
     this.mostrarFormularioEquipo = true;
     this.equipoIndividualForm.reset();
+
+    // NUEVO: Auto-completar el campo propiedad con el nombre de la empresa
+    if (this.empresaSeleccionadaNombre) {
+      this.equipoIndividualForm.patchValue({
+        propiedad: this.empresaSeleccionadaNombre
+      });
+    }
   }
 
-  // MEJORA: Métodos modificados para manejar estados de swipe
   abrirListaSolicitantes() {
     if (!this.equipoForm.get('cliente')?.value) {
       this.showToast('Selecciona una empresa antes de elegir solicitantes.');
       return;
     }
     this.mostrarListaSolicitantes = true;
-    this.setSwipeEnabled(false); // Deshabilitar swipe cuando el modal está abierto
   }
 
   cerrarFormularioEquipo() {
     this.mostrarFormularioEquipo = false;
     this.solicitanteSeleccionadoParaEquipo = null;
     this.equipoIndividualForm.reset();
-    this.setSwipeEnabled(true); // Rehabilitar swipe al cerrar
   }
 
   cargarClientes() {
@@ -304,15 +209,17 @@ export class AgregarEquiposPage implements OnInit, OnDestroy {
     });
     await loading.present();
 
+    // NUEVO: Asegurar que el campo propiedad tenga el nombre de la empresa
     const equipoData = {
       idSolicitante: this.solicitanteSeleccionadoParaEquipo.id_solicitante,
-      ...this.equipoIndividualForm.value
+      ...this.equipoIndividualForm.value,
+      propiedad: this.empresaSeleccionadaNombre // Forzar el valor correcto
     };
 
     this.api.crearEquipo(equipoData).subscribe(
       async (response: any) => {
         await loading.dismiss();
-        this.showToast(`✅ Equipo creado exitosamente para ${this.solicitanteSeleccionadoParaEquipo.nombre}`);
+        this.showToast(`Equipo creado exitosamente para ${this.solicitanteSeleccionadoParaEquipo.nombre}`);
         this.cerrarFormularioEquipo();
       },
       async (error) => {

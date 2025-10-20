@@ -246,7 +246,7 @@
             <div class="form-section optional-section">
               <h4 class="section-title optional">
                 <ion-icon name="information-circle-outline" class="section-icon"></ion-icon>
-                Información adicional 
+                Información adicional
               </h4>
 
               <ion-item class="form-item custom-item" lines="none">
@@ -278,9 +278,16 @@
                 <ion-label position="stacked" class="form-label">
                   <ion-icon name="business-outline" class="label-icon"></ion-icon>
                   Propiedad
+                  <ion-badge *ngIf="empresaSeleccionadaNombre" color="success" class="auto-fill-badge">
+                    Auto
+                  </ion-badge>
                 </ion-label>
-                <ion-input formControlName="propiedad" placeholder="Ingresa la propiedad"
-                  class="custom-input"></ion-input>
+                <ion-input formControlName="propiedad" [value]="empresaSeleccionadaNombre" readonly
+                  class="custom-input readonly-field" placeholder="Se auto-completará con la empresa seleccionada">
+                </ion-input>
+                <ion-icon name="checkmark-circle" slot="end" color="success" class="verified-icon"
+                  *ngIf="empresaSeleccionadaNombre">
+                </ion-icon>
               </ion-item>
             </div>
           </div>

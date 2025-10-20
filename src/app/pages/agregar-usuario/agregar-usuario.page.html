@@ -1,0 +1,201 @@
+<ion-header>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Agregar Usuario</ion-title>
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" class="header-logo" />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding main-content">
+  <div class="content-wrapper">
+    <!-- Card Principal -->
+    <ion-card class="selection-card">
+      <ion-card-header class="card-header">
+        <ion-card-title class="card-title">
+          <ion-icon name="business" class="title-icon"></ion-icon>
+          Selección de Empresa
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content class="card-content">
+        <form [formGroup]="usuarioForm">
+          <!-- Cliente -->
+          <div class="form-section">
+            <ion-item class="form-item custom-item" lines="none">
+              <ion-label position="stacked" class="form-label">
+                <ion-icon name="business-outline" class="label-icon"></ion-icon>
+                Empresa *
+              </ion-label>
+              <ion-select formControlName="cliente" placeholder="Selecciona una empresa para asignar..."
+                interface="action-sheet" class="custom-select">
+                <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
+                  {{ cliente.nombre }}
+                </ion-select-option>
+              </ion-select>
+              <ion-note *ngIf="usuarioForm.get('cliente')?.invalid && usuarioForm.get('cliente')?.touched"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                Selecciona un cliente
+              </ion-note>
+            </ion-item>
+          </div>
+
+          <!-- Información de cliente seleccionado -->
+          <div *ngIf="usuarioForm.get('cliente')?.value" class="chips-container">
+            <div class="selected-cliente-card">
+              <div class="cliente-header">
+                <h4 class="cliente-title">Cliente seleccionado:</h4>
+                <ion-badge color="primary" class="selection-badge">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  Listo para agregar usuario
+                </ion-badge>
+              </div>
+              <ion-chip class="custom-chip selected-chip" color="primary">
+                <ion-avatar class="chip-avatar">
+                  <ion-icon name="business-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label class="chip-label">
+                  <strong>{{ getClienteSeleccionadoNombre() }}</strong>
+                </ion-label>
+              </ion-chip>
+
+              <!-- Botón para agregar usuario -->
+              <div class="action-button-container">
+                <ion-button expand="block" color="primary" (click)="abrirFormularioUsuario()"
+                  class="add-usuario-button">
+                  <ion-icon name="person-add-outline" slot="start"></ion-icon>
+                  Agregar Usuario para {{ getClienteSeleccionadoNombre() }}
+                </ion-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado de carga -->
+          <div *ngIf="cargandoClientes" class="loading-container">
+            <ion-item class="loading-item">
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              <ion-label>Cargando clientes...</ion-label>
+            </ion-item>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Formulario para agregar usuario -->
+    <ion-card *ngIf="mostrarFormularioUsuario" class="usuario-form-card floating-card">
+      <ion-card-header class="card-header success-header">
+        <ion-card-title class="card-title">
+          <ion-icon name="person-add-outline" class="title-icon"></ion-icon>
+          Agregar Usuario para {{ getClienteSeleccionadoNombre() }}
+        </ion-card-title>
+        <ion-card-subtitle class="card-subtitle">
+          Completa la información del nuevo usuario
+        </ion-card-subtitle>
+        <ion-button fill="clear" slot="end" (click)="cerrarFormularioUsuario()" class="close-button">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-card-header>
+
+      <ion-card-content class="card-content">
+        <form [formGroup]="usuarioForm">
+          <div class="form-grid">
+            <!-- Campos requeridos -->
+            <div class="form-section required-section">
+              <h4 class="section-title">
+                <ion-icon name="alert-circle-outline" class="section-icon"></ion-icon>
+                Información requerida
+              </h4>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label required">
+                  <ion-icon name="person-outline" class="label-icon"></ion-icon>
+                  Nombre Completo *
+                </ion-label>
+                <ion-input formControlName="nombre" placeholder="Ingresa el nombre completo" class="custom-input"
+                  clearInput></ion-input>
+              </ion-item>
+              <ion-note *ngIf="usuarioForm.get('nombre')?.touched && usuarioForm.get('nombre')?.errors"
+                class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                El nombre es requerido
+              </ion-note>
+            </div>
+
+            <!-- Campos opcionales -->
+            <div class="form-section optional-section">
+              <h4 class="section-title optional">
+                <ion-icon name="information-circle-outline" class="section-icon"></ion-icon>
+                Información adicional
+              </h4>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="mail-outline" class="label-icon"></ion-icon>
+                  Email
+                </ion-label>
+                <ion-input formControlName="email" placeholder="usuario@empresa.com" type="email" class="custom-input"
+                  clearInput [class]="!validarEmail() ? 'ion-invalid' : ''"></ion-input>
+              </ion-item>
+              <ion-note *ngIf="!validarEmail()" class="error-note">
+                <ion-icon name="warning-outline"></ion-icon>
+                Formato de email inválido
+              </ion-note>
+
+              <ion-item class="form-item custom-item" lines="none">
+                <ion-label position="stacked" class="form-label">
+                  <ion-icon name="call-outline" class="label-icon"></ion-icon>
+                  Teléfono
+                </ion-label>
+                <ion-input formControlName="telefono" placeholder="+56912345678" type="tel" class="custom-input"
+                  clearInput></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <!-- Resumen de datos -->
+          <div class="summary-card" *ngIf="usuarioForm.get('nombre')?.value">
+            <ion-card class="preview-card">
+              <ion-card-header>
+                <ion-card-title>Resumen del Usuario</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="summary-content">
+                  <div class="summary-item">
+                    <strong>Cliente:</strong> {{ getClienteSeleccionadoNombre() }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Nombre:</strong> {{ usuarioForm.get('nombre')?.value }}
+                  </div>
+                  <div class="summary-item" *ngIf="usuarioForm.get('email')?.value">
+                    <strong>Email:</strong> {{ usuarioForm.get('email')?.value }}
+                  </div>
+                  <div class="summary-item" *ngIf="usuarioForm.get('telefono')?.value">
+                    <strong>Teléfono:</strong> {{ usuarioForm.get('telefono')?.value }}
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="actions-container">
+            <ion-button expand="block" color="primary" (click)="crearUsuario()"
+              [disabled]="usuarioForm.invalid || !validarEmail()" class="action-button primary-button">
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              Crear Usuario
+            </ion-button>
+
+            <ion-button expand="block" fill="outline" color="medium" (click)="cerrarFormularioUsuario()"
+              class="action-button outline-button">
+              <ion-icon name="close-outline" slot="start"></ion-icon>
+              Cancelar
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<app-footer-menu></app-footer-menu>

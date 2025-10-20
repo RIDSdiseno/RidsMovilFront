@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.rids.RidsMovilFront',
   appName: 'RidsMovilFront',
   webDir: 'www',
-  bundledWebRuntime: false,
   server: {
     cleartext: true, // Permite conexiones HTTP no seguras en desarrollo
   },

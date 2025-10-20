@@ -1,3 +1,18 @@
+// VARIABLES CSS
+:root {
+    --primary-color: #2c8fe0;
+    --primary-light: rgba(44, 143, 224, 0.1);
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --secondary-color: #6c757d;
+    --dark-color: #343a40;
+    --light-color: #f8f9fa;
+    --border-radius: 16px;
+    --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
 // MOBILE-FIRST STYLES
 ion-content {
     --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
@@ -64,7 +79,7 @@ ion-content {
 
 // Cards principales
 .selection-card,
-.equipo-form-card {
+.usuario-form-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
@@ -100,6 +115,7 @@ ion-content {
     background: linear-gradient(135deg, var(--primary-color), #1e6bb8);
     color: white;
     padding: 20px;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
 
     &.success-header {
         background: linear-gradient(135deg, var(--success-color), #1e7e34);
@@ -193,7 +209,6 @@ ion-content {
 
 .custom-input,
 .custom-select {
-    --background: var(--light-color);
     --padding-start: 16px;
     --padding-end: 16px;
     --padding-top: 12px;
@@ -215,7 +230,7 @@ ion-content {
     font-size: 1.2rem;
 }
 
-// Estilos para selección individual (NUEVOS)
+// Estilos para selección de cliente
 .selection-info {
     background: rgba(44, 143, 224, 0.1);
     border-radius: 8px;
@@ -235,7 +250,7 @@ ion-content {
     }
 }
 
-.selected-solicitante-card {
+.selected-cliente-card {
     background: rgba(44, 143, 224, 0.05);
     border-radius: 12px;
     padding: 16px;
@@ -243,14 +258,14 @@ ion-content {
     margin-top: 16px;
 }
 
-.solicitante-header {
+.cliente-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
 }
 
-.solicitante-title {
+.cliente-title {
     font-weight: 600;
     color: var(--dark-color);
     margin: 0;
@@ -267,10 +282,9 @@ ion-content {
     }
 }
 
-// Chips mejorados para selección individual
+// Chips mejorados para selección
 .chips-container {
     margin-top: 16px;
-    overflow-y: scroll;
 }
 
 .selected-chip {
@@ -296,12 +310,6 @@ ion-content {
         align-items: flex-start;
         margin: 0 12px;
         font-weight: 500;
-
-        .chip-email {
-            color: var(--secondary-color);
-            font-size: 0.8rem;
-            margin-top: 2px;
-        }
     }
 }
 
@@ -315,7 +323,6 @@ ion-content {
     border-radius: 50%;
 
     ion-icon {
-        color: white;
         font-size: 1.2rem;
     }
 }
@@ -330,140 +337,17 @@ ion-content {
     margin-top: 16px;
 }
 
-.add-equipo-button {
+.add-usuario-button {
     --border-radius: 10px;
     --box-shadow: 0 4px 12px rgba(44, 143, 224, 0.3);
     font-weight: 600;
 }
 
-// Modal mejorado
-.solicitantes-modal {
-    --width: 95%;
-    --max-width: 500px;
-    --height: 70%;
-    --border-radius: 16px;
-}
-
-.modal-content {
-    --background: var(--light-color);
-}
-
-.modal-body {
-    padding: 16px;
-}
-
-.custom-searchbar {
-    --background: white;
-    --border-radius: 12px;
-    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 16px;
-}
-
-.solicitantes-list-container {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow-y: scroll;
-}
-
-.solicitantes-list {
-    background: transparent;
-    padding: 0;
-    overflow-y: scroll;
-}
-
-.solicitante-item {
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --min-height: 75px;
-    border-bottom: 1px solid var(--light-color);
-    transition: var(--transition);
-    cursor: pointer;
-
-    &:last-child {
-        border-bottom: none;
-    }
-
-    &:hover:not(.selected) {
-        --background: rgba(44, 143, 224, 0.05);
-        transform: translateX(2px);
-    }
-
-    &.selected {
-        --background: rgba(44, 143, 224, 0.15);
-        border-left: 4px solid var(--primary-color);
-        border-radius: 0 8px 8px 0;
-    }
-}
-
-.solicitante-avatar {
-    width: 40px;
-    height: 40px;
-    background: var(--primary-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-
-    ion-icon {
-        color: var(--primary-color);
-        font-size: 1.5rem;
-    }
-}
-
-.solicitante-label {
-    h3 {
-        font-weight: 600;
-        margin-bottom: 4px;
-        color: var(--dark-color);
-    }
-
-    p {
-        color: var(--secondary-color);
-        font-size: 0.8rem;
-        margin: 0;
-    }
-}
-
-.selection-icon {
-    font-size: 1.3rem;
-}
-
-.loading-item,
-.no-results {
-    --background: transparent;
-    text-align: center;
-}
-
-.no-results-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 0;
-
-    .no-results-icon {
-        margin-right: 8px;
-        font-size: 1.2rem;
-    }
-}
-
-.modal-actions {
-    padding: 16px 0 0;
-}
-
-.done-button {
-    --border-radius: 12px;
-    --box-shadow: 0 4px 16px rgba(44, 143, 224, 0.3);
-    font-weight: 600;
-}
-
-// Formulario de equipo mejorado
+// Formulario de usuario mejorado
 .form-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 24px;
-    overflow-y: scroll;
 
     @media (min-width: 768px) {
         grid-template-columns: 1fr 1fr;
@@ -491,6 +375,53 @@ ion-content {
     border-bottom-color: var(--secondary-color);
 }
 
+// Summary Card para vista previa
+.summary-card {
+    margin: 24px 0;
+}
+
+.preview-card {
+    background: rgba(44, 143, 224, 0.05);
+    border: 2px dashed var(--primary-color);
+    border-radius: 12px;
+
+    ion-card-header {
+        background: rgba(44, 143, 224, 0.1);
+        padding: 16px;
+
+        ion-card-title {
+            font-size: 1rem;
+            color: var(--dark-color);
+        }
+    }
+}
+
+.summary-content {
+    padding: 16px;
+
+    .summary-item {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        strong {
+            color: var(--primary-color);
+            margin-right: 8px;
+            min-width: 100px;
+        }
+
+        span {
+            color: var(--dark-color);
+            flex: 1;
+        }
+    }
+}
+
 // Botones de acción mejorados
 .actions-container {
     margin-top: 32px;
@@ -515,24 +446,22 @@ ion-content {
         --background: linear-gradient(135deg, var(--primary-color), #1e6bb8);
     }
 
-    &.secondary-button {
-        --background: linear-gradient(135deg, var(--secondary-color), #5a6268);
-    }
-
     &.outline-button {
         --border-width: 2px;
         --border-color: var(--secondary-color);
         --color: var(--secondary-color);
+        --background: transparent;
     }
 }
 
-// Notas y errores
-.error-note {
+// Estados de error y validación
+.error-message {
     display: flex;
     align-items: center;
     color: var(--danger-color);
     font-size: 0.8rem;
     margin-top: 4px;
+    padding-left: 16px;
 
     ion-icon {
         margin-right: 4px;
@@ -540,10 +469,33 @@ ion-content {
     }
 }
 
+.invalid {
+    border-color: var(--danger-color) !important;
+
+    &:focus-within {
+        border-color: var(--danger-color) !important;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+    }
+}
+
 .close-button {
     --color: white;
     --padding-start: 8px;
     --padding-end: 8px;
+}
+
+// Estados de carga
+.loading-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.loading-item {
+    --background: transparent;
+
+    ion-spinner {
+        margin-right: 12px;
+    }
 }
 
 // Animaciones adicionales
@@ -575,16 +527,11 @@ ion-content {
         grid-template-columns: 1fr;
     }
 
-    .solicitantes-modal {
-        --width: 95%;
-        --height: 85%;
-    }
-
-    .selected-solicitante-card {
+    .selected-cliente-card {
         padding: 12px;
     }
 
-    .solicitante-header {
+    .cliente-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
@@ -606,6 +553,11 @@ ion-content {
             .chip-label {
                 margin: 0 8px;
             }
+        }
+
+        .action-button {
+            height: 44px;
+            font-size: 0.9rem;
         }
     }
 }
@@ -639,88 +591,39 @@ ion-content {
     opacity: 0.8;
 }
 
-// Estilos para campos de solo lectura
-.readonly-field {
-    --background: #f8f9fa !important;
-    --color: #495057 !important;
-    --border-color: #ced4da !important;
-    cursor: not-allowed !important;
-    opacity: 0.9;
-
-    &.custom-input {
-        background: #f8f9fa !important;
-        border: 2px solid #e9ecef !important;
+// Mejoras de accesibilidad
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
-// Badge para campos auto-completados
-.auto-fill-badge {
-    font-size: 0.6rem;
-    margin-left: 8px;
-    vertical-align: middle;
-    padding: 2px 6px;
+// Focus visible para mejor accesibilidad
+.custom-input:focus-within,
+.custom-select:focus-within,
+.action-button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
-// Icono de verificación
-.verified-icon {
-    font-size: 1.2rem;
-}
-
-// Notas informativas
-.field-info-note {
-    display: flex;
-    align-items: center;
-    color: var(--ion-color-success);
-    font-size: 0.8rem;
-    margin-top: 4px;
-    padding-left: 16px;
-
-    ion-icon {
-        margin-right: 4px;
-        font-size: 0.9rem;
-    }
-}
-
-.field-warning-note {
-    display: flex;
-    align-items: center;
-    color: var(--ion-color-warning);
-    font-size: 0.8rem;
-    margin-top: 4px;
-    padding-left: 16px;
-
-    ion-icon {
-        margin-right: 4px;
-        font-size: 0.9rem;
-    }
-}
-
-// Mejora visual para el estado de solo lectura
-.form-item {
-    &.readonly-item {
-        ion-label {
-            color: var(--ion-color-medium);
-        }
-    }
-}
-
-// Efectos hover para campos de solo lectura (feedback visual)
-.readonly-field {
-    transition: all 0.3s ease;
-
-    &:hover {
-        --background: #e9ecef !important;
-    }
-}
-
-// Asegurar que los estilos se apliquen correctamente en modo iOS/Android
+// Dark mode support
 @media (prefers-color-scheme: dark) {
-    .readonly-field {
-        --background: #2f2f2f !important;
-        --color: #cccccc !important;
 
-        &:hover {
-            --background: #3a3a3a !important;
-        }
+    .selection-card,
+    .usuario-form-card {
+        background: rgba(30, 30, 30, 0.95);
+        color: white;
+    }
+
+    .form-label {
+        color: white;
+    }
+
+    .custom-input,
+    .custom-select {
+        --background: rgba(50, 50, 50, 0.8);
+        color: white;
     }
 }
