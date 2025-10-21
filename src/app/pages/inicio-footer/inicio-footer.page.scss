@@ -1,6 +1,7 @@
 // MOBILE-FIRST STYLES
 ion-content {
     --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+    --padding-bottom: 70px;
 
     // Animación más suave para mejor rendimiento
     &::before {
@@ -72,6 +73,10 @@ ion-content {
             max-width: 220px;
         }
     }
+}
+
+ion-col[class*="ion-text-center"] {
+  padding: 4px;
 }
 
 .welcome-title {
@@ -240,6 +245,11 @@ ion-content {
     }
 }
 
+// Mejorar la legibilidad del calendario
+ion-row:not(:first-child) {
+  margin-top: 4px;
+}
+
 .calendar-day {
     text-align: center;
     padding: 12px 0;
@@ -359,6 +369,10 @@ ion-content {
             font-size: 1.1rem;
         }
     }
+}
+
+ion-grid {
+  padding-bottom: 10px;
 }
 
 /* 📱 RESPONSIVE GRID ADJUSTMENTS */

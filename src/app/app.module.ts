@@ -11,13 +11,15 @@ import { SearchPopoverComponent } from './components/search-popover/search-popov
 import { FormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
+import { SharedModule } from 'src/app/shared/shared-module';
+
 // Añadir el servicio (aunque providedIn: 'root' lo hace automáticamente)
 import { VisitaStateService } from './services/visita-state';
 registerLocaleData(localeEsCl)
 
 @NgModule({
   declarations: [AppComponent,SearchPopoverComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,HttpClientModule,FormsModule],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,HttpClientModule,FormsModule, SharedModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

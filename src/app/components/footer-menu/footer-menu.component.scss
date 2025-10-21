@@ -1,11 +1,20 @@
+:host {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
 .custom-footer {
   width: 100%;
   z-index: 100;
+  margin: 0;
 
   ion-toolbar {
-    // o tu color preferido
-    --color: #fff;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    --background: #ffffff; // ✅ CAMBIADO A BLANCO
+    --color: #333333; // ✅ COLOR DE TEXTO OSCURO
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); // ✅ SOMBRA MÁS SUAVE
     border-radius: 12px 12px 0 0;
     padding: 0;
   }
@@ -29,21 +38,27 @@
   --background: transparent;
   --box-shadow: none;
   --border-radius: 0;
-  color: white;
+  color: #666; // ✅ COLOR NEUTRO PARA TEXTO
   height: 48px;
 
   ion-icon {
     font-size: 1.6rem;
-    transition: transform 0.2s ease;
-    color: #1976d2;
+    transition: all 0.3s ease; // ✅ MEJOR TRANSICIÓN
+    color: #1976d2; // ✅ MANTENER AZUL PERO SE VERÁ EN FONDO BLANCO
   }
 
   &:active ion-icon {
     transform: scale(1.2);
+    color: #1565c0; // ✅ AZUL MÁS OSCURO AL PRESIONAR
+  }
+
+  // ✅ EFECTO HOVER MEJORADO
+  &:hover ion-icon {
+    transform: scale(1.1);
   }
 }
 
-// src/app/components/footer-menu/footer-menu.component.scss
+// ✅ ESTILOS PARA EL INDICADOR DE VISITA EN FONDO BLANCO
 .visita-indicator {
   display: flex;
   align-items: center;
@@ -56,9 +71,12 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    background: #1976d2; // ✅ FONDO AZUL PARA EL BADGE
+    color: white; // ✅ TEXTO BLANCO PARA CONTRASTAR
 
     .visita-icon {
       font-size: 0.8rem;
+      color: white; // ✅ ICONO BLANCO EN EL BADGE
     }
 
     .visita-text {
@@ -72,11 +90,19 @@
   }
 }
 
-// Efectos de animación suave
+// ✅ MANTENER ANIMACIONES
 .visita-badge {
   transition: all 0.3s ease;
 
   &:hover {
     transform: scale(1.05);
+  }
+}
+
+// ✅ ESTADO SIN VISITA ACTIVA
+.visita-indicator:has(.visita-badge[color="medium"]) {
+  .visita-badge {
+    background: #757575; // ✅ GRIS PARA ESTADO INACTIVO
+    color: white;
   }
 }

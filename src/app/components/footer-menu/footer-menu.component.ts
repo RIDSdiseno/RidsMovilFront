@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
   templateUrl: './footer-menu.component.html',
   styleUrls: ['./footer-menu.component.scss'],
   standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush // ← AÑADIR ESTO
+//  changeDetection: ChangeDetectionStrategy.OnPush // ← AÑADIR ESTO
 })
 export class FooterMenuComponent implements OnInit, OnDestroy {
   visitaEnCurso = false;
