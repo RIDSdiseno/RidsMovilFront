@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Subscription, interval } from 'rxjs';
 import { Router } from '@angular/router';
+import { VisitaStateService } from '../../services/visita-state';
 
 @Component({
   selector: 'app-footer-menu',
@@ -10,14 +10,10 @@ import { Router } from '@angular/router';
 })
 export class FooterMenuComponent implements OnInit {
   visitaEnCurso = false;
-  estadoVisita = '';
-  tiempoTranscurrido = '';
-
-  private stateSubscription?: Subscription;
-  private timerSubscription?: Subscription;
 
   constructor(
     private router: Router,
+    private visitaState: VisitaStateService
   ) { }
 
   // Navegar a la ruta especificada
@@ -26,6 +22,9 @@ export class FooterMenuComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Suscribirse solo para saber si hay visita en curso
+    this.visitaState.state$.subscribe(state => {
+      this.visitaEnCurso = state.estado === 'en_curso';
+    });
   }
-
 }

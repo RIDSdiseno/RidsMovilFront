@@ -1,9 +1,12 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api';
+import { VisitaStateService } from 'src/app/services/visita-state'; // ✅ AGREGAR
+import { Subscription } from 'rxjs'; // ✅ AGREGAR
+import { debounceTime } from 'rxjs/operators'; // ✅ AGREGAR
 import localeEsCl from '@angular/common/locales/es-CL';
 
 registerLocaleData(localeEsCl, 'es-CL');
@@ -14,7 +17,7 @@ registerLocaleData(localeEsCl, 'es-CL');
   styleUrls: ['./formulario-visitas.page.scss'],
   standalone: false,
 })
-export class FormularioVisitasPage implements OnInit {
+export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR OnDestroy
 
   visitaId: number | null = null;
   visitaForm: FormGroup;
@@ -37,6 +40,9 @@ export class FormularioVisitasPage implements OnInit {
   clientes: any[] = [];
   empresaId: number = 0;
 
+  // ✅ AGREGAR: Suscripciones para auto-guardado
+  private formSubscriptions: Subscription[] = [];
+
   constructor(
     private fb: FormBuilder,
     private datePipe: DatePipe,
@@ -44,6 +50,7 @@ export class FormularioVisitasPage implements OnInit {
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
+    private visitaState: VisitaStateService // ✅ AGREGAR
   ) {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
@@ -76,6 +83,48 @@ export class FormularioVisitasPage implements OnInit {
         this.visitaForm.get('otrosDetalle')?.updateValueAndValidity();
       }
     });
+
+    // ✅ AGREGAR: Configurar auto-guardado
+    this.setupAutoSave();
+  }
+
+  // ✅ AGREGAR: Método para configurar auto-guardado
+  private setupAutoSave(): void {
+    // Guardar cambios en actividades
+    const actividadesSub = this.visitaForm.get('actividades')?.valueChanges
+      .pipe(debounceTime(1000))
+      .subscribe(actividades => {
+        if (this.visitaEnCurso) {
+          this.visitaState.agregarActividades(actividades);
+        }
+      });
+
+    // Guardar otros detalles
+    const otrosDetalleSub = this.visitaForm.get('otrosDetalle')?.valueChanges
+      .pipe(debounceTime(1000))
+      .subscribe(otrosDetalle => {
+        if (this.visitaEnCurso) {
+          this.visitaState.guardarProgresoFormulario({ otrosDetalle });
+        }
+      });
+
+    // Guardar cambios en cliente
+    const clienteSub = this.visitaForm.get('cliente')?.valueChanges
+      .subscribe(clienteId => {
+        if (this.visitaEnCurso && clienteId) {
+          this.visitaState.guardarProgresoFormulario({ cliente: clienteId });
+        }
+      });
+
+    // Agregar suscripciones al array para limpiar después
+    [actividadesSub, otrosDetalleSub, clienteSub].forEach(sub => {
+      if (sub) this.formSubscriptions.push(sub);
+    });
+  }
+
+  // ✅ AGREGAR: Limpiar suscripciones
+  ngOnDestroy() {
+    this.formSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
   ngOnInit() {
@@ -88,6 +137,9 @@ export class FormularioVisitasPage implements OnInit {
         console.error('Error al cargar clientes', error);
       }
     );
+
+    // ✅ AGREGAR: Cargar visita en curso al iniciar
+    this.cargarVisitaEnCurso();
 
     if (this.visitaId) {
       this.api.crearVisita(this.visitaId).subscribe((visitaData) => {
@@ -146,6 +198,74 @@ export class FormularioVisitasPage implements OnInit {
     }
   }
 
+  // ✅ AGREGAR: Método para cargar visita en curso
+  private cargarVisitaEnCurso(): void {
+    if (this.visitaState.tieneVisitaEnCurso()) {
+      const state = this.visitaState.getCurrentState();
+
+      // Restaurar variables del componente
+      this.visitaId = state.visitaId;
+      this.inicio = state.inicio;
+      this.visitaEnCurso = true;
+      this.estado = 'En curso';
+      this.estadoTexto = 'Tienes una visita en curso.';
+      this.empresaId = state.empresaId || 0;
+
+      // Restaurar formulario
+      this.restaurarFormularioDesdeEstado(state);
+
+      this.showToast('Visita en curso recuperada');
+    }
+  }
+
+  // ✅ AGREGAR: Método para restaurar formulario desde estado
+  private restaurarFormularioDesdeEstado(state: any): void {
+    // Restaurar cliente
+    if (state.clienteId) {
+      this.visitaForm.patchValue({
+        cliente: state.clienteId
+      });
+
+      // Cargar solicitantes para restaurar selección
+      this.cargarSolicitantesPorCliente(state.clienteId, state.solicitantes);
+    }
+
+    // Restaurar actividades
+    if (state.actividades) {
+      this.visitaForm.patchValue({
+        actividades: state.actividades
+      });
+    }
+
+    // Restaurar otros datos del formulario
+    if (state.datosFormulario) {
+      this.visitaForm.patchValue(state.datosFormulario);
+    }
+  }
+
+  // ✅ AGREGAR: Método para cargar solicitantes y restaurar selección
+  private cargarSolicitantesPorCliente(clienteId: number, solicitantesGuardados?: any[]): void {
+    this.api.getSolicitantes(clienteId).subscribe(
+      (res) => {
+        this.todosSolicitantes = res.solicitantes || res || [];
+        this.filtradosSolicitantes = [...this.todosSolicitantes];
+
+        // Restaurar solicitantes seleccionados si existen
+        if (solicitantesGuardados && solicitantesGuardados.length > 0) {
+          this.visitaForm.patchValue({
+            solicitante: solicitantesGuardados
+          });
+          this.nombreSolicitanteSeleccionado = solicitantesGuardados
+            .map((s: any) => s.nombre)
+            .join(', ');
+        }
+      },
+      (error) => {
+        console.error('Error al cargar solicitantes:', error);
+      }
+    );
+  }
+
   // Los demás métodos se mantienen igual...
   abrirListaSolicitantes() {
     if (!this.visitaForm.get('cliente')?.value) {
@@ -169,6 +289,11 @@ export class FormularioVisitasPage implements OnInit {
 
     this.visitaForm.get('solicitante')?.setValue(nuevaSeleccion);
     this.nombreSolicitanteSeleccionado = nuevaSeleccion.map((item: any) => item.nombre).join(', ');
+
+    // ✅ AGREGAR: Guardar en estado si hay visita en curso
+    if (this.visitaEnCurso) {
+      this.visitaState.agregarSolicitantes(nuevaSeleccion);
+    }
   }
 
   filtrarSolicitantes() {
@@ -191,6 +316,11 @@ export class FormularioVisitasPage implements OnInit {
       (item: any) => item.id_solicitante !== s.id_solicitante
     );
     this.visitaForm.patchValue({ solicitante: filtrados });
+
+    // ✅ AGREGAR: Guardar en estado si hay visita en curso
+    if (this.visitaEnCurso) {
+      this.visitaState.agregarSolicitantes(filtrados);
+    }
   }
 
   iniciarVisita() {
@@ -225,6 +355,21 @@ export class FormularioVisitasPage implements OnInit {
         this.estadoTexto = 'La visita ha comenzado.';
         this.visitaId = response.visita.id_visita;
         console.log('Visita ID asignada:', this.visitaId);
+
+        // ✅ AGREGAR: Guardar en el servicio de estado
+        this.visitaState.iniciarVisita({
+          visitaId: this.visitaId,
+          empresaId: clienteObj.id_empresa,
+          clienteId: clienteId
+        });
+
+        // ✅ AGREGAR: Guardar datos iniciales en el estado
+        if (this.visitaForm.value.solicitante) {
+          this.visitaState.agregarSolicitantes(this.visitaForm.value.solicitante);
+        }
+
+        this.visitaState.agregarActividades(this.visitaForm.get('actividades')?.value);
+
         this.showToast('Visita iniciada correctamente.');
       },
       async (error) => {
@@ -303,6 +448,10 @@ export class FormularioVisitasPage implements OnInit {
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
         this.guardarVisita();
+
+        // ✅ AGREGAR: Limpiar estado persistente
+        this.visitaState.clearState();
+
         this.showToast('Visita finalizada con éxito');
       },
       async (error) => {
@@ -326,6 +475,9 @@ export class FormularioVisitasPage implements OnInit {
     this.estadoTexto = 'Listo para iniciar una visita.';
     this.visitaId = null;
     this.filtradosSolicitantes = [];
+
+    // ✅ AGREGAR: Limpiar estado persistente
+    this.visitaState.clearState();
   }
 
   minWordsValidator(minWords: number, minChars: number): ValidatorFn {
