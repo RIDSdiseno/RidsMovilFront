@@ -213,8 +213,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
 
       // Restaurar formulario
       this.restaurarFormularioDesdeEstado(state);
-
-      this.showToast('Visita en curso recuperada');
     }
   }
 
