@@ -33,8 +33,6 @@ interface Visita {
 })
 
 export class PerfilPage implements ViewWillEnter {
-  private swipeCoord?: [number, number];
-  private swipeTime?: number;
 
   visitas: Visita[] = []; // Array para almacenar las visitas
   tecnicoId: number = 0; //

@@ -61,6 +61,7 @@
           <div class="selector-trigger" (click)="abrirListaSolicitantes()"
             [class.has-selection]="visitaForm.value.solicitante?.length > 0">
             <div class="trigger-content">
+              <br>
               <ion-icon name="person-outline" class="trigger-icon"></ion-icon>
               <span class="trigger-text">
                 {{ visitaForm.value.solicitante?.length > 0 ? 'Ver seleccionados' : 'Seleccionar solicitantes' }}

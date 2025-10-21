@@ -8,8 +8,6 @@ import { Router } from '@angular/router';
   standalone: false,
 })
 export class InicioFooterPage implements OnInit {
-  private swipeCoord?: [number, number];
-  private swipeTime?: number;
 
   // Variables para la creación del calendario
   currentTime: string = '';
@@ -33,58 +31,6 @@ export class InicioFooterPage implements OnInit {
     this.generateCalendar();
   }
 
-  // ========== GESTOS TÁCTILES PARA CAMBIAR PÁGINAS ==========
-  @HostListener('touchstart', ['$event'])
-  onTouchStart(event: TouchEvent) {
-    this.swipeCoord = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    this.swipeTime = new Date().getTime();
-  }
-
-  @HostListener('touchend', ['$event'])
-  onTouchEnd(event: TouchEvent) {
-    if (!this.swipeCoord || !this.swipeTime) return;
-
-    const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    const time = new Date().getTime();
-
-    const direction = [coord[0] - this.swipeCoord[0], coord[1] - this.swipeCoord[1]];
-    const duration = time - this.swipeTime;
-
-    // Detectar swipe horizontal (más de 30px en X y menos en Y)
-    if (duration < 1000 && Math.abs(direction[0]) > 30 && Math.abs(direction[0]) > Math.abs(direction[1] * 3)) {
-      if (direction[0] > 0) {
-        this.goToPreviousPage(); // Swipe derecho - Página anterior
-      } else {
-        this.goToNextPage(); // Swipe izquierdo - Página siguiente
-      }
-    }
-  }
-
-  goToNextPage() {
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
-    const currentIndex = pageOrder.indexOf(this.router.url);
-
-    if (currentIndex !== -1 && currentIndex < pageOrder.length - 1) {
-      this.router.navigate([pageOrder[currentIndex + 1]]);
-    } else {
-      // Si es la última página, ir a la primera
-      this.router.navigate([pageOrder[0]]);
-    }
-  }
-
-  goToPreviousPage() {
-    const pageOrder = ['/inicio-footer', '/formulario-visitas', '/equipos', '/perfil'];
-    const currentIndex = pageOrder.indexOf(this.router.url);
-
-    if (currentIndex !== -1 && currentIndex > 0) {
-      this.router.navigate([pageOrder[currentIndex - 1]]);
-    } else {
-      // Si es la primera página, ir a la última
-      this.router.navigate([pageOrder[pageOrder.length - 1]]);
-    }
-  }
-  // ========== FIN GESTOS TÁCTILES ==========
-
   updateTime() {
     const now = new Date();
     this.currentTime = now.toLocaleTimeString('es-ES', { hour12: false });
@@ -96,8 +42,46 @@ export class InicioFooterPage implements OnInit {
     });
     this.weekDay = now.toLocaleDateString('es-ES', { weekday: 'long' });
 
+    // AÑADIR: Calcular total de días del mes actual
     this.totalDaysThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    this.daysRemaining = this.totalDaysThisMonth - now.getDate();
+
+    // Calcular días hasta el próximo día 5
+    this.calculateDaysUntil5th();
+  }
+
+  private calculateDaysUntil5th(): void {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    let targetMonth: number;
+    let targetYear: number;
+
+    if (currentDay <= 5) {
+      // Usar el mes actual
+      targetMonth = currentMonth;
+      targetYear = currentYear;
+    } else {
+      // Usar el próximo mes
+      targetMonth = currentMonth + 1;
+      targetYear = currentYear;
+
+      // Si es diciembre, avanzar al próximo año
+      if (targetMonth > 11) {
+        targetMonth = 0;
+        targetYear = currentYear + 1;
+      }
+    }
+
+    const nextPayment = new Date(targetYear, targetMonth, 5);
+    const diffTime = nextPayment.getTime() - today.getTime();
+    this.daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Asegurarse de que no sea negativo
+    if (this.daysRemaining < 0) {
+      this.daysRemaining = 0;
+    }
   }
 
   // Método para generar el calendario del mes actual
@@ -143,7 +127,7 @@ export class InicioFooterPage implements OnInit {
     this.generateCalendar();
   }
 
-  // Navegación entre meses proximos
+  // Navegación entre meses próximos
   nextMonth() {
     this.currentCalendarDate = new Date(
       this.currentCalendarDate.getFullYear(),
