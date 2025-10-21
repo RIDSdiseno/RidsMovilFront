@@ -3,7 +3,7 @@
   z-index: 100;
 
   ion-toolbar {
-     // o tu color preferido
+    // o tu color preferido
     --color: #fff;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
     border-radius: 12px 12px 0 0;
@@ -40,5 +40,43 @@
 
   &:active ion-icon {
     transform: scale(1.2);
+  }
+}
+
+// src/app/components/footer-menu/footer-menu.component.scss
+.visita-indicator {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+
+  .visita-badge {
+    font-size: 0.7rem;
+    padding: 6px 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .visita-icon {
+      font-size: 0.8rem;
+    }
+
+    .visita-text {
+      font-weight: 500;
+    }
+
+    .visita-timer {
+      font-weight: 600;
+      font-family: monospace;
+    }
+  }
+}
+
+// Efectos de animación suave
+.visita-badge {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
   }
 }

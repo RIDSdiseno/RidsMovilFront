@@ -10,6 +10,9 @@ import localeEsCl from '@angular/common/locales/es-CL';
 import { SearchPopoverComponent } from './components/search-popover/search-popover.component';
 import { FormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+// Añadir el servicio (aunque providedIn: 'root' lo hace automáticamente)
+import { VisitaStateService } from './services/visita-state';
 registerLocaleData(localeEsCl)
 
 @NgModule({
