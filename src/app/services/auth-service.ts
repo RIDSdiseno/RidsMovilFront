@@ -37,5 +37,6 @@ export class AuthService {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('token');
     localStorage.removeItem('tecnicoId');
+    localStorage.removeItem('tecnico');
   }
 }
