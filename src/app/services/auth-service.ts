@@ -19,6 +19,7 @@ export class AuthService {
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('token', token); // Guardamos el token
     localStorage.setItem('tecnicoId', user.id_tecnico); // Guardamos solo el ID del técnico, si es necesario
+    localStorage.setItem('tecnico' , JSON.stringify(user));
   }
 
   // Obtener el token de acceso
