@@ -14,8 +14,8 @@ android {
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
 
-    versionCode 10         // ← súbelo en cada release
-    versionName "1.0.9"
+    versionCode 12         // ← súbelo en cada release
+    versionName "1.1.2"
 
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     aaptOptions {
