@@ -135,7 +135,7 @@ export class FormularioVisitasPage implements OnInit {
 
     if (!this.tecnicoId) {
       this.showToast('El técnico no está registrado correctamente. Intenta iniciar sesión nuevamente.');
-      this.router.navigate(['/login']);
+      this.router.navigate(['/home']);
     }
 
     const allHistorial = JSON.parse(localStorage.getItem('visitas_registro') || '{}');
