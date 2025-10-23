@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+// ✅ ACTUALIZAR: Agregar interfaz para coordenadas
+export interface Coordenadas {
+  lat: number | null;
+  lon: number | null;
+}
+
 export interface VisitaState {
   visitaId: number | null;
   empresaId: number | null;
@@ -14,6 +20,9 @@ export interface VisitaState {
     otrosDetalle?: string;
     realizado?: string;
   };
+  direccion_visita?: string;
+  // ✅ NUEVA PROPIEDAD: coordenadas
+  coordenadas?: Coordenadas;
 }
 
 @Injectable({
@@ -39,7 +48,10 @@ export class VisitaStateService {
       inicio: null,
       fin: null,
       estado: 'sin_iniciar',
-      datosFormulario: {}
+      datosFormulario: {},
+      direccion_visita: '',
+      // ✅ INICIALIZAR: coordenadas como null
+      coordenadas: { lat: null, lon: null }
     };
   }
 
@@ -50,7 +62,10 @@ export class VisitaStateService {
         const parsed = JSON.parse(saved);
         const state: VisitaState = {
           ...parsed,
-          inicio: parsed.inicio ? new Date(parsed.inicio) : null
+          inicio: parsed.inicio ? new Date(parsed.inicio) : null,
+          direccion_visita: parsed.direccion_visita || '',
+          // ✅ CARGAR: coordenadas desde localStorage
+          coordenadas: parsed.coordenadas || { lat: null, lon: null }
         };
         this.stateSubject.next(state);
       }
@@ -77,7 +92,14 @@ export class VisitaStateService {
     this.saveToStorage();
   }
 
-  iniciarVisita(visitaData: { visitaId: number | null; empresaId: number; clienteId: number }): void {
+  // ✅ ACTUALIZAR: método iniciarVisita para incluir coordenadas
+  iniciarVisita(visitaData: {
+    visitaId: number | null;
+    empresaId: number;
+    clienteId: number;
+    direccion_visita?: string;
+    coordenadas?: Coordenadas; // ✅ NUEVO: parámetro para coordenadas
+  }): void {
     this.updateState({
       ...visitaData,
       inicio: new Date(),
@@ -85,13 +107,27 @@ export class VisitaStateService {
     });
   }
 
+  // ✅ ACTUALIZAR: método guardarProgresoFormulario para manejar coordenadas
   guardarProgresoFormulario(datosFormulario: any): void {
-    this.updateState({
+    // Si viene direccion_visita o coordenadas en el nivel principal, manejarlas separadamente
+    const { direccion_visita, coordenadas, ...otrosDatos } = datosFormulario;
+
+    const updates: Partial<VisitaState> = {
       datosFormulario: {
         ...this.stateSubject.value.datosFormulario,
-        ...datosFormulario
+        ...otrosDatos
       }
-    });
+    };
+
+    if (direccion_visita !== undefined) {
+      updates.direccion_visita = direccion_visita;
+    }
+
+    if (coordenadas !== undefined) {
+      updates.coordenadas = coordenadas;
+    }
+
+    this.updateState(updates);
   }
 
   agregarSolicitantes(solicitantes: any[]): void {
@@ -106,6 +142,31 @@ export class VisitaStateService {
     this.updateState({
       estado: 'completada',
       fin: new Date()
+    });
+  }
+
+  guardarDireccion(direccion: string): void {
+    this.updateState({
+      direccion_visita: direccion
+    });
+  }
+
+  // ✅ NUEVO: método específico para guardar coordenadas
+  guardarCoordenadas(coordenadas: Coordenadas): void {
+    this.updateState({
+      coordenadas
+    });
+  }
+
+  // ✅ NUEVO: método para obtener coordenadas actuales
+  getCoordenadas(): Coordenadas | null {
+    return this.stateSubject.value.coordenadas || null;
+  }
+
+  // ✅ NUEVO: método para actualizar solo coordenadas
+  actualizarCoordenadas(lat: number | null, lon: number | null): void {
+    this.updateState({
+      coordenadas: { lat, lon }
     });
   }
 

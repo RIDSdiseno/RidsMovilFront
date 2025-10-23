@@ -179,17 +179,12 @@
     </ion-card>
 
     <!-- Campo "otrosDetalle" solo si "otros" está activo -->
-    <ion-card *ngIf="visitaForm.get('actividades.otros')?.value">
-      <ion-card-content>
-        <ion-item>
-          <ion-input placeholder="Describe la solicitud" formControlName="otrosDetalle"></ion-input>
-        </ion-item>
-        <ion-note color="danger"
-          *ngIf="visitaForm.get('otrosDetalle')?.invalid && visitaForm.get('otrosDetalle')?.touched">
-          Este campo es obligatorio.
-        </ion-note>
-      </ion-card-content>
-    </ion-card>
+    <ion-item *ngIf="visitaForm.get('actividades.otros')?.value">
+      <ion-label position="stacked">Detalle de otros servicios</ion-label>
+      <br>
+      <ion-textarea formControlName="otrosDetalle" placeholder="Describe los otros servicios realizados..."
+        [autoGrow]="true" rows="3" maxlength="500" counter="true" class="expandable-textarea"></ion-textarea>
+    </ion-item>
 
     <!-- Lo realizado -->
     <ion-card [formGroupName]="'actividades'">
@@ -233,6 +228,25 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Sección de ubicación automática -->
+    <!-- En tu formulario-visitas.page.html -->
+    <ion-item>
+      <ion-label position="stacked">
+        <strong>📍 Dirección de la visita</strong>
+        <ion-text color="medium">
+          <small>Se obtiene automáticamente en Santiago, Región Metropolitana</small>
+        </ion-text>
+      </ion-label>
+      <ion-textarea [value]="visitaForm.get('direccion_visita')?.value" rows="3" readonly
+        placeholder="Obteniendo ubicación en Santiago..."></ion-textarea>
+    </ion-item>
+
+    <ion-text color="medium">
+      <small>
+        <ion-icon name="information-circle-outline"></ion-icon>
+        La ubicación se registra automáticamente al iniciar/finalizar la visita
+      </small>
+    </ion-text>
   </form>
 
 </ion-content>

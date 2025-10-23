@@ -44,6 +44,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>Necesitamos acceder a tu ubicación para registrar la visita.</string>
 	<true/>
 </dict>
 </plist>

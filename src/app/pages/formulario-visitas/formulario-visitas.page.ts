@@ -2,12 +2,14 @@ import { DatePipe, registerLocaleData } from '@angular/common';
 import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, Platform } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api';
-import { VisitaStateService } from 'src/app/services/visita-state'; // ✅ AGREGAR
-import { Subscription } from 'rxjs'; // ✅ AGREGAR
-import { debounceTime } from 'rxjs/operators'; // ✅ AGREGAR
+import { VisitaStateService } from 'src/app/services/visita-state';
+import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import localeEsCl from '@angular/common/locales/es-CL';
+
+
 
 registerLocaleData(localeEsCl, 'es-CL');
 
@@ -17,7 +19,7 @@ registerLocaleData(localeEsCl, 'es-CL');
   styleUrls: ['./formulario-visitas.page.scss'],
   standalone: false,
 })
-export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR OnDestroy
+export class FormularioVisitasPage implements OnInit, OnDestroy {
 
   visitaId: number | null = null;
   visitaForm: FormGroup;
@@ -40,7 +42,14 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
   clientes: any[] = [];
   empresaId: number = 0;
 
-  // ✅ AGREGAR: Suscripciones para auto-guardado
+  // Variables para geolocalización
+  isLoadingLocation = false;
+  ubicacionObtenida = false;
+
+  latitud: number | null = null;
+  longitud: number | null = null;
+  direccionExacta: string = '';
+
   private formSubscriptions: Subscription[] = [];
 
   constructor(
@@ -50,7 +59,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
-    private visitaState: VisitaStateService // ✅ AGREGAR
+    private visitaState: VisitaStateService,
+    private platform: Platform,
   ) {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
@@ -71,6 +81,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
         mantenimientoReloj: [true]
       }),
       otrosDetalle: [''],
+      direccion_visita: [{ value: '', disabled: true }]
     });
 
     this.visitaForm.get('actividades.otros')?.valueChanges.subscribe((val) => {
@@ -84,13 +95,10 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
       }
     });
 
-    // ✅ AGREGAR: Configurar auto-guardado
     this.setupAutoSave();
   }
 
-  // ✅ AGREGAR: Método para configurar auto-guardado
   private setupAutoSave(): void {
-    // Guardar cambios en actividades
     const actividadesSub = this.visitaForm.get('actividades')?.valueChanges
       .pipe(debounceTime(1000))
       .subscribe(actividades => {
@@ -99,7 +107,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
         }
       });
 
-    // Guardar otros detalles
     const otrosDetalleSub = this.visitaForm.get('otrosDetalle')?.valueChanges
       .pipe(debounceTime(1000))
       .subscribe(otrosDetalle => {
@@ -108,21 +115,18 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
         }
       });
 
-    // Guardar cambios en cliente
     const clienteSub = this.visitaForm.get('cliente')?.valueChanges
       .subscribe(clienteId => {
         if (this.visitaEnCurso && clienteId) {
-          this.visitaState.guardarProgresoFormulario({ cliente: clienteId });
+          this.visitaState.updateState({ clienteId });
         }
       });
 
-    // Agregar suscripciones al array para limpiar después
     [actividadesSub, otrosDetalleSub, clienteSub].forEach(sub => {
       if (sub) this.formSubscriptions.push(sub);
     });
   }
 
-  // ✅ AGREGAR: Limpiar suscripciones
   ngOnDestroy() {
     this.formSubscriptions.forEach(sub => sub.unsubscribe());
   }
@@ -138,7 +142,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
       }
     );
 
-    // ✅ AGREGAR: Cargar visita en curso al iniciar
     this.cargarVisitaEnCurso();
 
     if (this.visitaId) {
@@ -157,7 +160,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
             licenciaWindows: actividades.licenciaWindows ?? true,
             licenciaOffice: actividades.licenciaOffice ?? true,
             rendimientoEquipo: actividades.rendimientoEquipo ?? true,
-            mantenimientoReloj: actividades.mantenimientoReloj ?? true
+            mantenimientoReloj: actividades.mantenimientoReloj ?? true,
+
           }
         });
       });
@@ -198,12 +202,306 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     }
   }
 
-  // ✅ AGREGAR: Método para cargar visita en curso
+  // ✅ NUEVO: Método para cargar Capacitor Geolocation solo cuando sea necesario
+  private async cargarGeolocationCapacitor(): Promise<any> {
+    if (this.platform.is('capacitor') && (this.platform.is('ios') || this.platform.is('android'))) {
+      try {
+        const { Geolocation } = await import('@capacitor/geolocation');
+        return Geolocation;
+      } catch (error) {
+        console.warn('No se pudo cargar Capacitor Geolocation:', error);
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // Método para obtener dirección con Ionic Native
+  async obtenerDireccion(): Promise<void> {
+    this.isLoadingLocation = true;
+    this.ubicacionObtenida = false;
+
+    try {
+      let lat: number, lon: number;
+
+      // Obtener coordenadas (código existente)
+      const Geolocation = await this.cargarGeolocationCapacitor();
+      if (Geolocation) {
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+      } else {
+        const position = await this.obtenerPosicionNavegador();
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+      }
+
+      console.log('📍 Coordenadas obtenidas:', lat, lon);
+
+      // ✅ GUARDAR COORDENADAS SEPARADAMENTE
+      this.latitud = lat;
+      this.longitud = lon;
+
+      // ✅ OBTENER DIRECCIÓN EXACTA PARA MOSTRAR AL USUARIO
+      this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+
+      // Mostrar la dirección exacta en el formulario (solo visual)
+      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+      this.ubicacionObtenida = true;
+
+      console.log('✅ Dirección exacta:', this.direccionExacta);
+      console.log('✅ Coordenadas para backend:', this.latitud, this.longitud);
+
+    } catch (error: any) {
+      console.error('❌ Error:', error);
+
+      // En caso de error, al menos guardar coordenadas
+      if (this.latitud && this.longitud) {
+        this.direccionExacta = this.generarUbicacionSantiago(this.latitud, this.longitud);
+        this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+        this.ubicacionObtenida = true;
+      } else {
+        this.visitaForm.get('direccion_visita')?.setValue('Ubicación no disponible');
+        this.ubicacionObtenida = false;
+      }
+
+    } finally {
+      this.isLoadingLocation = false;
+    }
+  }
+
+  // ✅ MÉTODO ESPECÍFICO PARA SANTIAGO
+  private async obtenerDireccionSantiago(lat: number, lon: number): Promise<string> {
+    // Verificar que las coordenadas estén en el área de Santiago
+    if (!this.estaEnSantiago(lat, lon)) {
+      return this.generarUbicacionSantiago(lat, lon);
+    }
+
+    // Intentar con OpenStreetMap para dirección exacta
+    try {
+      const direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+      if (direccionExacta && direccionExacta.length > 15) {
+        return direccionExacta;
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener dirección exacta:', error);
+    }
+
+    // Fallback: Ubicación aproximada en Santiago
+    return this.generarUbicacionSantiago(lat, lon);
+  }
+
+  // ✅ VERIFICAR SI ESTÁ EN SANTIAGO
+  private estaEnSantiago(lat: number, lon: number): boolean {
+    // Coordenadas del área metropolitana de Santiago
+    const esLatitudValida = lat > -33.6 && lat < -33.3;
+    const esLongitudValida = lon > -70.9 && lon < -70.5;
+    return esLatitudValida && esLongitudValida;
+  }
+
+  // ✅ OBTENER DIRECCIÓN EXACTA EN SANTIAGO
+  private async obtenerDireccionExactaSantiago(lat: number, lon: number): Promise<string> {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=es`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'RidsMovilApp/1.0 (app@rids.cl)'
+      }
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    return this.formatearDireccionSantiago(data);
+  }
+
+  // ✅ FORMATEADOR ESPECIALIZADO EN SANTIAGO
+  private formatearDireccionSantiago(data: any): string {
+    const address = data.address;
+
+    // Construir dirección en el formato típico de Santiago
+    const partes = [];
+
+    // 1. Calle y número (si existe)
+    if (address.road) {
+      let calle = address.road;
+      if (address.house_number) {
+        calle += ` #${address.house_number}`;
+      }
+      partes.push(calle);
+    }
+
+    // 2. Comuna (lo más importante en Santiago)
+    if (address.suburb) {
+      partes.push(address.suburb);
+    } else if (address.city_district) {
+      partes.push(address.city_district);
+    } else if (address.municipality) {
+      partes.push(address.municipality);
+    }
+
+    // 3. Siempre agregar "Santiago"
+    if (!partes.includes('Santiago')) {
+      partes.push('Santiago');
+    }
+
+    // 4. Agregar región
+    partes.push('Región Metropolitana');
+
+    const direccion = partes.join(', ');
+
+    // Si la dirección es muy corta, usar el display_name completo
+    if (direccion.length < 20 && data.display_name) {
+      return data.display_name
+        .replace(', Chile', '')
+        .replace(', Región Metropolitana de Santiago', ', Región Metropolitana');
+    }
+
+    return direccion;
+  }
+
+  // ✅ GENERAR DESCRIPCIÓN DE UBICACIÓN EN SANTIAGO
+  private generarUbicacionSantiago(lat: number, lon: number): string {
+    const fecha = new Date().toLocaleString('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    const comuna = this.detectarComunaSantiago(lat, lon);
+
+    return `${comuna}, Santiago, Región Metropolitana\n\nCoordenadas: ${lat.toFixed(6)}, ${lon.toFixed(6)}\nObtenido: ${fecha}`;
+  }
+
+  // ✅ DETECTOR DE COMUNAS DE SANTIAGO (MUCHO MÁS PRECISO)
+  private detectarComunaSantiago(lat: number, lon: number): string {
+    // Coordenadas aproximadas de comunas de Santiago
+    // Basado en ubicaciones geográficas reales
+
+    // Santiago Centro y alrededores
+    if (lat > -33.45 && lat < -33.42 && lon > -70.68 && lon < -70.64) {
+      return 'Santiago Centro';
+    }
+
+    // Providencia, Ñuñoa
+    if (lat > -33.44 && lat < -33.42 && lon > -70.62 && lon < -70.58) {
+      if (lon > -70.60) return 'Providencia';
+      return 'Ñuñoa';
+    }
+
+    // Las Condes, Vitacura, Lo Barnechea
+    if (lat > -33.42 && lat < -33.38 && lon > -70.58 && lon < -70.55) {
+      if (lat < -33.40) return 'Las Condes';
+      if (lon > -70.57) return 'Vitacura';
+      return 'Lo Barnechea';
+    }
+
+    // Maipú, Pudahuel
+    if (lat > -33.52 && lat < -33.45 && lon > -70.75 && lon < -70.70) {
+      return 'Maipú';
+    }
+
+    // Puente Alto, La Florida
+    if (lat > -33.62 && lat < -33.52 && lon > -70.60 && lon < -70.55) {
+      if (lat < -33.57) return 'Puente Alto';
+      return 'La Florida';
+    }
+
+    // San Bernardo, El Bosque
+    if (lat > -33.65 && lat < -33.55 && lon > -70.72 && lon < -70.65) {
+      return 'San Bernardo';
+    }
+
+    // Quilicura, Huechuraba
+    if (lat > -33.38 && lat < -33.33 && lon > -70.75 && lon < -70.68) {
+      return 'Quilicura';
+    }
+
+    // Estación Central, Pedro Aguirre Cerda
+    if (lat > -33.48 && lat < -33.45 && lon > -70.70 && lon < -70.65) {
+      return 'Estación Central';
+    }
+
+    // Recoleta, Independencia
+    if (lat > -33.42 && lat < -33.40 && lon > -70.66 && lon < -70.62) {
+      return 'Recoleta';
+    }
+
+    // Si no coincide con comuna específica, determinar zona
+    if (lat < -33.5) return 'Zona Sur de Santiago';
+    if (lon < -70.7) return 'Zona Poniente de Santiago';
+    if (lon > -70.58) return 'Zona Oriente de Santiago';
+
+    return 'Santiago';
+  }
+
+  // ✅ Método auxiliar para mostrar alertas de ubicación
+  private async mostrarAlertaUbicacion(mensaje: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Ubicación no disponible',
+      message: mensaje,
+      buttons: [
+        {
+          text: 'Entendido',
+          role: 'cancel'
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  // ✅ Método para obtener posición en navegadores (sin cambios)
+  private obtenerPosicionNavegador(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation no es soportado por este navegador'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position),
+        (error) => reject(error),
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  // Método para obtener dirección desde coordenadas
+  async obtenerDireccionDesdeCoordenadas(latitud: number, longitud: number): Promise<string> {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitud}&lon=${longitud}&accept-language=es`
+      );
+
+      const data = await response.json();
+      return data.display_name || 'Dirección no disponible';
+    } catch (error) {
+      console.warn('No se pudo obtener la dirección:', error);
+      return 'Dirección no disponible';
+    }
+  }
+
+  // Mostrar error de ubicación
+  mostrarErrorUbicacion() {
+    this.showToast('No se pudo obtener la dirección. Verifica los permisos de ubicación.');
+  }
+
   private cargarVisitaEnCurso(): void {
     if (this.visitaState.tieneVisitaEnCurso()) {
       const state = this.visitaState.getCurrentState();
 
-      // Restaurar variables del componente
       this.visitaId = state.visitaId;
       this.inicio = state.inicio;
       this.visitaEnCurso = true;
@@ -211,46 +509,56 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
       this.estadoTexto = 'Tienes una visita en curso.';
       this.empresaId = state.empresaId || 0;
 
-      // Restaurar formulario
-      this.restaurarFormularioDesdeEstado(state);
+      // ✅ CARGAR COORDENADAS DESDE EL ESTADO
+      if (state.coordenadas) {
+        this.latitud = state.coordenadas.lat;
+        this.longitud = state.coordenadas.lon;
+        console.log('📍 Coordenadas cargadas desde estado:', this.latitud, this.longitud);
+      }
 
+      if (state.direccion_visita) {
+        this.ubicacionObtenida = true;
+        this.direccionExacta = state.direccion_visita;
+        console.log('📍 Dirección cargada desde estado:', this.direccionExacta);
+      }
+
+      this.restaurarFormularioDesdeEstado(state);
       this.showToast('Visita en curso recuperada');
     }
   }
 
-  // ✅ AGREGAR: Método para restaurar formulario desde estado
   private restaurarFormularioDesdeEstado(state: any): void {
-    // Restaurar cliente
     if (state.clienteId) {
       this.visitaForm.patchValue({
         cliente: state.clienteId
       });
 
-      // Cargar solicitantes para restaurar selección
       this.cargarSolicitantesPorCliente(state.clienteId, state.solicitantes);
     }
 
-    // Restaurar actividades
     if (state.actividades) {
       this.visitaForm.patchValue({
         actividades: state.actividades
       });
     }
 
-    // Restaurar otros datos del formulario
     if (state.datosFormulario) {
       this.visitaForm.patchValue(state.datosFormulario);
     }
+
+    if (state.direccion_visita) {
+      this.visitaForm.patchValue({
+        direccion_visita: state.direccion_visita
+      });
+    }
   }
 
-  // ✅ AGREGAR: Método para cargar solicitantes y restaurar selección
   private cargarSolicitantesPorCliente(clienteId: number, solicitantesGuardados?: any[]): void {
     this.api.getSolicitantes(clienteId).subscribe(
       (res) => {
         this.todosSolicitantes = res.solicitantes || res || [];
         this.filtradosSolicitantes = [...this.todosSolicitantes];
 
-        // Restaurar solicitantes seleccionados si existen
         if (solicitantesGuardados && solicitantesGuardados.length > 0) {
           this.visitaForm.patchValue({
             solicitante: solicitantesGuardados
@@ -266,7 +574,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     );
   }
 
-  // Los demás métodos se mantienen igual...
   abrirListaSolicitantes() {
     if (!this.visitaForm.get('cliente')?.value) {
       this.showToast('Debes seleccionar una empresa antes de elegir un solicitante.');
@@ -290,7 +597,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     this.visitaForm.get('solicitante')?.setValue(nuevaSeleccion);
     this.nombreSolicitanteSeleccionado = nuevaSeleccion.map((item: any) => item.nombre).join(', ');
 
-    // ✅ AGREGAR: Guardar en estado si hay visita en curso
     if (this.visitaEnCurso) {
       this.visitaState.agregarSolicitantes(nuevaSeleccion);
     }
@@ -317,13 +623,13 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     );
     this.visitaForm.patchValue({ solicitante: filtrados });
 
-    // ✅ AGREGAR: Guardar en estado si hay visita en curso
     if (this.visitaEnCurso) {
       this.visitaState.agregarSolicitantes(filtrados);
     }
   }
 
-  iniciarVisita() {
+  // Iniciar visita con obtención automática de dirección
+  async iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
     console.log('Cliente seleccionado para iniciar visita:', clienteId);
     const clienteObj = this.clientes.find(c => c.id_empresa === clienteId);
@@ -340,14 +646,23 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
 
+    // ✅ SOLUCIÓN: Formatear coordenadas para el backend
+    const direccionParaBackend = this.latitud && this.longitud
+      ? `${this.latitud},${this.longitud}`
+      : null;
+
     const visitaData = {
-      cliente: clienteId,
+      empresaId: clienteId,
       solicitante: this.visitaForm.value.solicitante,
-      realizado: this.visitaForm.value.realizado,
       inicio: this.inicio,
       tecnicoId: this.tecnicoId,
-      empresaId: clienteObj.id_empresa
+      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
     };
+
+    console.log('🎯 DATOS ENVIADOS AL BACKEND:');
+    console.log('- empresaId:', visitaData.empresaId);
+    console.log('- direccion_visita (coordenadas):', visitaData.direccion_visita);
+    console.log('- JSON completo:', JSON.stringify(visitaData, null, 2));
 
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
@@ -356,20 +671,22 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
         this.visitaId = response.visita.id_visita;
         console.log('Visita ID asignada:', this.visitaId);
 
-        // ✅ AGREGAR: Guardar en el servicio de estado
         this.visitaState.iniciarVisita({
           visitaId: this.visitaId,
           empresaId: clienteObj.id_empresa,
-          clienteId: clienteId
+          clienteId: clienteId,
+          direccion_visita: this.direccionExacta,  // Dirección bonita para el frontend
+          coordenadas: {
+            lat: this.latitud,
+            lon: this.longitud
+          }
         });
 
-        // ✅ AGREGAR: Guardar datos iniciales en el estado
         if (this.visitaForm.value.solicitante) {
           this.visitaState.agregarSolicitantes(this.visitaForm.value.solicitante);
         }
 
         this.visitaState.agregarActividades(this.visitaForm.get('actividades')?.value);
-
         this.showToast('Visita iniciada correctamente.');
       },
       async (error) => {
@@ -384,6 +701,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     );
   }
 
+  // Terminar visita con obtención automática de dirección actualizada
   async terminarVisita() {
     if (!this.visitaId) {
       const alert = await this.alertController.create({
@@ -406,26 +724,26 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
       return;
     }
 
+    // Obtener dirección actualizada al finalizar
+    await this.obtenerDireccion();
+
     this.fin = new Date();
     this.visitaEnCurso = false;
     this.estado = 'Completada';
     this.estadoTexto = 'La visita ha sido registrada.';
+
     const actividades = this.visitaForm.get('actividades')?.value || {};
-    const solicitante = this.visitaForm.get('solicitante')?.value;
-
-    console.log('Solicitante seleccionado:', solicitante)
-
     const seleccion = this.visitaForm.get('solicitante')?.value as any[];
+
     if (!Array.isArray(seleccion) || seleccion.length === 0) {
       this.showToast('Por favor, selecciona al menos un solicitante.');
       return;
     }
-    console.log('Solicitante seleccionado:', seleccion)
-    // Datos para completar la visita
-    if (!solicitante || solicitante.length === 0) {
-      this.showToast('Por favor, selecciona al menos un solicitante.');
-      return;
-    }
+
+    // ✅ SOLUCIÓN: Formatear coordenadas para el backend
+    const direccionParaBackend = this.latitud && this.longitud
+      ? `${this.latitud},${this.longitud}`
+      : null;
 
     const data = {
       confImpresoras: actividades.impresoras,
@@ -442,16 +760,18 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      realizado: this.visitaForm.value.realizado
+      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
     };
+
+    console.log('🎯 DATOS FINALIZACIÓN:');
+    console.log('- direccion_visita (coordenadas):', data.direccion_visita);
+    console.log('- dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
+        console.log('✅ RESPUESTA BACKEND:', response);
         this.guardarVisita();
-
-        // ✅ AGREGAR: Limpiar estado persistente
         this.visitaState.clearState();
-
         this.showToast('Visita finalizada con éxito');
       },
       async (error) => {
@@ -475,8 +795,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy { // ✅ AGREGAR
     this.estadoTexto = 'Listo para iniciar una visita.';
     this.visitaId = null;
     this.filtradosSolicitantes = [];
+    this.ubicacionObtenida = false;
 
-    // ✅ AGREGAR: Limpiar estado persistente
     this.visitaState.clearState();
   }
 
