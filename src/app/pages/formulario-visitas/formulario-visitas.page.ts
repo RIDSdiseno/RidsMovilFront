@@ -10,6 +10,7 @@ import { debounceTime } from 'rxjs/operators';
 import localeEsCl from '@angular/common/locales/es-CL';
 import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 
 registerLocaleData(localeEsCl, 'es-CL');
@@ -761,20 +762,35 @@ async iniciarVisita() {
   if (!clienteId) { this.showToast('Selecciona un cliente.'); return; }
 
   try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    await Geolocation.requestPermissions();
+    const Geolocation = await this.cargarGeolocationCapacitor();
+    if (Geolocation) {
+      // chequea permiso antes de pedirlo (algunos OEM crashean si llamas request sin check)
+      await Geolocation.checkPermissions().catch(() => null);
+      await Geolocation.requestPermissions();
+    }
 
     // Intenta posición; si tarda >6s, seguimos sin coords
     let lat: number | null = null, lon: number | null = null;
+
     try {
-      const pos = await Promise.race([
-        Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-        new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-      ]);
-      // @ts-ignore
-      lat = pos.coords.latitude; lon = pos.coords.longitude;
+      if (Geolocation) {
+        const pos = await Promise.race([
+          Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
+          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
+        ]);
+        // @ts-ignore
+        lat = pos.coords.latitude; lon = pos.coords.longitude;
+      } else {
+        const pos = await Promise.race([
+          this.obtenerPosicionNavegador(),
+          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
+        ]);
+        lat = pos.coords.latitude; lon = pos.coords.longitude;
+      }
     } catch (e) {
       console.warn('GPS lento/fallo, seguimos sin coords', e);
+      // Opcional: ofrece abrir ajustes si viene de denegado permanente
+      await this.verificarYOfrecerAjustesAndroid();
     }
 
     // Crea visita YA
@@ -820,6 +836,26 @@ async iniciarVisita() {
     this.showToast('Error al iniciar: ' + String(e));
   }
 }
+
+private async verificarYOfrecerAjustesAndroid() {
+  try {
+    const { Geolocation } = await import('@capacitor/geolocation');
+    const st = await Geolocation.checkPermissions();
+    const denied = st.location === 'denied' || st.coarseLocation === 'denied';
+    if (denied) {
+      const alert = await this.alertController.create({
+        header: 'Permiso de ubicación',
+        message: 'La app no tiene permiso de ubicación. Ábrelo en Ajustes para continuar.',
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }
+        ]
+      });
+      await alert.present();
+    }
+  } catch {}
+}
+
 
 async smokeGPS() {
   try {
