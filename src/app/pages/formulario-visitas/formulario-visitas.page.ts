@@ -241,32 +241,30 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
 
       console.log('📍 Coordenadas obtenidas:', lat, lon);
 
-      // ✅ GUARDAR COORDENADAS SEPARADAMENTE
+      // ✅ GUARDAR COORDENADAS PARA EL BACKEND
       this.latitud = lat;
       this.longitud = lon;
 
-      // ✅ OBTENER DIRECCIÓN EXACTA PARA MOSTRAR AL USUARIO
-      this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+      // ✅ OBTENER DIRECCIÓN EXACTA SOLO PARA MOSTRAR AL USUARIO
+      try {
+        this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+      } catch (error) {
+        console.warn('No se pudo obtener dirección exacta, usando formato limpio:', error);
+        // ✅ USAR FORMATO LIMPIO SIN COORDENADAS NI FECHA
+        this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
+      }
 
-      // Mostrar la dirección exacta en el formulario (solo visual)
-      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
       this.ubicacionObtenida = true;
 
-      console.log('✅ Dirección exacta:', this.direccionExacta);
-      console.log('✅ Coordenadas para backend:', this.latitud, this.longitud);
+      console.log('✅ Dirección exacta (frontend):', this.direccionExacta);
+      console.log('✅ Coordenadas (backend):', this.latitud, this.longitud);
 
     } catch (error: any) {
       console.error('❌ Error:', error);
 
-      // En caso de error, al menos guardar coordenadas
-      if (this.latitud && this.longitud) {
-        this.direccionExacta = this.generarUbicacionSantiago(this.latitud, this.longitud);
-        this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-        this.ubicacionObtenida = true;
-      } else {
-        this.visitaForm.get('direccion_visita')?.setValue('Ubicación no disponible');
-        this.ubicacionObtenida = false;
-      }
+      // En caso de error, mostrar mensaje simple
+      this.direccionExacta = 'Ubicación no disponible';
+      this.ubicacionObtenida = false;
 
     } finally {
       this.isLoadingLocation = false;
@@ -323,11 +321,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   // ✅ FORMATEADOR ESPECIALIZADO EN SANTIAGO
   private formatearDireccionSantiago(data: any): string {
     const address = data.address;
-
-    // Construir dirección en el formato típico de Santiago
     const partes = [];
 
-    // 1. Calle y número (si existe)
+    // Calle y número
     if (address.road) {
       let calle = address.road;
       if (address.house_number) {
@@ -336,7 +332,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       partes.push(calle);
     }
 
-    // 2. Comuna (lo más importante en Santiago)
+    // Comuna
     if (address.suburb) {
       partes.push(address.suburb);
     } else if (address.city_district) {
@@ -345,24 +341,15 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       partes.push(address.municipality);
     }
 
-    // 3. Siempre agregar "Santiago"
+    // Siempre agregar "Santiago"
     if (!partes.includes('Santiago')) {
       partes.push('Santiago');
     }
 
-    // 4. Agregar región
+    // Agregar región
     partes.push('Región Metropolitana');
 
-    const direccion = partes.join(', ');
-
-    // Si la dirección es muy corta, usar el display_name completo
-    if (direccion.length < 20 && data.display_name) {
-      return data.display_name
-        .replace(', Chile', '')
-        .replace(', Región Metropolitana de Santiago', ', Región Metropolitana');
-    }
-
-    return direccion;
+    return partes.join(', ');
   }
 
   // ✅ GENERAR DESCRIPCIÓN DE UBICACIÓN EN SANTIAGO
@@ -378,7 +365,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
 
     const comuna = this.detectarComunaSantiago(lat, lon);
 
-    return `${comuna}, Santiago, Región Metropolitana\n\nCoordenadas: ${lat.toFixed(6)}, ${lon.toFixed(6)}\nObtenido: ${fecha}`;
+    return `${comuna}, Santiago, Región Metropolitana`;
   }
 
   // ✅ DETECTOR DE COMUNAS DE SANTIAGO (MUCHO MÁS PRECISO)
@@ -466,14 +453,31 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
         return;
       }
 
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      };
+
       navigator.geolocation.getCurrentPosition(
         (position) => resolve(position),
-        (error) => reject(error),
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
+        (error) => {
+          // ✅ MEJOR MANEJO DE ERRORES DEL NAVEGADOR
+          let errorMessage = 'Error desconocido';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Usuario denegó los permisos de ubicación';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Información de ubicación no disponible';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Tiempo de espera agotado al obtener ubicación';
+              break;
+          }
+          reject(new Error(errorMessage));
+        },
+        options
       );
     });
   }
@@ -646,8 +650,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
 
-    // ✅ SOLUCIÓN: Formatear coordenadas para el backend
-    const direccionParaBackend = this.latitud && this.longitud
+    // ✅ ENVIAR SOLO COORDENADAS AL BACKEND
+    const coordenadasParaBackend = this.latitud && this.longitud
       ? `${this.latitud},${this.longitud}`
       : null;
 
@@ -656,12 +660,13 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       solicitante: this.visitaForm.value.solicitante,
       inicio: this.inicio,
       tecnicoId: this.tecnicoId,
-      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
+      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
 
     console.log('🎯 DATOS ENVIADOS AL BACKEND:');
     console.log('- empresaId:', visitaData.empresaId);
     console.log('- direccion_visita (coordenadas):', visitaData.direccion_visita);
+    console.log('- Dirección mostrada al usuario:', this.direccionExacta);
     console.log('- JSON completo:', JSON.stringify(visitaData, null, 2));
 
     this.api.crearVisita(visitaData).subscribe(
@@ -675,7 +680,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
           visitaId: this.visitaId,
           empresaId: clienteObj.id_empresa,
           clienteId: clienteId,
-          direccion_visita: this.direccionExacta,  // Dirección bonita para el frontend
+          direccion_visita: this.direccionExacta,  // Dirección para el frontend
           coordenadas: {
             lat: this.latitud,
             lon: this.longitud
@@ -741,7 +746,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     }
 
     // ✅ SOLUCIÓN: Formatear coordenadas para el backend
-    const direccionParaBackend = this.latitud && this.longitud
+    const coordenadasParaBackend = this.latitud && this.longitud
       ? `${this.latitud},${this.longitud}`
       : null;
 
@@ -760,12 +765,12 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
+      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
 
     console.log('🎯 DATOS FINALIZACIÓN:');
-    console.log('- direccion_visita (coordenadas):', data.direccion_visita);
-    console.log('- dirección mostrada al usuario:', this.direccionExacta);
+    console.log('- direccion_visita (coordenadas para backend):', data.direccion_visita);
+    console.log('- Dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {

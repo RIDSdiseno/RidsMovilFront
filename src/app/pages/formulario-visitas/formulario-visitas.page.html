@@ -52,7 +52,7 @@
             <div class="label-header">
               <span>Solicitantes</span>
               <span class="counter" [class.has-selection]="visitaForm.value.solicitante?.length > 0">
-                {{ visitaForm.value.solicitante?.length || 0 }} seleccionados
+                seleccionados {{ visitaForm.value.solicitante?.length || 0 }}
               </span>
             </div>
           </ion-label>
@@ -74,9 +74,6 @@
 
         <!-- Chips de selección (siempre visibles cuando hay selección) -->
         <div *ngIf="visitaForm.value.solicitante?.length > 0" class="chips-section">
-          <div class="section-header">
-            <span class="section-title">Solicitantes seleccionados</span>
-          </div>
           <div class="chips-container">
             <ion-chip *ngFor="let s of visitaForm.value.solicitante" color="primary" class="selection-chip">
               <ion-avatar *ngIf="s.iniciales" class="avatar-chip">
@@ -228,25 +225,31 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Sección de ubicación automática -->
-    <!-- En tu formulario-visitas.page.html -->
-    <ion-item>
-      <ion-label position="stacked">
-        <strong>📍 Dirección de la visita</strong>
-        <ion-text color="medium">
-          <small>Se obtiene automáticamente en Santiago, Región Metropolitana</small>
-        </ion-text>
-      </ion-label>
-      <ion-textarea [value]="visitaForm.get('direccion_visita')?.value" rows="3" readonly
-        placeholder="Obteniendo ubicación en Santiago..."></ion-textarea>
-    </ion-item>
+    <ion-card class="address-card">
+      <ion-card-header>
+        <ion-card-title class="card-title">
+          <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+          Dirección de la visita
+        </ion-card-title>
+        <ion-card-subtitle>
+          <ion-icon name="information-circle-outline"></ion-icon>
+          La ubicación se registra automáticamente al guardar/finalizar la visita
+        </ion-card-subtitle>
+      </ion-card-header>
 
-    <ion-text color="medium">
-      <small>
-        <ion-icon name="information-circle-outline"></ion-icon>
-        La ubicación se registra automáticamente al iniciar/finalizar la visita
-      </small>
-    </ion-text>
+      <ion-card-content class="card-content">
+        <div class="address-display-container">
+          <div class="address-text" *ngIf="direccionExacta && ubicacionObtenida">
+            {{ direccionExacta }}
+          </div>
+          <div class="address-placeholder" *ngIf="!direccionExacta || !ubicacionObtenida">
+            <ion-spinner name="crescent" *ngIf="isLoadingLocation"></ion-spinner>
+            <span>{{ isLoadingLocation ? 'Obteniendo ubicación...' : 'Ubicación no disponible' }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
   </form>
 
 </ion-content>
