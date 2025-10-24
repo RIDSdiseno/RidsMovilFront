@@ -33,6 +33,7 @@
     "@ionic/angular": "^8.7.5",
     "@ionic/cli": "^7.2.1",
     "axios": "^1.12.2",
+    "capacitor-native-settings": "^7.0.2",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
