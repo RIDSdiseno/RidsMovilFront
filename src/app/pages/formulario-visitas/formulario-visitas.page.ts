@@ -8,10 +8,10 @@ import { VisitaStateService } from 'src/app/services/visita-state';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import localeEsCl from '@angular/common/locales/es-CL';
-import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
-import { Capacitor } from '@capacitor/core';
-import { Geolocation } from '@capacitor/geolocation';
 
+// ✅ IMPORTACIONES CORRECTAS PARA CAPACITOR 3+
+import { Geolocation } from '@capacitor/geolocation';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 
 registerLocaleData(localeEsCl, 'es-CL');
 
@@ -134,10 +134,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.debugGeoOrigen();
-
-
-
     this.api.getClientes().subscribe(
       (data) => {
         console.log('Clientes cargados:', data);
@@ -209,185 +205,230 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   }
 
   // ✅ NUEVO: Método para cargar Capacitor Geolocation solo cuando sea necesario
-  private async cargarGeolocationCapacitor() {
-  const { Geolocation } = await import('@capacitor/geolocation');
-  const platform = Capacitor.getPlatform();
-  // En móviles, exige plugin nativo
-  if (platform === 'android' || platform === 'ios') {
-    if ((Capacitor as any).isPluginAvailable?.('Geolocation')) return Geolocation;
-    // plugin no registrado -> probablemente faltó `ionic cap sync`
-    throw new Error('Geolocation plugin no disponible en nativo');
-  }
-  // Web (ionic serve)
-  return null; // para que caiga a navigator.geolocation en la web
-}
-
-async probarPermiso() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    await Geolocation.requestPermissions();
-    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
-    this.latitud  = pos.coords.latitude;
-    this.longitud = pos.coords.longitude;
-    this.showToast(`OK: ${this.latitud},${this.longitud}`);
-  } catch (e) {
-    console.error('Error permiso/posición:', e);
-    this.showToast('No se pudo leer la posición');
-  }
-}
-
-private async debugGeoOrigen() {
-  const Geolocation = await this.cargarGeolocationCapacitor();
-  const platform = Capacitor.getPlatform?.() ?? 'unknown';
-  console.log('[GEO] Platform:', platform);
-  console.log('[GEO] Plugin cargado?:', !!Geolocation);
-  this.showToast(`platform: ${platform}`);
-  this.showToast(`plugin: ${!!Geolocation}`);
-  if (Geolocation?.checkPermissions) {
-    const st = await Geolocation.checkPermissions();
-    console.log('[GEO] Estado permisos:', st);
-    this.showToast(`perm: ${JSON.stringify(st)}`);
-  } else {
-    console.log('[GEO] Sin checkPermissions -> probablemente usando navigator.geolocation');
-  }
-}
-
-private async openAppSettings(): Promise<void> {
-  const platform = Capacitor.getPlatform();
-  try {
-    if (platform === 'android') {
-      await NativeSettings.openAndroid({ option: AndroidSettings.ApplicationDetails });
-      // También puedes abrir directamente "Ubicación" del sistema:
-      // await NativeSettings.openAndroid({ option: AndroidSettings.Location });
-    } else if (platform === 'ios') {
-      // Apple solo garantiza abrir los ajustes de TU app
-      await NativeSettings.openIOS({ option: IOSSettings.App });
-      // Alternativa sin plugin (también sirve):
-      // await App.openUrl({ url: 'app-settings:' });
-    } else {
-      this.showToast('Abre los ajustes de permisos del navegador para habilitar ubicación.');
+  private async cargarGeolocationCapacitor(): Promise<any> {
+    if (this.platform.is('capacitor') && (this.platform.is('ios') || this.platform.is('android'))) {
+      try {
+        const { Geolocation } = await import('@capacitor/geolocation');
+        return Geolocation;
+      } catch (error) {
+        console.warn('No se pudo cargar Capacitor Geolocation:', error);
+        return null;
+      }
     }
-  } catch (e) {
-    console.error('No se pudo abrir Ajustes:', e);
-    this.showToast('No se pudieron abrir los Ajustes.');
+    return null;
   }
-}
 
-
-  private async asegurarPermisosUbicacion(): Promise<boolean> {
-  try {
-    const Geolocation = await this.cargarGeolocationCapacitor();
-    if (!Geolocation) return true; // web
-
+  // ✅ NUEVO: Método para solicitar permisos de ubicación (CORREGIDO)
+  async solicitarPermisosUbicacion(): Promise<boolean> {
     try {
-      const st = await Geolocation.checkPermissions();
-      if (st.location === 'granted' || st.coarseLocation === 'granted') return true;
-    } catch { /* algunos OEM tiran error aquí; seguimos a request */ }
+      // Verificar si estamos en un dispositivo nativo
+      if (this.platform.is('capacitor')) {
+        // Para iOS y Android con Capacitor
+        const permStatus = await Geolocation.requestPermissions();
 
-    const req = await Geolocation.requestPermissions();
-    if (req.location === 'granted' || req.coarseLocation === 'granted') return true;
+        if (permStatus.location === 'granted') {
+          console.log('✅ Permisos de ubicación concedidos');
+          return true;
+        } else {
+          console.warn('❌ Permisos de ubicación denegados');
 
-    const alert = await this.alertController.create({
-      header: 'Permiso de ubicación',
-      message: 'Necesitamos tu ubicación para registrar la visita. Actívala en Ajustes.',
-      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }]
+          // Mostrar alerta para dirigir a ajustes
+          const alert = await this.alertController.create({
+            header: 'Permisos de Ubicación Requeridos',
+            message: 'Esta aplicación necesita acceso a tu ubicación para registrar las visitas. Por favor, activa los permisos de ubicación en Configuración.',
+            buttons: [
+              {
+                text: 'Cancelar',
+                role: 'cancel'
+              },
+              {
+                text: 'Abrir Configuración',
+                handler: () => {
+                  this.abrirConfiguracionUbicacion();
+                }
+              }
+            ]
+          });
+          await alert.present();
+          return false;
+        }
+      } else {
+        // Para navegador web
+        return await this.solicitarPermisosNavegador();
+      }
+    } catch (error) {
+      console.error('Error solicitando permisos:', error);
+      this.showToast('Error al solicitar permisos de ubicación');
+      return false;
+    }
+  }
+
+  // ✅ NUEVO: Método para solicitar permisos en navegador
+  // ✅ NUEVO: Método para solicitar permisos en navegador
+  private async solicitarPermisosNavegador(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        this.showToast('Geolocalización no soportada en este navegador');
+        resolve(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          // Éxito - permisos concedidos
+          resolve(true);
+        },
+        (error) => {
+          // Error - permisos denegados
+          let mensaje = 'Permisos de ubicación denegados';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              mensaje = 'Permisos de ubicación denegados. Por favor, habilítalos en la configuración de tu navegador.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              mensaje = 'Información de ubicación no disponible.';
+              break;
+            case error.TIMEOUT:
+              mensaje = 'Tiempo de espera agotado al obtener ubicación.';
+              break;
+          }
+          this.showToast(mensaje);
+          resolve(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
     });
-    await alert.present();
-    return false;
-  } catch (e) {
-    console.error('[PERM] error', e);
-    this.showToast(JSON.stringify(e))
-    return false;
   }
-}
 
-// OBTENER COORDENADAS rápido (sin bloquear por dirección)
-private async obtenerCoordenadasRapido(): Promise<{lat:number, lon:number}> {
-  const Geolocation = await this.cargarGeolocationCapacitor();
-  if (Geolocation) {
-    const pos = await this.withTimeout(
-      Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-      5000,
-      'getCurrentPosition'
-    );
-    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
-  } else {
-    const pos = await this.withTimeout(this.obtenerPosicionNavegador(), 5000, 'navigator.geolocation');
-    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
+  // ✅ NUEVO: Método para abrir configuración del dispositivo
+  private async abrirConfiguracionUbicacion(): Promise<void> {
+    try {
+      // Siempre proporcionar ambas propiedades
+      await NativeSettings.open({
+        optionAndroid: AndroidSettings.Location,
+        optionIOS: IOSSettings.App // Usar una opción válida para iOS
+      });
+    } catch (error) {
+      console.error('Error abriendo configuración:', error);
+      this.showToast('No se pudo abrir la configuración');
+    }
   }
-}
-// Reverse geocoding NO bloqueante con timeout
-private async intentarCargarDireccionBonita(lat:number, lon:number) {
-  try {
-    const texto = await this.withTimeout(
-      this.obtenerDireccionExactaSantiago(lat, lon),
-      3000,
-      'reverse-geocoding'
-    );
-    this.direccionExacta = texto;
-  } catch {
-    this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
-  }
-  this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-  this.ubicacionObtenida = true;
-}
-
 
   // Método para obtener dirección con Ionic Native
- async obtenerDireccion(): Promise<void> {
-  this.isLoadingLocation = true;
-  this.ubicacionObtenida = false;
-
-  try {
-    // 1) Permisos
-    const ok = await this.asegurarPermisosUbicacion();
-    if (!ok) {
-      this.showToast('Permiso de ubicación denegado.');
-      return;
-    }
-
-    // 2) Obtener coordenadas (nativo si existe; web si no)
-    let lat: number, lon: number;
-    const Geolocation = await this.cargarGeolocationCapacitor();
-
-    if (Geolocation) {
-      const pos = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-      });
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-    } else {
-      const pos = await this.obtenerPosicionNavegador();
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-    }
-
-    // 3) Guardar y resolver dirección legible
-    this.latitud = lat;
-    this.longitud = lon;
+  // ✅ MODIFICADO: Método obtenerDireccion con verificación de permisos
+  async obtenerDireccion(): Promise<void> {
+    this.isLoadingLocation = true;
+    this.ubicacionObtenida = false;
 
     try {
-      this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
-    } catch {
-      this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
+      // 1. Solicitar permisos primero
+      const permisosConcedidos = await this.solicitarPermisosUbicacion();
+      if (!permisosConcedidos) {
+        this.showToast('No se pueden obtener coordenadas sin permisos');
+        return;
+      }
+
+      let lat: number, lon: number;
+
+      // 2. Obtener coordenadas según la plataforma
+      if (this.platform.is('capacitor') && (this.platform.is('ios') || this.platform.is('android'))) {
+        // Usar Capacitor Geolocation para dispositivos nativos
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+      } else {
+        // Usar API del navegador para web
+        const position = await this.obtenerPosicionNavegador();
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+      }
+
+      console.log('📍 Coordenadas obtenidas:', lat, lon);
+
+      // ✅ GUARDAR COORDENADAS PARA EL BACKEND
+      this.latitud = lat;
+      this.longitud = lon;
+
+      // ✅ OBTENER DIRECCIÓN EXACTA SOLO PARA MOSTRAR AL USUARIO
+      try {
+        this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+      } catch (error) {
+        console.warn('No se pudo obtener dirección exacta, usando formato limpio:', error);
+        this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
+      }
+
+      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+      this.ubicacionObtenida = true;
+
+      console.log('✅ Dirección exacta:', this.direccionExacta);
+      this.showToast(`📍 Ubicación obtenida: ${this.direccionExacta}`);
+
+    } catch (error: any) {
+      console.error('❌ Error obteniendo ubicación:', error);
+
+      // Mensajes de error más específicos
+      if (error.message.includes('Permission denied') || error.code === 1) {
+        this.showToast('Permisos de ubicación denegados. Por favor, habilítalos en configuración.');
+      } else if (error.message.includes('Timeout') || error.code === 3) {
+        this.showToast('Tiempo de espera agotado. Verifica tu conexión y GPS.');
+      } else {
+        this.showToast('Error al obtener la ubicación: ' + error.message);
+      }
+
+      this.direccionExacta = 'Ubicación no disponible';
+      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+      this.ubicacionObtenida = false;
+    } finally {
+      this.isLoadingLocation = false;
     }
-
-    this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-    this.ubicacionObtenida = true;
-
-    console.log('📍 Coordenadas:', this.latitud, this.longitud);
-    console.log('📍 Dirección:', this.direccionExacta);
-
-  } catch (error) {
-    console.error('❌ obtenerDireccion error:', error);
-    this.visitaForm.get('direccion_visita')?.setValue('Ubicación no disponible');
-    this.ubicacionObtenida = false;
-    this.showToast('No se pudo obtener tu ubicación.');
-  } finally {
-    this.isLoadingLocation = false;
   }
-}
+
+  // ✅ NUEVO: Método para verificar estado de permisos
+  async verificarEstadoPermisos(): Promise<string> {
+    try {
+      if (this.platform.is('capacitor')) {
+        const permStatus = await Geolocation.checkPermissions();
+        return permStatus.location || 'denied';
+      } else {
+        // Para navegador, no hay forma directa de verificar sin intentar obtener ubicación
+        return 'unknown';
+      }
+    } catch (error) {
+      console.error('Error verificando permisos:', error);
+      return 'error';
+    }
+  }
+
+  async forzarSolicitudPermisos() {
+    const alert = await this.alertController.create({
+      header: 'Permisos de Ubicación',
+      message: 'Esta aplicación necesita acceso a tu ubicación para registrar las visitas técnicas. ¿Quieres activar los permisos ahora?',
+      buttons: [
+        {
+          text: 'Ahora no',
+          role: 'cancel'
+        },
+        {
+          text: 'Solicitar Permisos',
+          handler: async () => {
+            const concedidos = await this.solicitarPermisosUbicacion();
+            if (concedidos) {
+              this.showToast('✅ Permisos concedidos. Ahora puedes obtener tu ubicación.');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   // ✅ MÉTODO ESPECÍFICO PARA SANTIAGO
   private async obtenerDireccionSantiago(lat: number, lon: number): Promise<string> {
     // Verificar que las coordenadas estén en el área de Santiago
@@ -438,11 +479,9 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
   // ✅ FORMATEADOR ESPECIALIZADO EN SANTIAGO
   private formatearDireccionSantiago(data: any): string {
     const address = data.address;
-
-    // Construir dirección en el formato típico de Santiago
     const partes = [];
 
-    // 1. Calle y número (si existe)
+    // Calle y número
     if (address.road) {
       let calle = address.road;
       if (address.house_number) {
@@ -451,7 +490,7 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       partes.push(calle);
     }
 
-    // 2. Comuna (lo más importante en Santiago)
+    // Comuna
     if (address.suburb) {
       partes.push(address.suburb);
     } else if (address.city_district) {
@@ -460,24 +499,15 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       partes.push(address.municipality);
     }
 
-    // 3. Siempre agregar "Santiago"
+    // Siempre agregar "Santiago"
     if (!partes.includes('Santiago')) {
       partes.push('Santiago');
     }
 
-    // 4. Agregar región
+    // Agregar región
     partes.push('Región Metropolitana');
 
-    const direccion = partes.join(', ');
-
-    // Si la dirección es muy corta, usar el display_name completo
-    if (direccion.length < 20 && data.display_name) {
-      return data.display_name
-        .replace(', Chile', '')
-        .replace(', Región Metropolitana de Santiago', ', Región Metropolitana');
-    }
-
-    return direccion;
+    return partes.join(', ');
   }
 
   // ✅ GENERAR DESCRIPCIÓN DE UBICACIÓN EN SANTIAGO
@@ -493,7 +523,7 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
 
     const comuna = this.detectarComunaSantiago(lat, lon);
 
-    return `${comuna}, Santiago, Región Metropolitana\n\nCoordenadas: ${lat.toFixed(6)}, ${lon.toFixed(6)}\nObtenido: ${fecha}`;
+    return `${comuna}, Santiago, Región Metropolitana`;
   }
 
   // ✅ DETECTOR DE COMUNAS DE SANTIAGO (MUCHO MÁS PRECISO)
@@ -581,14 +611,30 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
         return;
       }
 
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      };
+
       navigator.geolocation.getCurrentPosition(
         (position) => resolve(position),
-        (error) => reject(error),
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
+        (error) => {
+          let errorMessage = 'Error desconocido';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Usuario denegó los permisos de ubicación';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Información de ubicación no disponible';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Tiempo de espera agotado al obtener ubicación';
+              break;
+          }
+          reject(new Error(errorMessage));
+        },
+        options
       );
     });
   }
@@ -697,8 +743,6 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
     this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
   }
 
-  
-
   seleccionarSolicitante(s: any) {
     const seleccionActual = this.visitaForm.get('solicitante')?.value || [];
     const existe = seleccionActual.find((item: any) => item.id_solicitante === s.id_solicitante);
@@ -744,145 +788,80 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       this.visitaState.agregarSolicitantes(filtrados);
     }
   }
-// NUEVO flag arriba en la clase
-private isStarting = false;
-private withTimeout<T>(p: Promise<T>, ms: number, label = 'op'): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label} timeout (${ms}ms)`)), ms);
-    p.then(v => { clearTimeout(t); resolve(v); })
-     .catch(e => { clearTimeout(t); reject(e); });
-  });
-}
 
-private resolvingAddress = false;
+  // Iniciar visita con obtención automática de dirección
+  async iniciarVisita() {
+    const clienteId = this.visitaForm.value.cliente;
+    console.log('Cliente seleccionado para iniciar visita:', clienteId);
+    const clienteObj = this.clientes.find(c => c.id_empresa === clienteId);
+    console.log('Cliente encontrado:', clienteObj);
 
-  // REEMPLAZA tu iniciarVisita() completo por este
-async iniciarVisita() {
-  const clienteId = this.visitaForm.value.cliente;
-  if (!clienteId) { this.showToast('Selecciona un cliente.'); return; }
-
-  try {
-    const Geolocation = await this.cargarGeolocationCapacitor();
-    if (Geolocation) {
-      // chequea permiso antes de pedirlo (algunos OEM crashean si llamas request sin check)
-      await Geolocation.checkPermissions().catch(() => null);
-      await Geolocation.requestPermissions();
+    if (!clienteObj) {
+      this.showToast('Por favor, selecciona un cliente válido antes de iniciar la visita.');
+      return;
     }
 
-    // Intenta posición; si tarda >6s, seguimos sin coords
-    let lat: number | null = null, lon: number | null = null;
+    this.inicio = new Date();
+    this.fin = null;
+    this.visitaEnCurso = true;
+    this.estado = 'En curso';
+    this.estadoTexto = 'La visita está en curso.';
 
-    try {
-      if (Geolocation) {
-        const pos = await Promise.race([
-          Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        // @ts-ignore
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
-      } else {
-        const pos = await Promise.race([
-          this.obtenerPosicionNavegador(),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
-      }
-    } catch (e) {
-      console.warn('GPS lento/fallo, seguimos sin coords', e);
-      // Opcional: ofrece abrir ajustes si viene de denegado permanente
-      await this.verificarYOfrecerAjustesAndroid();
-    }
+    // ✅ ENVIAR SOLO COORDENADAS AL BACKEND
+    const coordenadasParaBackend = this.latitud && this.longitud
+      ? `${this.latitud},${this.longitud}`
+      : null;
 
-    // Crea visita YA
     const visitaData = {
       empresaId: clienteId,
       solicitante: this.visitaForm.value.solicitante,
-      inicio: new Date(),
+      inicio: this.inicio,
       tecnicoId: this.tecnicoId,
-      direccion_visita: (lat!=null && lon!=null) ? `${lat},${lon}` : null
+      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
 
-    this.showToast('Creando visita…');
-    this.api.crearVisita(visitaData).subscribe(
-      async (response: any) => {
-        this.visitaId = response?.visita?.id_visita;
-        if (!this.visitaId) { this.showToast('Backend no devolvió id_visita.'); return; }
+    console.log('🎯 DATOS ENVIADOS AL BACKEND:');
+    console.log('- empresaId:', visitaData.empresaId);
+    console.log('- direccion_visita (coordenadas):', visitaData.direccion_visita);
+    console.log('- Dirección mostrada al usuario:', this.direccionExacta);
+    console.log('- JSON completo:', JSON.stringify(visitaData, null, 2));
 
-        this.inicio = new Date();
-        this.visitaEnCurso = true;
+    this.api.crearVisita(visitaData).subscribe(
+      (response: any) => {
         this.estado = 'En curso';
         this.estadoTexto = 'La visita ha comenzado.';
+        this.visitaId = response.visita.id_visita;
+        console.log('Visita ID asignada:', this.visitaId);
 
-        // dispara resolve de dirección si tenemos coords
-        if (lat!=null && lon!=null && !this.resolvingAddress) {
-          this.resolvingAddress = true;
-          try {
-            this.direccionExacta = await Promise.race([
-              this.obtenerDireccionExactaSantiago(lat, lon),
-              new Promise<string>((_, rej)=>setTimeout(()=>rej(new Error('revgeo-timeout')), 3000))
-            ]).catch(()=> this.generarUbicacionSantiago(lat!, lon!)) as string;
-            this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-            this.ubicacionObtenida = true;
-          } finally { this.resolvingAddress = false; }
+        this.visitaState.iniciarVisita({
+          visitaId: this.visitaId,
+          empresaId: clienteObj.id_empresa,
+          clienteId: clienteId,
+          direccion_visita: this.direccionExacta,  // Dirección para el frontend
+          coordenadas: {
+            lat: this.latitud,
+            lon: this.longitud
+          }
+        });
+
+        if (this.visitaForm.value.solicitante) {
+          this.visitaState.agregarSolicitantes(this.visitaForm.value.solicitante);
         }
 
-        this.showToast('Visita iniciada.');
+        this.visitaState.agregarActividades(this.visitaForm.get('actividades')?.value);
+        this.showToast('Visita iniciada correctamente.');
       },
-      (err) => { console.error(err); this.showToast('No se pudo iniciar la visita.'); }
+      async (error) => {
+        const alert = await this.alertController.create({
+          header: 'Error',
+          message: 'No se pudo iniciar la visita. Intenta de nuevo.',
+          buttons: ['Aceptar']
+        });
+        await alert.present();
+        console.error('Error al iniciar la visita:', error);
+      }
     );
-
-  } catch (e) {
-    console.error('iniciarVisita error', e);
-    this.showToast('Error al iniciar: ' + String(e));
   }
-}
-
-private async verificarYOfrecerAjustesAndroid() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    const st = await Geolocation.checkPermissions();
-    const denied = st.location === 'denied' || st.coarseLocation === 'denied';
-    if (denied) {
-      const alert = await this.alertController.create({
-        header: 'Permiso de ubicación',
-        message: 'La app no tiene permiso de ubicación. Ábrelo en Ajustes para continuar.',
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }
-        ]
-      });
-      await alert.present();
-    }
-  } catch {}
-}
-
-
-async smokeGPS() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    await Geolocation.requestPermissions();
-
-    const t = setTimeout(() => {
-      this.showToast('GPS timeout (8s)');
-    }, 8000);
-
-    this.showToast('Leyendo posición…');
-    const pos = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 7000,      // Android a veces ignora este timeout; por eso el setTimeout arriba
-    });
-    clearTimeout(t);
-
-    this.latitud  = pos.coords.latitude;
-    this.longitud = pos.coords.longitude;
-    this.showToast(`POS OK: ${this.latitud}, ${this.longitud}`);
-    console.log('POS OK', pos);
-  } catch (e) {
-    console.error('smokeGPS error', e);
-    this.showToast('POS ERROR: ' + String(e));
-  }
-}
-
 
   // Terminar visita con obtención automática de dirección actualizada
   async terminarVisita() {
@@ -924,9 +903,9 @@ async smokeGPS() {
     }
 
     // ✅ SOLUCIÓN: Formatear coordenadas para el backend
-    const direccionParaBackend = (this.latitud != null && this.longitud != null)
-  ? `${this.latitud},${this.longitud}`
-  : null;
+    const coordenadasParaBackend = this.latitud && this.longitud
+      ? `${this.latitud},${this.longitud}`
+      : null;
 
     const data = {
       confImpresoras: actividades.impresoras,
@@ -943,12 +922,12 @@ async smokeGPS() {
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
+      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
 
     console.log('🎯 DATOS FINALIZACIÓN:');
-    console.log('- direccion_visita (coordenadas):', data.direccion_visita);
-    console.log('- dirección mostrada al usuario:', this.direccionExacta);
+    console.log('- direccion_visita (coordenadas para backend):', data.direccion_visita);
+    console.log('- Dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {
