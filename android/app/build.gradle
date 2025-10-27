@@ -14,8 +14,8 @@ android {
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
 
-    versionCode 22         // ← súbelo en cada release
-    versionName "1.2.2"
+    versionCode 23         // ← súbelo en cada release
+    versionName "1.2.3"
 
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     aaptOptions {

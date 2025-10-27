@@ -756,50 +756,39 @@ private withTimeout<T>(p: Promise<T>, ms: number, label = 'op'): Promise<T> {
 
 private resolvingAddress = false;
 
-  // REEMPLAZA tu iniciarVisita() completo por este
+
 async iniciarVisita() {
-  const clienteId = this.visitaForm.value.cliente;
-  if (!clienteId) { this.showToast('Selecciona un cliente.'); return; }
-
   try {
-    const Geolocation = await this.cargarGeolocationCapacitor();
-    if (Geolocation) {
-      // chequea permiso antes de pedirlo (algunos OEM crashean si llamas request sin check)
-      await Geolocation.checkPermissions().catch(() => null);
-      await Geolocation.requestPermissions();
-    }
+    // 0) feedback inmediato
+    this.showToast('Preparando inicio de visita…');
 
-    // Intenta posición; si tarda >6s, seguimos sin coords
-    let lat: number | null = null, lon: number | null = null;
+    // 1) Pide permisos primero (visible para el usuario)
+    const c = await this.getCoordsOnce();
+    let lat = c.lat;
+    let lon = c.lon;
+    this.showToast(`POS OK: ${lat}, ${lon}`)
 
-    try {
-      if (Geolocation) {
-        const pos = await Promise.race([
-          Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        // @ts-ignore
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
-      } else {
-        const pos = await Promise.race([
-          this.obtenerPosicionNavegador(),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
-      }
-    } catch (e) {
-      console.warn('GPS lento/fallo, seguimos sin coords', e);
-      // Opcional: ofrece abrir ajustes si viene de denegado permanente
-      await this.verificarYOfrecerAjustesAndroid();
-    }
 
-    // Crea visita YA
+    // 2) AHORA valida cliente
+    const clienteId = this.visitaForm.value.cliente;
+  if (!clienteId) {
+    const alert = await this.alertController.create({
+      header: 'Falta seleccionar empresa',
+      message: 'Debes seleccionar un cliente antes de iniciar la visita.',
+      buttons: ['OK']
+    });
+    await alert.present();
+    return;
+  }
+
+
+    // 4) Crear visita de inmediato (con o sin coords)
     const visitaData = {
       empresaId: clienteId,
       solicitante: this.visitaForm.value.solicitante,
       inicio: new Date(),
       tecnicoId: this.tecnicoId,
-      direccion_visita: (lat!=null && lon!=null) ? `${lat},${lon}` : null
+      direccion_visita: (lat!=null && lon!=null) ? `${lat},${lon}` : null,
     };
 
     this.showToast('Creando visita…');
@@ -813,14 +802,14 @@ async iniciarVisita() {
         this.estado = 'En curso';
         this.estadoTexto = 'La visita ha comenzado.';
 
-        // dispara resolve de dirección si tenemos coords
         if (lat!=null && lon!=null && !this.resolvingAddress) {
           this.resolvingAddress = true;
           try {
             this.direccionExacta = await Promise.race([
               this.obtenerDireccionExactaSantiago(lat, lon),
               new Promise<string>((_, rej)=>setTimeout(()=>rej(new Error('revgeo-timeout')), 3000))
-            ]).catch(()=> this.generarUbicacionSantiago(lat!, lon!)) as string;
+            ]).catch(()=> this.generarUbicacionSantiago(lat, lon)) as string;
+
             this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
             this.ubicacionObtenida = true;
           } finally { this.resolvingAddress = false; }
@@ -837,23 +826,15 @@ async iniciarVisita() {
   }
 }
 
-private async verificarYOfrecerAjustesAndroid() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    const st = await Geolocation.checkPermissions();
-    const denied = st.location === 'denied' || st.coarseLocation === 'denied';
-    if (denied) {
-      const alert = await this.alertController.create({
-        header: 'Permiso de ubicación',
-        message: 'La app no tiene permiso de ubicación. Ábrelo en Ajustes para continuar.',
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }
-        ]
-      });
-      await alert.present();
-    }
-  } catch {}
+
+private async getCoordsOnce(): Promise<{lat:number, lon:number}> {
+  const { Geolocation } = await import('@capacitor/geolocation');
+  await Geolocation.requestPermissions(); // deja esto aquí, funciona como en smokeGPS
+  const pos = await Geolocation.getCurrentPosition({
+    enableHighAccuracy: true,
+    timeout: 7000,
+  });
+  return { lat: pos.coords.latitude, lon: pos.coords.longitude };
 }
 
 
@@ -877,11 +858,14 @@ async smokeGPS() {
     this.longitud = pos.coords.longitude;
     this.showToast(`POS OK: ${this.latitud}, ${this.longitud}`);
     console.log('POS OK', pos);
+    
   } catch (e) {
     console.error('smokeGPS error', e);
     this.showToast('POS ERROR: ' + String(e));
   }
 }
+
+
 
 
   // Terminar visita con obtención automática de dirección actualizada
@@ -943,7 +927,9 @@ async smokeGPS() {
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      direccion_visita: direccionParaBackend  // ← Enviar coordenadas formateadas
+      direccion_visita: (this.latitud != null && this.longitud != null)
+    ? `${this.latitud},${this.longitud}`
+    : null,  // ← Enviar coordenadas formateadas
     };
 
     console.log('🎯 DATOS FINALIZACIÓN:');
@@ -951,22 +937,27 @@ async smokeGPS() {
     console.log('- dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
-      (response: any) => {
-        console.log('✅ RESPUESTA BACKEND:', response);
-        this.guardarVisita();
-        this.visitaState.clearState();
-        this.showToast('Visita finalizada con éxito');
-      },
-      async (error) => {
-        const alert = await this.alertController.create({
-          header: 'Error',
-          message: 'No se pudo finalizar la visita. Intenta de nuevo.',
-          buttons: ['Aceptar']
-        });
-        await alert.present();
-        console.error('Error al finalizar la visita:', error);
-      }
-    );
+  (response: any) => {
+    console.log('✅ RESPUESTA BACKEND:', response);
+    this.guardarVisita();
+    this.visitaState.clearState();
+    this.showToast('Visita finalizada con éxito');
+  },
+  async (err) => {
+    console.error('❌ completarVisita error:', err);
+    const detalle = (() => {
+      try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
+    })();
+    const alert = await this.alertController.create({
+      header: `Error al guardar (${err?.status || 'sin status'})`,
+      message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
+      buttons: ['OK']
+    });
+    await alert.present();
+    this.showToast('No se pudo finalizar la visita.');
+  }
+);
+
   }
 
   resetFormulario() {
