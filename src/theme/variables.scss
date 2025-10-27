@@ -164,5 +164,21 @@ $breakpoint-lg: 1200px;
         }
     }
 
+    .direccion-compact {
+        background: #2d2d2d !important;
+        border-left: 3px solid #3b82f6 !important;
 
+        .direccion-text {
+            color: white !important;
+        }
+    }
+
+    .solicitante-compact {
+        color: white !important;
+    }
+
+    .fecha-compact {
+        background: #666 !important;
+        color: white !important;
+    }
 }

@@ -779,22 +779,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     return 'Santiago';
   }
 
-  async smokeGPS() {
-    try {
-      const coords = await this.obtenerCoordenadasPrecisas();
-      console.log('📍 Coordenadas obtenidas (smokeGPS):', coords);
-      this.showToast(`Lat: ${coords.lat}, Lon: ${coords.lon}`);
-    } catch (error) {
-      console.error('❌ Error en smokeGPS:', error);
-      this.showToast('No se pudieron obtener coordenadas.');
-    }
-  }
-
-  async probarPermiso() {
-    const granted = await this.asegurarPermisosUbicacion();
-    this.showToast(granted ? '✅ Permiso otorgado' : '❌ Permiso denegado');
-  }
-
   // ✅ MÉTODO INICIAR VISITA MEJORADO
   async iniciarVisita() {
     const clienteId = this.visitaForm.value.cliente;
@@ -811,22 +795,18 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       }
 
       // Obtener coordenadas rápidamente
-      let coords: { lat: number | null; lon: number | null } = { lat: null, lon: null };
+      let coords = { lat: null, lon: null };
       try {
         coords = await this.obtenerCoordenadasPrecisas();
         this.latitud = coords.lat;
         this.longitud = coords.lon;
 
-        // ✅ Solo ejecutar si hay coordenadas válidas
-        if (coords.lat !== null && coords.lon !== null) {
-          this.obtenerDireccionEnSegundoPlano(coords.lat, coords.lon);
-        }
-
+        // Obtener dirección en segundo plano
+        this.obtenerDireccionEnSegundoPlano(coords.lat, coords.lon);
       } catch (e) {
         console.warn('No se pudieron obtener coordenadas:', e);
         this.direccionExacta = 'Ubicación no disponible';
       }
-
 
       // Crear visita inmediatamente
       const visitaData = {
