@@ -12,7 +12,6 @@ import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-s
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 
-
 registerLocaleData(localeEsCl, 'es-CL');
 
 @Component({
@@ -53,6 +52,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   direccionExacta: string = '';
 
   private formSubscriptions: Subscription[] = [];
+  private isStarting = false;
+  private resolvingAddress = false;
 
   constructor(
     private fb: FormBuilder,
@@ -136,8 +137,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.debugGeoOrigen();
 
-
-
     this.api.getClientes().subscribe(
       (data) => {
         console.log('Clientes cargados:', data);
@@ -167,7 +166,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
             licenciaOffice: actividades.licenciaOffice ?? true,
             rendimientoEquipo: actividades.rendimientoEquipo ?? true,
             mantenimientoReloj: actividades.mantenimientoReloj ?? true,
-
           }
         });
       });
@@ -208,220 +206,143 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ NUEVO: Método para cargar Capacitor Geolocation solo cuando sea necesario
+  // ========== MÉTODOS DE GEOLOCALIZACIÓN MEJORADOS (GRATUITOS) ==========
+
   private async cargarGeolocationCapacitor() {
-  const { Geolocation } = await import('@capacitor/geolocation');
-  const platform = Capacitor.getPlatform();
-  // En móviles, exige plugin nativo
-  if (platform === 'android' || platform === 'ios') {
-    if ((Capacitor as any).isPluginAvailable?.('Geolocation')) return Geolocation;
-    // plugin no registrado -> probablemente faltó `ionic cap sync`
-    throw new Error('Geolocation plugin no disponible en nativo');
-  }
-  // Web (ionic serve)
-  return null; // para que caiga a navigator.geolocation en la web
-}
-
-async probarPermiso() {
-  try {
     const { Geolocation } = await import('@capacitor/geolocation');
-    await Geolocation.requestPermissions();
-    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
-    this.latitud  = pos.coords.latitude;
-    this.longitud = pos.coords.longitude;
-    this.showToast(`OK: ${this.latitud},${this.longitud}`);
-  } catch (e) {
-    console.error('Error permiso/posición:', e);
-    this.showToast('No se pudo leer la posición');
-  }
-}
-
-private async debugGeoOrigen() {
-  const Geolocation = await this.cargarGeolocationCapacitor();
-  const platform = Capacitor.getPlatform?.() ?? 'unknown';
-  console.log('[GEO] Platform:', platform);
-  console.log('[GEO] Plugin cargado?:', !!Geolocation);
-  this.showToast(`platform: ${platform}`);
-  this.showToast(`plugin: ${!!Geolocation}`);
-  if (Geolocation?.checkPermissions) {
-    const st = await Geolocation.checkPermissions();
-    console.log('[GEO] Estado permisos:', st);
-    this.showToast(`perm: ${JSON.stringify(st)}`);
-  } else {
-    console.log('[GEO] Sin checkPermissions -> probablemente usando navigator.geolocation');
-  }
-}
-
-private async openAppSettings(): Promise<void> {
-  const platform = Capacitor.getPlatform();
-  try {
-    if (platform === 'android') {
-      await NativeSettings.openAndroid({ option: AndroidSettings.ApplicationDetails });
-      // También puedes abrir directamente "Ubicación" del sistema:
-      // await NativeSettings.openAndroid({ option: AndroidSettings.Location });
-    } else if (platform === 'ios') {
-      // Apple solo garantiza abrir los ajustes de TU app
-      await NativeSettings.openIOS({ option: IOSSettings.App });
-      // Alternativa sin plugin (también sirve):
-      // await App.openUrl({ url: 'app-settings:' });
-    } else {
-      this.showToast('Abre los ajustes de permisos del navegador para habilitar ubicación.');
+    const platform = Capacitor.getPlatform();
+    if (platform === 'android' || platform === 'ios') {
+      if ((Capacitor as any).isPluginAvailable?.('Geolocation')) return Geolocation;
+      throw new Error('Geolocation plugin no disponible en nativo');
     }
-  } catch (e) {
-    console.error('No se pudo abrir Ajustes:', e);
-    this.showToast('No se pudieron abrir los Ajustes.');
+    return null;
   }
-}
 
+  private async debugGeoOrigen() {
+    const Geolocation = await this.cargarGeolocationCapacitor();
+    const platform = Capacitor.getPlatform?.() ?? 'unknown';
+    console.log('[GEO] Platform:', platform);
+    console.log('[GEO] Plugin cargado?:', !!Geolocation);
+  }
+
+  private async openAppSettings(): Promise<void> {
+    const platform = Capacitor.getPlatform();
+    try {
+      if (platform === 'android') {
+        await NativeSettings.openAndroid({ option: AndroidSettings.ApplicationDetails });
+      } else if (platform === 'ios') {
+        await NativeSettings.openIOS({ option: IOSSettings.App });
+      } else {
+        this.showToast('Abre los ajustes de permisos del navegador para habilitar ubicación.');
+      }
+    } catch (e) {
+      console.error('No se pudo abrir Ajustes:', e);
+      this.showToast('No se pudieron abrir los Ajustes.');
+    }
+  }
 
   private async asegurarPermisosUbicacion(): Promise<boolean> {
-  try {
-    const Geolocation = await this.cargarGeolocationCapacitor();
-    if (!Geolocation) return true; // web
-
     try {
-      const st = await Geolocation.checkPermissions();
-      if (st.location === 'granted' || st.coarseLocation === 'granted') return true;
-    } catch { /* algunos OEM tiran error aquí; seguimos a request */ }
+      const Geolocation = await this.cargarGeolocationCapacitor();
+      if (!Geolocation) return true;
 
-    const req = await Geolocation.requestPermissions();
-    if (req.location === 'granted' || req.coarseLocation === 'granted') return true;
+      try {
+        const st = await Geolocation.checkPermissions();
+        if (st.location === 'granted' || st.coarseLocation === 'granted') return true;
+      } catch { }
 
-    const alert = await this.alertController.create({
-      header: 'Permiso de ubicación',
-      message: 'Necesitamos tu ubicación para registrar la visita. Actívala en Ajustes.',
-      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }]
-    });
-    await alert.present();
-    return false;
-  } catch (e) {
-    console.error('[PERM] error', e);
-    this.showToast(JSON.stringify(e))
-    return false;
-  }
-}
+      const req = await Geolocation.requestPermissions();
+      if (req.location === 'granted' || req.coarseLocation === 'granted') return true;
 
-// OBTENER COORDENADAS rápido (sin bloquear por dirección)
-private async obtenerCoordenadasRapido(): Promise<{lat:number, lon:number}> {
-  const Geolocation = await this.cargarGeolocationCapacitor();
-  if (Geolocation) {
-    const pos = await this.withTimeout(
-      Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-      5000,
-      'getCurrentPosition'
-    );
-    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
-  } else {
-    const pos = await this.withTimeout(this.obtenerPosicionNavegador(), 5000, 'navigator.geolocation');
-    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
-  }
-}
-// Reverse geocoding NO bloqueante con timeout
-private async intentarCargarDireccionBonita(lat:number, lon:number) {
-  try {
-    const texto = await this.withTimeout(
-      this.obtenerDireccionExactaSantiago(lat, lon),
-      3000,
-      'reverse-geocoding'
-    );
-    this.direccionExacta = texto;
-  } catch {
-    this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
-  }
-  this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-  this.ubicacionObtenida = true;
-}
-
-
-  // Método para obtener dirección con Ionic Native
- async obtenerDireccion(): Promise<void> {
-  this.isLoadingLocation = true;
-  this.ubicacionObtenida = false;
-
-  try {
-    // 1) Permisos
-    const ok = await this.asegurarPermisosUbicacion();
-    if (!ok) {
-      this.showToast('Permiso de ubicación denegado.');
-      return;
-    }
-
-    // 2) Obtener coordenadas (nativo si existe; web si no)
-    let lat: number, lon: number;
-    const Geolocation = await this.cargarGeolocationCapacitor();
-
-    if (Geolocation) {
-      const pos = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
+      const alert = await this.alertController.create({
+        header: 'Permiso de ubicación',
+        message: 'Necesitamos tu ubicación para registrar la visita. Actívala en Ajustes.',
+        buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }]
       });
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-    } else {
-      const pos = await this.obtenerPosicionNavegador();
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
+      await alert.present();
+      return false;
+    } catch (e) {
+      console.error('[PERM] error', e);
+      return false;
     }
+  }
 
-    // 3) Guardar y resolver dirección legible
-    this.latitud = lat;
-    this.longitud = lon;
-
-    try {
-      this.direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
-    } catch {
-      this.direccionExacta = this.generarUbicacionSantiago(lat, lon);
-    }
-
-    this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-    this.ubicacionObtenida = true;
-
-    console.log('📍 Coordenadas:', this.latitud, this.longitud);
-    console.log('📍 Dirección:', this.direccionExacta);
-
-  } catch (error) {
-    console.error('❌ obtenerDireccion error:', error);
-    this.visitaForm.get('direccion_visita')?.setValue('Ubicación no disponible');
+  // ✅ MÉTODO PRINCIPAL MEJORADO - SOLUCIÓN GRATUITA SIN CORS
+  async obtenerDireccion(): Promise<void> {
+    this.isLoadingLocation = true;
     this.ubicacionObtenida = false;
-    this.showToast('No se pudo obtener tu ubicación.');
-  } finally {
-    this.isLoadingLocation = false;
-  }
-}
-  // ✅ MÉTODO ESPECÍFICO PARA SANTIAGO
-  private async obtenerDireccionSantiago(lat: number, lon: number): Promise<string> {
-    // Verificar que las coordenadas estén en el área de Santiago
-    if (!this.estaEnSantiago(lat, lon)) {
-      return this.generarUbicacionSantiago(lat, lon);
-    }
 
-    // Intentar con OpenStreetMap para dirección exacta
     try {
-      const direccionExacta = await this.obtenerDireccionExactaSantiago(lat, lon);
-      if (direccionExacta && direccionExacta.length > 15) {
-        return direccionExacta;
+      // 1. Obtener permisos
+      const ok = await this.asegurarPermisosUbicacion();
+      if (!ok) {
+        this.showToast('Permiso de ubicación denegado.');
+        return;
       }
+
+      // 2. Obtener coordenadas
+      const { lat, lon } = await this.obtenerCoordenadasPrecisas();
+      this.latitud = lat;
+      this.longitud = lon;
+
+      console.log('📍 Coordenadas obtenidas:', lat, lon);
+
+      // 3. Obtener dirección con método gratuito mejorado
+      this.direccionExacta = await this.obtenerDireccionExactaGratuita(lat, lon);
+
+      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+      this.ubicacionObtenida = true;
+
+      console.log('✅ Dirección obtenida sin CORS:', this.direccionExacta);
+
+    } catch (error: any) {
+      console.error('❌ Error obteniendo ubicación:', error);
+      this.manejarErrorUbicacion(error);
+    } finally {
+      this.isLoadingLocation = false;
+    }
+  }
+
+  // ✅ OBTENER DIRECCIÓN EXACTA GRATUITA (SIN CORS)
+  private async obtenerDireccionExactaGratuita(lat: number, lon: number): Promise<string> {
+    try {
+      // Intentar con diferentes proxies gratuitos
+      return await this.intentarConMultiplesProxies(lat, lon);
     } catch (error) {
-      console.warn('No se pudo obtener dirección exacta:', error);
+      console.warn('Todos los proxies fallaron, usando método local:', error);
+      return this.generarDireccionLocalMejorada(lat, lon);
+    }
+  }
+
+  // ✅ INTENTAR CON MÚLTIPLES PROXIES GRATUITOS
+  private async intentarConMultiplesProxies(lat: number, lon: number): Promise<string> {
+    const targetUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=es`;
+
+    const proxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+      `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+      `https://cors-anywhere.herokuapp.com/${targetUrl}`,
+    ];
+
+    for (const proxyUrl of proxies) {
+      try {
+        console.log(`Intentando con proxy: ${proxyUrl.substring(0, 50)}...`);
+        const direccion = await this.obtenerDireccionConProxy(proxyUrl);
+        if (direccion && direccion.length > 10) {
+          return direccion;
+        }
+      } catch (error) {
+        console.warn(`Proxy falló:`, error);
+        continue;
+      }
     }
 
-    // Fallback: Ubicación aproximada en Santiago
-    return this.generarUbicacionSantiago(lat, lon);
+    throw new Error('Todos los proxies fallaron');
   }
 
-  // ✅ VERIFICAR SI ESTÁ EN SANTIAGO
-  private estaEnSantiago(lat: number, lon: number): boolean {
-    // Coordenadas del área metropolitana de Santiago
-    const esLatitudValida = lat > -33.6 && lat < -33.3;
-    const esLongitudValida = lon > -70.9 && lon < -70.5;
-    return esLatitudValida && esLongitudValida;
-  }
-
-  // ✅ OBTENER DIRECCIÓN EXACTA EN SANTIAGO
-  private async obtenerDireccionExactaSantiago(lat: number, lon: number): Promise<string> {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=es`;
-
-    const response = await fetch(url, {
+  // ✅ OBTENER DIRECCIÓN CON PROXY ESPECÍFICO
+  private async obtenerDireccionConProxy(proxyUrl: string): Promise<string> {
+    const response = await fetch(proxyUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -429,140 +350,239 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       }
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const data = await response.json();
-    return this.formatearDireccionSantiago(data);
+    return this.formatearDireccionOpenStreetMapMejorada(data);
   }
 
-  // ✅ FORMATEADOR ESPECIALIZADO EN SANTIAGO
-  private formatearDireccionSantiago(data: any): string {
+  // ✅ FORMATEADOR MEJORADO PARA OPENSTREETMAP
+  private formatearDireccionOpenStreetMapMejorada(data: any): string {
     const address = data.address;
     const partes = [];
 
-    // Calle y número
+    // 1. Calle y número
     if (address.road) {
       let calle = address.road;
-      if (address.house_number) {
-        calle += ` #${address.house_number}`;
+      const numero = address.house_number || address.housenumber;
+      if (numero) {
+        calle += ` #${numero}`;
       }
       partes.push(calle);
     }
 
-    // Comuna
-    if (address.suburb) {
+    // 2. Barrio o sector
+    if (address.suburb && !this.esBarrioGenerico(address.suburb)) {
       partes.push(address.suburb);
-    } else if (address.city_district) {
-      partes.push(address.city_district);
-    } else if (address.municipality) {
-      partes.push(address.municipality);
+    } else if (address.neighbourhood) {
+      partes.push(address.neighbourhood);
     }
 
-    // Siempre agregar "Santiago"
+    // 3. Comuna
+    const comuna = this.obtenerComunaDesdeOSM(address);
+    if (comuna) {
+      partes.push(comuna);
+    }
+
+    // 4. Siempre agregar Santiago y Región
     if (!partes.includes('Santiago')) {
       partes.push('Santiago');
     }
-
-    // Agregar región
     partes.push('Región Metropolitana');
+
+    const direccion = partes.join(', ');
+
+    // 5. Si la dirección es muy genérica, mejorar con display_name
+    if (this.esDireccionMuyGenerica(direccion) && data.display_name) {
+      return this.mejorarDireccionConDisplayName(data.display_name);
+    }
+
+    return direccion;
+  }
+
+  // ✅ DETECTAR COMUNA DESDE OPENSTREETMAP
+  private obtenerComunaDesdeOSM(address: any): string {
+    const posiblesCampos = ['city_district', 'municipality', 'suburb', 'borough'];
+
+    for (const campo of posiblesCampos) {
+      if (address[campo] && this.esComunaValidaSantiago(address[campo])) {
+        return address[campo];
+      }
+    }
+    return '';
+  }
+
+  // ✅ VERIFICAR SI ES UNA COMUNA VÁLIDA DE SANTIAGO
+  private esComunaValidaSantiago(nombre: string): boolean {
+    const comunasSantiago = [
+      'Santiago', 'Providencia', 'Ñuñoa', 'Las Condes', 'Vitacura', 'La Reina',
+      'Macul', 'Peñalolén', 'La Florida', 'Puente Alto', 'San Bernardo',
+      'Maipú', 'Estación Central', 'Quilicura', 'Huechuraba', 'Recoleta',
+      'Independencia', 'Conchalí', 'Quinta Normal', 'Lo Prado', 'Pudahuel',
+      'Cerro Navia', 'Lo Barnechea', 'San Miguel', 'La Cisterna', 'El Bosque',
+      'Pedro Aguirre Cerda', 'San Joaquín', 'La Granja', 'La Pintana'
+    ];
+
+    return comunasSantiago.some(comuna =>
+      nombre.toLowerCase().includes(comuna.toLowerCase())
+    );
+  }
+
+  // ✅ MEJORAR DIRECCIÓN CON DISPLAY_NAME
+  private mejorarDireccionConDisplayName(displayName: string): string {
+    let direccion = displayName
+      .replace(', Chile', '')
+      .replace(', Región Metropolitana de Santiago', '')
+      .replace(', Metropolitana de Santiago', '')
+      .trim();
+
+    const partes = direccion.split(',').map(part => part.trim());
+    const partesRelevantes = partes.slice(0, Math.min(4, partes.length));
+
+    if (!partesRelevantes[partesRelevantes.length - 1].includes('Región Metropolitana')) {
+      partesRelevantes.push('Región Metropolitana');
+    }
+
+    return partesRelevantes.join(', ');
+  }
+
+  // ✅ GENERAR DIRECCIÓN LOCAL MEJORADA
+  private generarDireccionLocalMejorada(lat: number, lon: number): string {
+    const comuna = this.detectarComunaSantiago(lat, lon);
+    const sector = this.detectarSectorEspecifico(lat, lon);
+    const callePrincipal = this.obtenerCallePrincipalCercana(lat, lon);
+
+    const partes = [];
+
+    if (callePrincipal) {
+      partes.push(callePrincipal);
+    }
+
+    if (sector) {
+      partes.push(sector);
+    }
+
+    partes.push(comuna, 'Santiago', 'Región Metropolitana');
 
     return partes.join(', ');
   }
 
-  // ✅ GENERAR DESCRIPCIÓN DE UBICACIÓN EN SANTIAGO
-  private generarUbicacionSantiago(lat: number, lon: number): string {
-    const fecha = new Date().toLocaleString('es-CL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+  // ✅ DETECTAR SECTOR ESPECÍFICO
+  private detectarSectorEspecifico(lat: number, lon: number): string {
+    const sectores = [
+      { minLat: -33.43, maxLat: -33.41, minLon: -70.61, maxLon: -70.59, nombre: 'Plaza Ñuñoa' },
+      { minLat: -33.45, maxLat: -33.43, minLon: -70.68, maxLon: -70.66, nombre: 'Barrio Yungay' },
+      { minLat: -33.42, maxLat: -33.40, minLon: -70.62, maxLon: -70.60, nombre: 'Barrio Italia' },
+      { minLat: -33.41, maxLat: -33.39, minLon: -70.58, maxLon: -70.56, nombre: 'Apumanque' },
+      { minLat: -33.40, maxLat: -33.38, minLon: -70.57, maxLon: -70.55, nombre: 'Parque Araucano' },
+      { minLat: -33.52, maxLat: -33.50, minLon: -70.76, maxLon: -70.74, nombre: 'Plana de Maipú' },
+    ];
 
-    const comuna = this.detectarComunaSantiago(lat, lon);
-
-    return `${comuna}, Santiago, Región Metropolitana`;
+    for (const sector of sectores) {
+      if (lat >= sector.minLat && lat <= sector.maxLat &&
+        lon >= sector.minLon && lon <= sector.maxLon) {
+        return sector.nombre;
+      }
+    }
+    return '';
   }
 
-  // ✅ DETECTOR DE COMUNAS DE SANTIAGO (MUCHO MÁS PRECISO)
-  private detectarComunaSantiago(lat: number, lon: number): string {
-    // Coordenadas aproximadas de comunas de Santiago
-    // Basado en ubicaciones geográficas reales
+  // ✅ OBTENER CALLE PRINCIPAL CERCANA
+  private obtenerCallePrincipalCercana(lat: number, lon: number): string {
+    const callesPrincipales = [
+      { lat: -33.4489, lon: -70.6619, calle: 'Av. Libertador Bernardo O Higgins' },
+      { lat: -33.4378, lon: -70.6503, calle: 'Av. Matucana' },
+      { lat: -33.4255, lon: -70.6142, calle: 'Av. Irarrázaval' },
+      { lat: -33.4189, lon: -70.6063, calle: 'Av. Pedro de Valdivia' },
+      { lat: -33.4158, lon: -70.6062, calle: 'Av. Providencia' },
+      { lat: -33.4086, lon: -70.6044, calle: 'Av. Apoquindo' },
+      { lat: -33.4522, lon: -70.6792, calle: 'Av. San Pablo' },
+      { lat: -33.5225, lon: -70.7028, calle: 'Av. Pajaritos' },
+      { lat: -33.5003, lon: -70.6153, calle: 'Av. Vicuña Mackenna' },
+    ];
 
-    // Santiago Centro y alrededores
-    if (lat > -33.45 && lat < -33.42 && lon > -70.68 && lon < -70.64) {
-      return 'Santiago Centro';
+    let calleMasCercana = '';
+    let distanciaMinima = Infinity;
+
+    for (const calle of callesPrincipales) {
+      const distancia = this.calcularDistancia(lat, lon, calle.lat, calle.lon);
+      if (distancia < 1 && distancia < distanciaMinima) {
+        distanciaMinima = distancia;
+        calleMasCercana = calle.calle;
+      }
     }
-
-    // Providencia, Ñuñoa
-    if (lat > -33.44 && lat < -33.42 && lon > -70.62 && lon < -70.58) {
-      if (lon > -70.60) return 'Providencia';
-      return 'Ñuñoa';
-    }
-
-    // Las Condes, Vitacura, Lo Barnechea
-    if (lat > -33.42 && lat < -33.38 && lon > -70.58 && lon < -70.55) {
-      if (lat < -33.40) return 'Las Condes';
-      if (lon > -70.57) return 'Vitacura';
-      return 'Lo Barnechea';
-    }
-
-    // Maipú, Pudahuel
-    if (lat > -33.52 && lat < -33.45 && lon > -70.75 && lon < -70.70) {
-      return 'Maipú';
-    }
-
-    // Puente Alto, La Florida
-    if (lat > -33.62 && lat < -33.52 && lon > -70.60 && lon < -70.55) {
-      if (lat < -33.57) return 'Puente Alto';
-      return 'La Florida';
-    }
-
-    // San Bernardo, El Bosque
-    if (lat > -33.65 && lat < -33.55 && lon > -70.72 && lon < -70.65) {
-      return 'San Bernardo';
-    }
-
-    // Quilicura, Huechuraba
-    if (lat > -33.38 && lat < -33.33 && lon > -70.75 && lon < -70.68) {
-      return 'Quilicura';
-    }
-
-    // Estación Central, Pedro Aguirre Cerda
-    if (lat > -33.48 && lat < -33.45 && lon > -70.70 && lon < -70.65) {
-      return 'Estación Central';
-    }
-
-    // Recoleta, Independencia
-    if (lat > -33.42 && lat < -33.40 && lon > -70.66 && lon < -70.62) {
-      return 'Recoleta';
-    }
-
-    // Si no coincide con comuna específica, determinar zona
-    if (lat < -33.5) return 'Zona Sur de Santiago';
-    if (lon < -70.7) return 'Zona Poniente de Santiago';
-    if (lon > -70.58) return 'Zona Oriente de Santiago';
-
-    return 'Santiago';
+    return calleMasCercana;
   }
 
-  // ✅ Método auxiliar para mostrar alertas de ubicación
-  private async mostrarAlertaUbicacion(mensaje: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Ubicación no disponible',
-      message: mensaje,
-      buttons: [
-        {
-          text: 'Entendido',
-          role: 'cancel'
-        }
-      ]
-    });
-    await alert.present();
+  // ✅ MÉTODOS DE UTILIDAD
+  private calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = this.gradosARadianes(lat2 - lat1);
+    const dLon = this.gradosARadianes(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.gradosARadianes(lat1)) * Math.cos(this.gradosARadianes(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
 
-  // ✅ Método para obtener posición en navegadores (sin cambios)
+  private gradosARadianes(grados: number): number {
+    return grados * (Math.PI / 180);
+  }
+
+  private esDireccionMuyGenerica(direccion: string): boolean {
+    return direccion.length < 25 ||
+      direccion.includes('Santiago, Santiago') ||
+      !direccion.includes('#');
+  }
+
+  private esBarrioGenerico(barrio: string): boolean {
+    const genericos = ['centro', 'center', 'downtown'];
+    return genericos.some(gen => barrio.toLowerCase().includes(gen));
+  }
+
+  private manejarErrorUbicacion(error: any): void {
+    this.direccionExacta = 'Ubicación no disponible';
+    this.ubicacionObtenida = false;
+
+    if (error?.code === 1) {
+      this.showToast('Permiso de ubicación denegado. Actívalo en ajustes.');
+    } else if (error?.code === 2 || error?.code === 3) {
+      this.showToast('No se pudo obtener ubicación. Verifica GPS/conexión.');
+    } else {
+      this.showToast('Error obteniendo dirección precisa.');
+    }
+  }
+
+  // ✅ OBTENER COORDENADAS PRECISAS
+  private async obtenerCoordenadasPrecisas(): Promise<{ lat: number, lon: number }> {
+    const Geolocation = await this.cargarGeolocationCapacitor();
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    };
+
+    if (Geolocation) {
+      const position = await Geolocation.getCurrentPosition(options);
+      return {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude
+      };
+    } else {
+      const position = await this.obtenerPosicionNavegador();
+      return {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude
+      };
+    }
+  }
+
+  // ✅ MÉTODO PARA OBTENER POSICIÓN EN NAVEGADORES
   private obtenerPosicionNavegador(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -582,25 +602,7 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
     });
   }
 
-  // Método para obtener dirección desde coordenadas
-  async obtenerDireccionDesdeCoordenadas(latitud: number, longitud: number): Promise<string> {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitud}&lon=${longitud}&accept-language=es`
-      );
-
-      const data = await response.json();
-      return data.display_name || 'Dirección no disponible';
-    } catch (error) {
-      console.warn('No se pudo obtener la dirección:', error);
-      return 'Dirección no disponible';
-    }
-  }
-
-  // Mostrar error de ubicación
-  mostrarErrorUbicacion() {
-    this.showToast('No se pudo obtener la dirección. Verifica los permisos de ubicación.');
-  }
+  // ========== MÉTODOS EXISTENTES (SIN CAMBIOS) ==========
 
   private cargarVisitaEnCurso(): void {
     if (this.visitaState.tieneVisitaEnCurso()) {
@@ -613,17 +615,14 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       this.estadoTexto = 'Tienes una visita en curso.';
       this.empresaId = state.empresaId || 0;
 
-      // ✅ CARGAR COORDENADAS DESDE EL ESTADO
       if (state.coordenadas) {
         this.latitud = state.coordenadas.lat;
         this.longitud = state.coordenadas.lon;
-        console.log('📍 Coordenadas cargadas desde estado:', this.latitud, this.longitud);
       }
 
       if (state.direccion_visita) {
         this.ubicacionObtenida = true;
         this.direccionExacta = state.direccion_visita;
-        console.log('📍 Dirección cargada desde estado:', this.direccionExacta);
       }
 
       this.restaurarFormularioDesdeEstado(state);
@@ -636,7 +635,6 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       this.visitaForm.patchValue({
         cliente: state.clienteId
       });
-
       this.cargarSolicitantesPorCliente(state.clienteId, state.solicitantes);
     }
 
@@ -686,8 +684,6 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
     this.mostrarListaSolicitantes = !this.mostrarListaSolicitantes;
   }
 
-  
-
   seleccionarSolicitante(s: any) {
     const seleccionActual = this.visitaForm.get('solicitante')?.value || [];
     const existe = seleccionActual.find((item: any) => item.id_solicitante === s.id_solicitante);
@@ -713,7 +709,6 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
     this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
       s.nombre.toLowerCase().includes(term)
     );
-    console.log('Solicitantes filtrados:', this.filtradosSolicitantes);
   }
 
   esSolicitanteSeleccionado(s: any): boolean {
@@ -733,147 +728,170 @@ private async intentarCargarDireccionBonita(lat:number, lon:number) {
       this.visitaState.agregarSolicitantes(filtrados);
     }
   }
-// NUEVO flag arriba en la clase
-private isStarting = false;
-private withTimeout<T>(p: Promise<T>, ms: number, label = 'op'): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label} timeout (${ms}ms)`)), ms);
-    p.then(v => { clearTimeout(t); resolve(v); })
-     .catch(e => { clearTimeout(t); reject(e); });
-  });
-}
 
-private resolvingAddress = false;
-
-  // REEMPLAZA tu iniciarVisita() completo por este
-async iniciarVisita() {
-  const clienteId = this.visitaForm.value.cliente;
-  if (!clienteId) { this.showToast('Selecciona un cliente.'); return; }
-
-  try {
-    const Geolocation = await this.cargarGeolocationCapacitor();
-    if (Geolocation) {
-      // chequea permiso antes de pedirlo (algunos OEM crashean si llamas request sin check)
-      await Geolocation.checkPermissions().catch(() => null);
-      await Geolocation.requestPermissions();
+  // ✅ DETECTOR DE COMUNAS DE SANTIAGO
+  private detectarComunaSantiago(lat: number, lon: number): string {
+    // Santiago Centro y alrededores
+    if (lat > -33.45 && lat < -33.42 && lon > -70.68 && lon < -70.64) {
+      return 'Santiago Centro';
     }
+    // Providencia, Ñuñoa
+    if (lat > -33.44 && lat < -33.42 && lon > -70.62 && lon < -70.58) {
+      if (lon > -70.60) return 'Providencia';
+      return 'Ñuñoa';
+    }
+    // Las Condes, Vitacura, Lo Barnechea
+    if (lat > -33.42 && lat < -33.38 && lon > -70.58 && lon < -70.55) {
+      if (lat < -33.40) return 'Las Condes';
+      if (lon > -70.57) return 'Vitacura';
+      return 'Lo Barnechea';
+    }
+    // Maipú, Pudahuel
+    if (lat > -33.52 && lat < -33.45 && lon > -70.75 && lon < -70.70) {
+      return 'Maipú';
+    }
+    // Puente Alto, La Florida
+    if (lat > -33.62 && lat < -33.52 && lon > -70.60 && lon < -70.55) {
+      if (lat < -33.57) return 'Puente Alto';
+      return 'La Florida';
+    }
+    // San Bernardo, El Bosque
+    if (lat > -33.65 && lat < -33.55 && lon > -70.72 && lon < -70.65) {
+      return 'San Bernardo';
+    }
+    // Quilicura, Huechuraba
+    if (lat > -33.38 && lat < -33.33 && lon > -70.75 && lon < -70.68) {
+      return 'Quilicura';
+    }
+    // Estación Central, Pedro Aguirre Cerda
+    if (lat > -33.48 && lat < -33.45 && lon > -70.70 && lon < -70.65) {
+      return 'Estación Central';
+    }
+    // Recoleta, Independencia
+    if (lat > -33.42 && lat < -33.40 && lon > -70.66 && lon < -70.62) {
+      return 'Recoleta';
+    }
+    // Si no coincide con comuna específica, determinar zona
+    if (lat < -33.5) return 'Zona Sur de Santiago';
+    if (lon < -70.7) return 'Zona Poniente de Santiago';
+    if (lon > -70.58) return 'Zona Oriente de Santiago';
 
-    // Intenta posición; si tarda >6s, seguimos sin coords
-    let lat: number | null = null, lon: number | null = null;
+    return 'Santiago';
+  }
+
+  async smokeGPS() {
+    try {
+      const coords = await this.obtenerCoordenadasPrecisas();
+      console.log('📍 Coordenadas obtenidas (smokeGPS):', coords);
+      this.showToast(`Lat: ${coords.lat}, Lon: ${coords.lon}`);
+    } catch (error) {
+      console.error('❌ Error en smokeGPS:', error);
+      this.showToast('No se pudieron obtener coordenadas.');
+    }
+  }
+
+  async probarPermiso() {
+    const granted = await this.asegurarPermisosUbicacion();
+    this.showToast(granted ? '✅ Permiso otorgado' : '❌ Permiso denegado');
+  }
+
+  // ✅ MÉTODO INICIAR VISITA MEJORADO
+  async iniciarVisita() {
+    const clienteId = this.visitaForm.value.cliente;
+    if (!clienteId) {
+      this.showToast('Selecciona un cliente.');
+      return;
+    }
 
     try {
+      const Geolocation = await this.cargarGeolocationCapacitor();
       if (Geolocation) {
-        const pos = await Promise.race([
-          Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        // @ts-ignore
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
-      } else {
-        const pos = await Promise.race([
-          this.obtenerPosicionNavegador(),
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('gps-timeout')), 6000)),
-        ]);
-        lat = pos.coords.latitude; lon = pos.coords.longitude;
+        await Geolocation.checkPermissions().catch(() => null);
+        await Geolocation.requestPermissions();
       }
-    } catch (e) {
-      console.warn('GPS lento/fallo, seguimos sin coords', e);
-      // Opcional: ofrece abrir ajustes si viene de denegado permanente
-      await this.verificarYOfrecerAjustesAndroid();
-    }
 
-    // Crea visita YA
-    const visitaData = {
-      empresaId: clienteId,
-      solicitante: this.visitaForm.value.solicitante,
-      inicio: new Date(),
-      tecnicoId: this.tecnicoId,
-      direccion_visita: (lat!=null && lon!=null) ? `${lat},${lon}` : null
-    };
+      // Obtener coordenadas rápidamente
+      let coords: { lat: number | null; lon: number | null } = { lat: null, lon: null };
+      try {
+        coords = await this.obtenerCoordenadasPrecisas();
+        this.latitud = coords.lat;
+        this.longitud = coords.lon;
 
-    this.showToast('Creando visita…');
-    this.api.crearVisita(visitaData).subscribe(
-      async (response: any) => {
-        this.visitaId = response?.visita?.id_visita;
-        if (!this.visitaId) { this.showToast('Backend no devolvió id_visita.'); return; }
-
-        this.inicio = new Date();
-        this.visitaEnCurso = true;
-        this.estado = 'En curso';
-        this.estadoTexto = 'La visita ha comenzado.';
-
-        // dispara resolve de dirección si tenemos coords
-        if (lat!=null && lon!=null && !this.resolvingAddress) {
-          this.resolvingAddress = true;
-          try {
-            this.direccionExacta = await Promise.race([
-              this.obtenerDireccionExactaSantiago(lat, lon),
-              new Promise<string>((_, rej)=>setTimeout(()=>rej(new Error('revgeo-timeout')), 3000))
-            ]).catch(()=> this.generarUbicacionSantiago(lat!, lon!)) as string;
-            this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
-            this.ubicacionObtenida = true;
-          } finally { this.resolvingAddress = false; }
+        // ✅ Solo ejecutar si hay coordenadas válidas
+        if (coords.lat !== null && coords.lon !== null) {
+          this.obtenerDireccionEnSegundoPlano(coords.lat, coords.lon);
         }
 
-        this.showToast('Visita iniciada.');
-      },
-      (err) => { console.error(err); this.showToast('No se pudo iniciar la visita.'); }
-    );
+      } catch (e) {
+        console.warn('No se pudieron obtener coordenadas:', e);
+        this.direccionExacta = 'Ubicación no disponible';
+      }
 
-  } catch (e) {
-    console.error('iniciarVisita error', e);
-    this.showToast('Error al iniciar: ' + String(e));
-  }
-}
 
-private async verificarYOfrecerAjustesAndroid() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    const st = await Geolocation.checkPermissions();
-    const denied = st.location === 'denied' || st.coarseLocation === 'denied';
-    if (denied) {
-      const alert = await this.alertController.create({
-        header: 'Permiso de ubicación',
-        message: 'La app no tiene permiso de ubicación. Ábrelo en Ajustes para continuar.',
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Abrir Ajustes', handler: () => this.openAppSettings() }
-        ]
-      });
-      await alert.present();
+      // Crear visita inmediatamente
+      const visitaData = {
+        empresaId: clienteId,
+        solicitante: this.visitaForm.value.solicitante,
+        inicio: new Date(),
+        tecnicoId: this.tecnicoId,
+        direccion_visita: (coords.lat && coords.lon) ? `${coords.lat},${coords.lon}` : null
+      };
+
+      this.showToast('Creando visita…');
+
+      this.api.crearVisita(visitaData).subscribe(
+        (response: any) => {
+          this.visitaId = response?.visita?.id_visita;
+          if (!this.visitaId) {
+            this.showToast('Backend no devolvió id_visita.');
+            return;
+          }
+
+          this.inicio = new Date();
+          this.visitaEnCurso = true;
+          this.estado = 'En curso';
+          this.estadoTexto = 'La visita ha comenzado.';
+
+          this.visitaState.iniciarVisita({
+            visitaId: this.visitaId,
+            empresaId: clienteId,
+            clienteId: clienteId,
+            direccion_visita: this.direccionExacta,
+            coordenadas: { lat: this.latitud, lon: this.longitud }
+          });
+
+          this.showToast('Visita iniciada correctamente.');
+        },
+        (err) => {
+          console.error(err);
+          this.showToast('No se pudo iniciar la visita.');
+        }
+      );
+
+    } catch (e) {
+      console.error('iniciarVisita error', e);
+      this.showToast('Error al iniciar: ' + String(e));
     }
-  } catch {}
-}
-
-
-async smokeGPS() {
-  try {
-    const { Geolocation } = await import('@capacitor/geolocation');
-    await Geolocation.requestPermissions();
-
-    const t = setTimeout(() => {
-      this.showToast('GPS timeout (8s)');
-    }, 8000);
-
-    this.showToast('Leyendo posición…');
-    const pos = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 7000,      // Android a veces ignora este timeout; por eso el setTimeout arriba
-    });
-    clearTimeout(t);
-
-    this.latitud  = pos.coords.latitude;
-    this.longitud = pos.coords.longitude;
-    this.showToast(`POS OK: ${this.latitud}, ${this.longitud}`);
-    console.log('POS OK', pos);
-  } catch (e) {
-    console.error('smokeGPS error', e);
-    this.showToast('POS ERROR: ' + String(e));
   }
-}
 
+  // ✅ OBTENER DIRECCIÓN EN SEGUNDO PLANO
+  private async obtenerDireccionEnSegundoPlano(lat: number, lon: number): Promise<void> {
+    try {
+      const direccion = await this.obtenerDireccionExactaGratuita(lat, lon);
+      this.direccionExacta = direccion;
+      this.visitaForm.get('direccion_visita')?.setValue(this.direccionExacta);
+      this.ubicacionObtenida = true;
 
-  // Terminar visita con obtención automática de dirección actualizada
+      if (this.visitaEnCurso) {
+        this.visitaState.updateState({
+          direccion_visita: this.direccionExacta
+        });
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener dirección en segundo plano:', error);
+    }
+  }
+
   async terminarVisita() {
     if (!this.visitaId) {
       const alert = await this.alertController.create({
@@ -912,10 +930,9 @@ async smokeGPS() {
       return;
     }
 
-    // ✅ SOLUCIÓN: Formatear coordenadas para el backend
     const direccionParaBackend = (this.latitud != null && this.longitud != null)
-  ? `${this.latitud},${this.longitud}`
-  : null;
+      ? `${this.latitud},${this.longitud}`
+      : null;
 
     const data = {
       confImpresoras: actividades.impresoras,
@@ -932,7 +949,7 @@ async smokeGPS() {
       mantenimientoReloj: actividades.mantenimientoReloj,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
+      direccion_visita: direccionParaBackend
     };
 
     console.log('🎯 DATOS FINALIZACIÓN:');

@@ -9,15 +9,15 @@
 
 <ion-content [fullscreen]="true" class="ion-padding">
   <!-- Estado -->
-<ion-item>
-  <ion-label>Herramientas de GPS (debug)</ion-label>
-</ion-item>
-<ion-button expand="block" color="medium" (click)="smokeGPS()">
-  Probar GPS (smokeGPS)
-</ion-button>
-<ion-button expand="block" fill="outline" color="medium" (click)="probarPermiso()">
-  Pedir permiso ubicación
-</ion-button>
+  <ion-item>
+    <ion-label>Herramientas de GPS (debug)</ion-label>
+  </ion-item>
+  <ion-button expand="block" color="medium" (click)="smokeGPS()">
+    Probar GPS (smokeGPS)
+  </ion-button>
+  <ion-button expand="block" fill="outline" color="medium" (click)="probarPermiso()">
+    Pedir permiso ubicación
+  </ion-button>
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ estado }}</ion-card-title> <!-- Mostrar estado actual -->
@@ -248,9 +248,10 @@
 
       <ion-card-content class="card-content">
         <div class="address-display-container">
-          <div class="address-text" *ngIf="direccionExacta && ubicacionObtenida">
-            {{ direccionExacta }}
-          </div>
+          <ion-input [value]="direccionExacta || ''" [readonly]="true"
+            [placeholder]="isLoadingLocation ? 'Obteniendo ubicación...' : 'Ubicación no disponible'"
+            class="address-display">
+          </ion-input>
           <div class="address-placeholder" *ngIf="!direccionExacta || !ubicacionObtenida">
             <ion-spinner name="crescent" *ngIf="isLoadingLocation"></ion-spinner>
             <span>{{ isLoadingLocation ? 'Obteniendo ubicación...' : 'Ubicación no disponible' }}</span>
