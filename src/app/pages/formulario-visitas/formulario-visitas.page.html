@@ -248,10 +248,10 @@
 
       <ion-card-content class="card-content">
         <div class="address-display-container">
-          <div [value]="direccionExacta" readonly
+          <ion-input [value]="direccionExacta" readonly
             [placeholder]="isLoadingLocation ? 'Obteniendo ubicación...' : 'Ubicación no disponible'"
             class="address-display">
-          </div>
+        </ion-input>
           <div class="address-placeholder" *ngIf="!direccionExacta || !ubicacionObtenida">
             <ion-spinner name="crescent" *ngIf="isLoadingLocation"></ion-spinner>
             <span>{{ isLoadingLocation ? 'Obteniendo ubicación...' : 'Ubicación no disponible' }}</span>
