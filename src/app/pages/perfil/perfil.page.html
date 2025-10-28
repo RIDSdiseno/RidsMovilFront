@@ -41,13 +41,6 @@
                 {{ formatoFecha(visita.inicio) }}
               </div>
             </div>
-
-            <!-- Solicitante compacto -->
-            <div class="solicitante-compact">
-              <ion-icon name="person-outline" class="small-icon"></ion-icon>
-              {{ visita.solicitante }}
-            </div>
-
             <!-- Dirección compacta -->
             <div class="direccion-compact" *ngIf="visita.direccion_visita">
               <ion-icon name="location-outline" class="small-icon"></ion-icon>

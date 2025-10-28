@@ -280,39 +280,25 @@ ion-content {
 .header-compact {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
+    align-items: center; // Esto alinea verticalmente ambos elementos
+    margin-bottom: 8px;
+    gap: 12px; // Espacio entre elementos
 
     .empresa-nombre {
-        font-size: 1rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: bold;
         color: #1976d2;
-        margin: 0;
-        line-height: 1.2;
     }
 
     .fecha-compact {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #666;
-        background: #f0f0f0;
-        padding: 2px 8px;
-        border-radius: 8px;
+        background: #f8f9fa;
+        padding: 6px 12px;
+        border-radius: 12px;
+        white-space: nowrap;
+        flex-shrink: 0; // Evita que se reduzca
         font-weight: 500;
-    }
-}
-
-.solicitante-compact {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: #555;
-    font-weight: 500;
-
-    .small-icon {
-        font-size: 14px;
-        color: #666;
     }
 }
 
@@ -326,13 +312,6 @@ ion-content {
     border-radius: 6px;
     border-left: 3px solid #3b82f6;
 
-    .small-icon {
-        font-size: 14px;
-        color: #3b82f6;
-        margin-top: 1px;
-        flex-shrink: 0;
-    }
-
     .direccion-text {
         font-size: 0.9rem;
         color: #333;
@@ -343,12 +322,12 @@ ion-content {
 
 .timeline-compact {
     display: flex;
-    gap: 16px;
+
 
     .time-item {
         display: flex;
         align-items: center;
-        gap: 4px;
+
 
         .time-icon {
             font-size: 12px;

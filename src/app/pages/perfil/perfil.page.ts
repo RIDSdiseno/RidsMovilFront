@@ -61,29 +61,69 @@ export class PerfilPage implements ViewWillEnter {
     }
   }
 
+  // ✅ NUEVO: obtiene dirección legible desde coordenadas
+  private async obtenerDireccionLegibleDesdeCoordenadas(coordenadas: string): Promise<string> {
+    if (!coordenadas || coordenadas === '0,0') return 'Ubicación no registrada';
+    if (!this.esCoordenada(coordenadas)) return 'Ubicación no válida';
+
+    const [lat, lon] = coordenadas.split(',').map(v => parseFloat(v.trim()));
+
+    try {
+      // ✅ Si es móvil (Capacitor), usar fetch nativo (sin CORS)
+      if ((window as any).Capacitor?.isNativePlatform?.()) {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=es`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'RidsMovilApp/1.0 (app@rids.cl)',
+            },
+          }
+        );
+
+        const data = await response.json();
+        const address = data.address;
+
+        if (address?.road) {
+          let calle = address.road;
+          if (address.house_number) calle += ` #${address.house_number}`;
+          const comuna = address.suburb || address.city_district || 'Santiago';
+          return `${calle}, ${comuna}, Región Metropolitana`;
+        }
+      }
+
+      // ⚠️ Si estás en navegador o el fetch falla, usa método local
+      return `${this.detectarComunaSantiago(lat, lon)}, Región Metropolitana`;
+
+    } catch (error) {
+      console.warn('⚠️ Error al traducir coordenadas (perfil):', error);
+      return `${this.detectarComunaSantiago(lat, lon)}, Región Metropolitana`;
+    }
+  }
+
+
   cargarHistorial() {
     this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
-      next: (res) => {
+      next: async (res) => {
         console.log('Respuesta completa del historial:', res);
-
         const historial = res.historial || [];
 
-        this.visitas = historial.map((visita: any) => {
+        // ✅ Usa Promise.all para procesar cada visita (async)
+        this.visitas = await Promise.all(historial.map(async (visita: any) => {
           const empresa = visita.solicitanteRef?.empresa;
-
-          // ✅ MODIFICADO: Usar la dirección exacta si está disponible
-          const direccionLegible = this.formatearDireccionParaHistorial(visita.direccion_visita, visita.direccion_exacta);
+          const direccionLegible = await this.obtenerDireccionLegibleDesdeCoordenadas(visita.direccion_visita);
 
           return {
             ...visita,
             nombreCliente: empresa ? empresa.nombre : 'Empresa desconocida',
-            direccion_visita: direccionLegible
+            direccion_visita: direccionLegible,
           };
-        });
+        }));
       },
       error: (err) => {
         console.error('Error al cargar historial:', err);
-      }
+      },
     });
   }
 
@@ -105,16 +145,10 @@ export class PerfilPage implements ViewWillEnter {
     return this.obtenerDireccionDesdeCoordenadasHistorial(direccion);
   }
 
-  // ✅ NUEVO: Método para verificar si es una coordenada
-  private esCoordenada(direccion: string): boolean {
-    if (!direccion.includes(',')) return false;
-
-    const partes = direccion.split(',');
-    if (partes.length !== 2) return false;
-
-    const lat = parseFloat(partes[0]);
-    const lon = parseFloat(partes[1]);
-
+  // ✅ Verifica si el string es una coordenada válida
+  private esCoordenada(valor: string): boolean {
+    if (!valor.includes(',')) return false;
+    const [lat, lon] = valor.split(',').map((v) => parseFloat(v.trim()));
     return !isNaN(lat) && !isNaN(lon);
   }
 
@@ -134,62 +168,26 @@ export class PerfilPage implements ViewWillEnter {
   }
 
   // ✅ COPIAR: Este método debe estar en ambos componentes (o en un servicio compartido)
+  // ✅ Detecta comuna por rango si no se puede resolver con Nominatim
   private detectarComunaSantiago(lat: number, lon: number): string {
-    // Coordenadas aproximadas de comunas de Santiago
-    // Santiago Centro y alrededores
-    if (lat > -33.45 && lat < -33.42 && lon > -70.68 && lon < -70.64) {
-      return 'Santiago Centro';
-    }
+    if (lat === 0 && lon === 0) return 'Ubicación no registrada';
 
-    // Providencia, Ñuñoa
-    if (lat > -33.44 && lat < -33.42 && lon > -70.62 && lon < -70.58) {
-      if (lon > -70.60) return 'Providencia';
-      return 'Ñuñoa';
-    }
+    if (lat > -33.45 && lat < -33.42 && lon > -70.68 && lon < -70.64) return 'Santiago Centro';
+    if (lat > -33.44 && lat < -33.42 && lon > -70.62 && lon < -70.58)
+      return lon > -70.60 ? 'Providencia' : 'Ñuñoa';
+    if (lat > -33.42 && lat < -33.38 && lon > -70.58 && lon < -70.55)
+      return lat < -33.40 ? 'Las Condes' : lon > -70.57 ? 'Vitacura' : 'Lo Barnechea';
+    if (lat > -33.52 && lat < -33.45 && lon > -70.75 && lon < -70.70) return 'Maipú';
+    if (lat > -33.62 && lat < -33.52 && lon > -70.60 && lon < -70.55)
+      return lat < -33.57 ? 'Puente Alto' : 'La Florida';
+    if (lat > -33.65 && lat < -33.55 && lon > -70.72 && lon < -70.65) return 'San Bernardo';
+    if (lat > -33.38 && lat < -33.33 && lon > -70.75 && lon < -70.68) return 'Quilicura';
+    if (lat > -33.48 && lat < -33.45 && lon > -70.70 && lon < -70.65) return 'Estación Central';
+    if (lat > -33.42 && lat < -33.40 && lon > -70.66 && lon < -70.62) return 'Recoleta';
 
-    // Las Condes, Vitacura, Lo Barnechea
-    if (lat > -33.42 && lat < -33.38 && lon > -70.58 && lon < -70.55) {
-      if (lat < -33.40) return 'Las Condes';
-      if (lon > -70.57) return 'Vitacura';
-      return 'Lo Barnechea';
-    }
-
-    // Maipú, Pudahuel
-    if (lat > -33.52 && lat < -33.45 && lon > -70.75 && lon < -70.70) {
-      return 'Maipú';
-    }
-
-    // Puente Alto, La Florida
-    if (lat > -33.62 && lat < -33.52 && lon > -70.60 && lon < -70.55) {
-      if (lat < -33.57) return 'Puente Alto';
-      return 'La Florida';
-    }
-
-    // San Bernardo, El Bosque
-    if (lat > -33.65 && lat < -33.55 && lon > -70.72 && lon < -70.65) {
-      return 'San Bernardo';
-    }
-
-    // Quilicura, Huechuraba
-    if (lat > -33.38 && lat < -33.33 && lon > -70.75 && lon < -70.68) {
-      return 'Quilicura';
-    }
-
-    // Estación Central, Pedro Aguirre Cerda
-    if (lat > -33.48 && lat < -33.45 && lon > -70.70 && lon < -70.65) {
-      return 'Estación Central';
-    }
-
-    // Recoleta, Independencia
-    if (lat > -33.42 && lat < -33.40 && lon > -70.66 && lon < -70.62) {
-      return 'Recoleta';
-    }
-
-    // Si no coincide con comuna específica, determinar zona
     if (lat < -33.5) return 'Zona Sur de Santiago';
     if (lon < -70.7) return 'Zona Poniente de Santiago';
     if (lon > -70.58) return 'Zona Oriente de Santiago';
-
     return 'Santiago';
   }
 
