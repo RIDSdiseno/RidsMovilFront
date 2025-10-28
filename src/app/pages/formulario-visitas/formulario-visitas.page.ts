@@ -930,22 +930,27 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     console.log('- Dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
-      (response: any) => {
-        console.log('✅ RESPUESTA BACKEND:', response);
-        this.guardarVisita();
-        this.visitaState.clearState();
-        this.showToast('Visita finalizada con éxito');
-      },
-      async (error) => {
-        const alert = await this.alertController.create({
-          header: 'Error',
-          message: 'No se pudo finalizar la visita. Intenta de nuevo.',
-          buttons: ['Aceptar']
-        });
-        await alert.present();
-        console.error('Error al finalizar la visita:', error);
-      }
-    );
+  (response: any) => {
+    console.log('✅ RESPUESTA BACKEND:', response);
+    this.guardarVisita();
+    this.visitaState.clearState();
+    this.showToast('Visita finalizada con éxito');
+  },
+  async (err) => {
+    console.error('❌ completarVisita error:', err);
+    const detalle = (() => {
+      try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
+    })();
+    const alert = await this.alertController.create({
+      header: `Error al guardar (${err?.status || 'sin status'})`,
+      message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
+      buttons: ['OK']
+    });
+    await alert.present();
+    this.showToast('No se pudo finalizar la visita.');
+  }
+);
+
   }
 
   resetFormulario() {
