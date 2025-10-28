@@ -80,7 +80,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
         licenciaWindows: [true],
         licenciaOffice: [true],
         rendimientoEquipo: [true],
-        mantenimientoReloj: [true]
+        mantenimientoReloj: [true],
+        ecografo: [true]
       }),
       otrosDetalle: [''],
       direccion_visita: [{ value: '', disabled: true }]
@@ -163,7 +164,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
             licenciaOffice: actividades.licenciaOffice ?? true,
             rendimientoEquipo: actividades.rendimientoEquipo ?? true,
             mantenimientoReloj: actividades.mantenimientoReloj ?? true,
-
+            ecografo: actividades.ecografo ?? true,
           }
         });
       });
@@ -920,6 +921,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       licenciaOffice: actividades.licenciaOffice,
       rendimientoEquipo: actividades.rendimientoEquipo,
       mantenimientoReloj: actividades.mantenimientoReloj,
+      ecografo: actividades.ecografo,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
       direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
