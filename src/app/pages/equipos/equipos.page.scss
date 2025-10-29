@@ -88,8 +88,10 @@ ion-card-header {
 
 // MEJORAS EN EL FORMULARIO DE BÚSQUEDA
 .search-section {
-
-   position: static;
+    position: static;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(44, 143, 224, 0.1);
+    animation: fadeIn 0.3s ease-out;
 
     .input-icon {
         font-size: 1.2rem;
@@ -125,9 +127,17 @@ ion-card-header {
 .edit-card {
     position: static;
     animation: slideIn 0.3s ease-out;
+    backdrop-filter: blur(6px);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(44, 143, 224, 0.2);
+    transition: transform 0.25s ease;
 
     &.slide-in {
         animation: slideIn 0.3s ease-out;
+    }
+
+    &:hover {
+        transform: translateY(-4px);
     }
 
     .close-btn {
@@ -258,6 +268,11 @@ ion-card-header {
         --padding-start: 16px;
         --padding-end: 12px;
         border-bottom: 1px solid #f0f0f0;
+        transition: var(--background) 0.25s ease, transform 0.2s ease;
+
+        &:active {
+            transform: scale(0.98);
+        }
 
         &:nth-child(1) {
             animation-delay: 0.05s;
@@ -445,10 +460,12 @@ ion-card-header {
 @keyframes fadeIn {
     from {
         opacity: 0;
+        transform: translateY(15px);
     }
 
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 

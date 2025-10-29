@@ -84,7 +84,7 @@ ion-content {
     backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 12px solid rgba(255, 255, 255, 0.2);
     margin: 16px 0;
     transition: var(--transition);
 
@@ -127,7 +127,7 @@ ion-content {
     font-weight: 600;
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+
 
     .title-icon {
         margin-right: 8px;
@@ -233,7 +233,7 @@ ion-content {
 // Estilos para selección de cliente
 .selection-info {
     background: rgba(44, 143, 224, 0.1);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 12px 16px;
     margin-bottom: 16px;
     border-left: 4px solid var(--primary-color);

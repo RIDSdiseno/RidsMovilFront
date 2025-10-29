@@ -17,6 +17,15 @@ ion-content {
     }
 }
 
+ion-card {
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+
+    &:active {
+        transform: scale(0.98);
+        box-shadow: 0 4px 12px rgba(44, 143, 224, 0.3);
+    }
+}
+
 @keyframes backgroundPulse {
 
     0%,
@@ -76,7 +85,7 @@ ion-content {
 }
 
 ion-col[class*="ion-text-center"] {
-  padding: 4px;
+    padding: 4px;
 }
 
 .welcome-title {
@@ -247,7 +256,7 @@ ion-col[class*="ion-text-center"] {
 
 // Mejorar la legibilidad del calendario
 ion-row:not(:first-child) {
-  margin-top: 4px;
+    margin-top: 4px;
 }
 
 .calendar-day {
@@ -300,6 +309,23 @@ ion-row:not(:first-child) {
         @media (min-width: 600px) {
             transform: scale(1.3);
         }
+    }
+}
+
+.calendar-day.today {
+    position: relative;
+    animation: pulseGlow 3s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 12px rgba(44, 143, 224, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 24px rgba(44, 143, 224, 0.7);
     }
 }
 
@@ -372,7 +398,7 @@ ion-row:not(:first-child) {
 }
 
 ion-grid {
-  padding-bottom: 10px;
+    padding-bottom: 10px;
 }
 
 /* 📱 RESPONSIVE GRID ADJUSTMENTS */

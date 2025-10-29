@@ -110,10 +110,11 @@
               <ion-item class="form-item custom-item" lines="none">
                 <ion-label position="stacked" class="form-label required">
                   <ion-icon name="person-outline" class="label-icon"></ion-icon>
-                  Nombre Completo *
+                  Nombre Completo
                 </ion-label>
                 <ion-input formControlName="nombre" placeholder="Ingresa el nombre completo" class="custom-input"
-                  clearInput></ion-input>
+                  clearInput>
+                </ion-input>
               </ion-item>
               <ion-note *ngIf="usuarioForm.get('nombre')?.touched && usuarioForm.get('nombre')?.errors"
                 class="error-note">

@@ -123,10 +123,11 @@
                 Solo puedes seleccionar un solicitante
               </ion-note>
             </div>
-
-            <ion-searchbar formControlName="busquedaSolicitante" debounce="300" placeholder="Buscar solicitante..."
-              class="custom-searchbar">
-            </ion-searchbar>
+            <form [formGroup]="equipoForm">
+              <ion-searchbar formControlName="busquedaSolicitante" debounce="300" placeholder="Buscar solicitante..."
+                class="custom-searchbar">
+              </ion-searchbar>
+            </form>
 
             <div class="solicitantes-list-container">
               <ion-list class="solicitantes-list">

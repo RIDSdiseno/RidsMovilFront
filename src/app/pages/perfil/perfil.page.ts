@@ -65,7 +65,7 @@ export class PerfilPage implements ViewWillEnter {
   private async cargarHistorial() {
     this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
       next: async (res) => {
-        console.log('📦 Respuesta completa del historial v3:', res);
+        console.log('📦 Respuesta completa del historial:', res);
 
         const historial = res.historial || [];
 
