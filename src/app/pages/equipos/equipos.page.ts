@@ -43,8 +43,9 @@ export class EquiposPage implements OnInit {
 
     this.api.getEquipos().subscribe({
       next: (response) => {
+        /*
         console.log('Respuesta cruda API:', response);
-
+*/
         if (response && response.equipos && Array.isArray(response.equipos)) {
           this.equipment = response.equipos;
         } else {
@@ -53,11 +54,13 @@ export class EquiposPage implements OnInit {
         }
 
         this.filteredEquipment = [...this.equipment];
+        /*
         console.log('Total equipos:', this.equipment.length);
-
+        */
         const endTime = Date.now();
+        /*
         console.log(` TIEMPO DE CARGA: ${endTime - startTime}ms`);
-
+*/
       },
       error: (error) => {
         console.error('Error al cargar equipos:', error);

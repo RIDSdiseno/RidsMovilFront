@@ -142,7 +142,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.api.getClientes().subscribe(
       (data) => {
+        /*
         console.log('Clientes cargados:', data);
+        */
         this.clientes = data;
       },
       (error) => {
@@ -176,7 +178,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     }
 
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
+      /*
       console.log('Cliente seleccionado:', clienteId);
+      */
       this.empresaId = clienteId;
 
       if (clienteId) {
@@ -381,9 +385,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
         lat = position.coords.latitude;
         lon = position.coords.longitude;
       }
-
+/*
       console.log('📍 Coordenadas obtenidas:', lat, lon);
-
+*/
       // ✅ GUARDAR COORDENADAS PARA EL BACKEND
       this.latitud = lat;
       this.longitud = lon;
@@ -400,7 +404,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       this.ubicacionObtenida = true;
 
       console.log('✅ Dirección exacta:', this.direccionExacta);
-      this.showToast(`📍 Ubicación obtenida: ${this.direccionExacta}`);
 
     } catch (error: any) {
       console.error('❌ Error obteniendo ubicación:', error);
@@ -706,13 +709,17 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       if (state.coordenadas) {
         this.latitud = state.coordenadas.lat;
         this.longitud = state.coordenadas.lon;
+        /*
         console.log('📍 Coordenadas cargadas desde estado:', this.latitud, this.longitud);
+        */
       }
 
       if (state.direccion_visita) {
         this.ubicacionObtenida = true;
         this.direccionExacta = state.direccion_visita;
+        /*
         console.log('📍 Dirección cargada desde estado:', this.direccionExacta);
+        */
       }
 
       this.restaurarFormularioDesdeEstado(state);
@@ -800,7 +807,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     this.filtradosSolicitantes = this.todosSolicitantes.filter((s: any) =>
       s.nombre.toLowerCase().includes(term)
     );
+    /*
     console.log('Solicitantes filtrados:', this.filtradosSolicitantes);
+    */
   }
 
   esSolicitanteSeleccionado(s: any): boolean {
@@ -854,13 +863,13 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       tecnicoId: this.tecnicoId,
       direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
-
+    /*
     console.log('🎯 DATOS ENVIADOS AL BACKEND:', JSON.stringify(visitaData, null, 2));
     console.log('- empresaId:', visitaData.empresaId);
     console.log('- direccion_visita (coordenadas):', visitaData.direccion_visita);
     console.log('- Dirección mostrada al usuario:', this.direccionExacta);
     console.log('- JSON completo:', JSON.stringify(visitaData, null, 2));
-
+*/
     this.api.crearVisita(visitaData).subscribe(
       (response: any) => {
         this.estado = 'En curso';
@@ -962,9 +971,6 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       sucursalId: this.visitaForm.value.sucursal || null,
     };
 
-    console.log('🎯 DATOS FINALIZACIÓN:');
-    console.log('- direccion_visita (coordenadas para backend):', data.direccion_visita);
-    console.log('- Dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
       (response: any) => {

@@ -68,13 +68,14 @@ export class PerfilPage implements ViewWillEnter {
   private async cargarHistorial() {
     this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
       next: async (res) => {
+        /*
         console.log('📦 Respuesta completa del historial:', res);
-
+*/
         const historial = res.historial || res.visitas || [];
-
+/*
         console.log('📦 Respuesta completa del historial:', res);
         console.log('📋 Datos crudos recibidos:', historial);
-
+*/
         this.visitas = await Promise.all(
           historial.map(async (visita: any) => {
             const direccionLegible = await this.obtenerDireccionDesdeCoordenadasHistorial(visita.direccion_visita);
@@ -166,7 +167,6 @@ export class PerfilPage implements ViewWillEnter {
       partes.push('Santiago', 'Región Metropolitana');
 
       const direccionFinal = partes.join(', ');
-      console.log('✅ Dirección exacta:', direccionFinal);
 
       return direccionFinal;
     } catch (error) {
