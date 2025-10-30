@@ -94,6 +94,13 @@
           </ion-label>
         </ion-item>
       </ion-list>
+      <ion-infinite-scroll
+        threshold="120px"
+        (ionInfinite)="cargarMas($event)"
+        [disabled]="!hasMore || loading">
+        <ion-infinite-scroll-content loadingText="Cargando más…"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+
     </ion-card-content>
   </ion-card>
 </ion-content>

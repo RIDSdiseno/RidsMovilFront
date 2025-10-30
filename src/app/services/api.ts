@@ -46,13 +46,15 @@ export class ApiService {
     );
   }
 
-  getHistorialPorTecnico(tecnicoId: number) {
-    const token = this.authService.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    });
-    return this.http.get<any>(`${environment.apiUrl}/auth/historial/${tecnicoId}`, { headers });
-  }
+  getHistorialPorTecnico(tecnicoId: number, page = 1, limit = 10) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+  return this.http.get<any>(`${environment.apiUrl}/auth/historial/${tecnicoId}`, {
+    headers,
+    params: { page, limit }
+  });
+}
 
   getSolicitantes(empresaId: number): Observable<any> {
     return this.http.get(`${environment.apiUrl}/auth/solicitantes?empresaId=${empresaId}`);

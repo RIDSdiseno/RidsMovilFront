@@ -11,6 +11,7 @@ import { Capacitor } from '@capacitor/core';
 registerLocaleData(localeEsCl, 'es-CL');
 
 interface Visita {
+  
   solicitante: string;
   realizado: string;
   inicio: string;
@@ -35,7 +36,10 @@ interface Visita {
   standalone: false,
 })
 export class PerfilPage implements ViewWillEnter {
-
+ page = 1;
+  limit = 10;
+  hasMore = true;
+  loading = false;
   visitas: Visita[] = [];
   tecnicoId: number = 0;
   tecnico: any;
@@ -54,6 +58,10 @@ export class PerfilPage implements ViewWillEnter {
 
     if (id) {
       this.tecnicoId = parseInt(id, 10);
+       this.visitas = [];
+      this.page = 1;
+      this.hasMore = true;
+
       await this.cargarHistorial();
     }
 
@@ -65,18 +73,21 @@ export class PerfilPage implements ViewWillEnter {
   }
 
   // ✅ Cargar historial con direcciones exactas o aproximadas
-  private async cargarHistorial() {
-    this.api.getHistorialPorTecnico(this.tecnicoId).subscribe({
+    // ✅ Cargar historial paginado (acumula resultados)
+  private async cargarHistorial(event?: CustomEvent) {
+    if (this.loading || !this.hasMore) {
+      event?.target && (event.target as HTMLIonInfiniteScrollElement).complete();
+      return;
+    }
+
+    this.loading = true;
+
+    this.api.getHistorialPorTecnico(this.tecnicoId, this.page, this.limit).subscribe({
       next: async (res) => {
-        /*
-        console.log('📦 Respuesta completa del historial:', res);
-*/
         const historial = res.historial || res.visitas || [];
-/*
-        console.log('📦 Respuesta completa del historial:', res);
-        console.log('📋 Datos crudos recibidos:', historial);
-*/
-        this.visitas = await Promise.all(
+
+        // 🔁 transforma SOLO la página actual y acumula
+        const paginaTransformada: Visita[] = await Promise.all(
           historial.map(async (visita: any) => {
             const direccionLegible = await this.obtenerDireccionDesdeCoordenadasHistorial(visita.direccion_visita);
 
@@ -89,19 +100,44 @@ export class PerfilPage implements ViewWillEnter {
               nombreCliente: visita.nombreCliente || 'Empresa desconocida',
               solicitante: visita.nombreSolicitante || 'Cliente desconocido',
               direccion_visita: direccionLegible,
-              sucursalNombre: tieneSucursal ? sucursalNombre : null, // ✅ Solo si existe
-              sucursalId: tieneSucursal ? sucursalId : null, // ✅ Solo si existe
-              tieneSucursal, // ✅ Flag para fácil verificación
-            };
+              sucursalNombre: tieneSucursal ? sucursalNombre : null,
+              sucursalId: tieneSucursal ? sucursalId : null,
+              tieneSucursal,
+            } as Visita;
           })
         );
+
+        // ✅ acumula
+        this.visitas = [...this.visitas, ...paginaTransformada];
+
+        // ✅ avanza page/hasMore según backend
+        const total = res?.total;
+        const hasMoreFromApi = typeof res?.hasMore === 'boolean' ? res.hasMore : null;
+
+        if (hasMoreFromApi !== null) {
+          this.hasMore = hasMoreFromApi;
+        } else if (typeof total === 'number') {
+          const cargados = this.page * this.limit;
+          this.hasMore = cargados < total;
+        } else {
+          // fallback: si la página vino “llena”, asumimos que hay más
+          this.hasMore = historial.length === this.limit;
+        }
+
+        if (this.hasMore) this.page += 1;
       },
       error: (err) => {
         console.error('❌ Error al cargar historial:', err);
       },
+      complete: () => {
+        this.loading = false;
+        if (event?.target) (event.target as HTMLIonInfiniteScrollElement).complete();
+      },
     });
   }
-
+cargarMas(event: CustomEvent) {
+    this.cargarHistorial(event);
+  }
   // ✅ Obtener dirección desde coordenadas (usa Nominatim o fallback)
   private async obtenerDireccionDesdeCoordenadasHistorial(coordenadas: string): Promise<string> {
     try {
