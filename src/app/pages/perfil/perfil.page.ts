@@ -77,7 +77,6 @@ export class PerfilPage implements ViewWillEnter {
 
         this.visitas = await Promise.all(
           historial.map(async (visita: any) => {
-            const empresa = visita.solicitanteRef?.empresa;
             const direccionLegible = await this.obtenerDireccionDesdeCoordenadasHistorial(visita.direccion_visita);
 
             const sucursalNombre = visita.sucursalNombre || visita.solicitanteRef?.sucursal?.nombre;
@@ -87,6 +86,7 @@ export class PerfilPage implements ViewWillEnter {
             return {
               ...visita,
               nombreCliente: visita.nombreCliente || 'Empresa desconocida',
+              solicitante: visita.nombreSolicitante || 'Cliente desconocido',
               direccion_visita: direccionLegible,
               sucursalNombre: tieneSucursal ? sucursalNombre : null, // ✅ Solo si existe
               sucursalId: tieneSucursal ? sucursalId : null, // ✅ Solo si existe

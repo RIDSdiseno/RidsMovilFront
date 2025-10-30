@@ -839,6 +839,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     this.estado = 'En curso';
     this.estadoTexto = 'La visita está en curso.';
 
+    const sucursalSeleccionada = this.visitaForm.value.sucursal || null;
+
     // ✅ ENVIAR SOLO COORDENADAS AL BACKEND
     const coordenadasParaBackend = this.latitud && this.longitud
       ? `${this.latitud},${this.longitud}`
@@ -847,12 +849,13 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     const visitaData = {
       empresaId: clienteId,
       solicitante: this.visitaForm.value.solicitante,
+      sucursalId: sucursalSeleccionada,
       inicio: this.inicio,
       tecnicoId: this.tecnicoId,
       direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
     };
 
-    console.log('🎯 DATOS ENVIADOS AL BACKEND:');
+    console.log('🎯 DATOS ENVIADOS AL BACKEND:', JSON.stringify(visitaData, null, 2));
     console.log('- empresaId:', visitaData.empresaId);
     console.log('- direccion_visita (coordenadas):', visitaData.direccion_visita);
     console.log('- Dirección mostrada al usuario:', this.direccionExacta);
@@ -955,7 +958,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       ecografo: actividades.ecografo,
       otrosDetalle: this.visitaForm.value.otrosDetalle,
       solicitantes: seleccion,
-      direccion_visita: coordenadasParaBackend  // ← Solo coordenadas
+      direccion_visita: coordenadasParaBackend,  // ← Solo coordenadas
+      sucursalId: this.visitaForm.value.sucursal || null,
     };
 
     console.log('🎯 DATOS FINALIZACIÓN:');

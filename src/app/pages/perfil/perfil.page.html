@@ -51,6 +51,14 @@
                 </div>
               </div>
             </div>
+            <!-- Solicitante compacto -->
+            <div class="solicitante-section" *ngIf="visita.solicitante">
+              <div class="solicitante-info">
+                <ion-icon name="person-outline" class="small-icon"></ion-icon>
+                <span class="solicitante-text">{{ visita.solicitante }}</span>
+              </div>
+            </div>
+
             <!-- Dirección compacta -->
             <div class="direccion-compact" *ngIf="visita.direccion_visita">
               <ion-icon name="location-outline" class="small-icon"></ion-icon>
