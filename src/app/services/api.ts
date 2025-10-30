@@ -46,7 +46,7 @@ export class ApiService {
     );
   }
 
-  getHistorialPorTecnico(tecnicoId: number, page = 1, limit = 10) {
+  getHistorialPorTecnico(tecnicoId: number, page = 1, limit = 5) {
   const token = this.authService.getToken();
   const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 

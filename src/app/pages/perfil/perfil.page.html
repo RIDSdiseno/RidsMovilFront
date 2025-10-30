@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="custom-background ion-padding">
+<ion-content class="custom-background ion-paddingpb-safe"  >
   <ion-row class="ion-justify-content-center ion-padding">
     <ion-col size="12" size-md="8" text-center>
       <h2 class="welcome-title">Bienvenido, </h2>
@@ -26,9 +26,9 @@
       </ion-card-title>
     </ion-card-header>
 
-    <ion-card-content>
+    <ion-card-content class="custom-background ion-padding">
       <ion-list class="historial-lista">
-        <ion-item *ngFor="let visita of visitas" class="historial-item">
+        <ion-item *ngFor="let visita of visitas;  trackBy: trackByVisita" class="historial-item">
           <ion-avatar slot="start">
             <ion-icon name="business-outline" class="icono-avatar"></ion-icon>
           </ion-avatar>
@@ -94,15 +94,19 @@
           </ion-label>
         </ion-item>
       </ion-list>
-      <ion-infinite-scroll
-        threshold="120px"
-        (ionInfinite)="cargarMas($event)"
-        [disabled]="!hasMore || loading">
-        <ion-infinite-scroll-content loadingText="Cargando más…"></ion-infinite-scroll-content>
-      </ion-infinite-scroll>
 
     </ion-card-content>
   </ion-card>
+  <ion-button expand="block" *ngIf="hasMore && !loading" (click)="cargarMasManual()">
+  Cargar más
+</ion-button>
+<ion-infinite-scroll
+  threshold="200px"
+  (ionInfinite)="cargarMas($event)"
+  [disabled]="!hasMore || loading">
+  <ion-infinite-scroll-content loadingText="Cargando más…"></ion-infinite-scroll-content>
+</ion-infinite-scroll>
+
 </ion-content>
 
 <app-footer-menu></app-footer-menu>
