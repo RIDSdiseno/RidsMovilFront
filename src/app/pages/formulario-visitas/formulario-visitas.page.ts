@@ -44,6 +44,10 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   clientes: any[] = [];
   empresaId: number = 0;
 
+  sucursales: any[] = [];
+  sucursalSeleccionada: number | null = null;
+  tieneSucursales = false; // nuevo estado visual
+
   // Variables para geolocalización
   isLoadingLocation = false;
   ubicacionObtenida = false;
@@ -66,6 +70,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   ) {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
+      sucursal: [null],
       solicitante: [[], Validators.required],
       busquedaSolicitante: [''],
       actividades: this.fb.group({
@@ -173,6 +178,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     this.visitaForm.get('cliente')?.valueChanges.subscribe(clienteId => {
       console.log('Cliente seleccionado:', clienteId);
       this.empresaId = clienteId;
+
       if (clienteId) {
         this.api.getSolicitantes(clienteId).subscribe((res) => {
           this.todosSolicitantes = res.solicitantes || res || [];
@@ -183,12 +189,37 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
             console.error('Error al cargar solicitantes:', error);
           }
         );
+        // 2️⃣ Cargar sucursales de la empresa seleccionada
+        this.api.getSucursalesPorEmpresa(clienteId).subscribe(
+          (res) => {
+            this.sucursales = res.sucursales || [];
+            this.tieneSucursales = this.sucursales.length > 0;
+
+            if (this.tieneSucursales) {
+              console.log(`✅ Empresa ${clienteId} tiene ${this.sucursales.length} sucursal(es).`);
+            } else {
+              console.log(`ℹ️ Empresa ${clienteId} no tiene sucursales, pasando a solicitantes.`);
+            }
+          },
+          (error) => {
+            // Si hay 404 o no tiene sucursales
+            if (error.status === 404) {
+              this.sucursales = [];
+              this.tieneSucursales = false;
+              console.log(`ℹ️ Empresa ${clienteId} no tiene sucursales, saltando select.`);
+            } else {
+              console.error('❌ Error al cargar sucursales:', error);
+            }
+          }
+        );
       } else {
         this.todosSolicitantes = [];
         this.filtradosSolicitantes = [];
+        this.sucursales = [];
+        this.tieneSucursales = false;
       }
     });
-
+  
     this.username = localStorage.getItem('username') || '';
     this.tecnicoId = localStorage.getItem('tecnicoId') || '';
 
@@ -932,26 +963,26 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     console.log('- Dirección mostrada al usuario:', this.direccionExacta);
 
     this.api.completarVisita(this.visitaId, data).subscribe(
-  (response: any) => {
-    console.log('✅ RESPUESTA BACKEND:', response);
-    this.guardarVisita();
-    this.visitaState.clearState();
-    this.showToast('Visita finalizada con éxito');
-  },
-  async (err) => {
-    console.error('❌ completarVisita error:', err);
-    const detalle = (() => {
-      try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
-    })();
-    const alert = await this.alertController.create({
-      header: `Error al guardar (${err?.status || 'sin status'})`,
-      message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
-      buttons: ['OK']
-    });
-    await alert.present();
-    this.showToast('No se pudo finalizar la visita.');
-  }
-);
+      (response: any) => {
+        console.log('✅ RESPUESTA BACKEND:', response);
+        this.guardarVisita();
+        this.visitaState.clearState();
+        this.showToast('Visita finalizada con éxito');
+      },
+      async (err) => {
+        console.error('❌ completarVisita error:', err);
+        const detalle = (() => {
+          try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
+        })();
+        const alert = await this.alertController.create({
+          header: `Error al guardar (${err?.status || 'sin status'})`,
+          message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
+          buttons: ['OK']
+        });
+        await alert.present();
+        this.showToast('No se pudo finalizar la visita.');
+      }
+    );
 
   }
 

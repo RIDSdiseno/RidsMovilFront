@@ -41,6 +41,16 @@
                 {{ formatoFecha(visita.inicio) }}
               </div>
             </div>
+            <!-- Sucursal -->
+            <!-- Sucursal - Versión Mejorada -->
+            <div class="sucursal-section" *ngIf="visita.tieneSucursal">
+              <div class="sucursal-info">
+                <ion-icon name="business-outline" class="sucursal-icon"></ion-icon>
+                <div class="sucursal-details">
+                  <span class="sucursal-name">{{ visita.sucursalNombre }}</span>
+                </div>
+              </div>
+            </div>
             <!-- Dirección compacta -->
             <div class="direccion-compact" *ngIf="visita.direccion_visita">
               <ion-icon name="location-outline" class="small-icon"></ion-icon>

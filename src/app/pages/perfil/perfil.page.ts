@@ -23,6 +23,9 @@ interface Visita {
     };
   };
   nombreCliente?: string;
+  sucursalNombre?: string;
+  sucursalId?: number; // ✅ Agregar esto
+  tieneSucursal?: boolean; // ✅ Agregar flag para fácil verificación
 }
 
 @Component({
@@ -67,17 +70,27 @@ export class PerfilPage implements ViewWillEnter {
       next: async (res) => {
         console.log('📦 Respuesta completa del historial:', res);
 
-        const historial = res.historial || [];
+        const historial = res.historial || res.visitas || [];
+
+        console.log('📦 Respuesta completa del historial:', res);
+        console.log('📋 Datos crudos recibidos:', historial);
 
         this.visitas = await Promise.all(
           historial.map(async (visita: any) => {
             const empresa = visita.solicitanteRef?.empresa;
             const direccionLegible = await this.obtenerDireccionDesdeCoordenadasHistorial(visita.direccion_visita);
 
+            const sucursalNombre = visita.sucursalNombre || visita.solicitanteRef?.sucursal?.nombre;
+            const sucursalId = visita.sucursalId || visita.solicitanteRef?.sucursal?.id_sucursal;
+            const tieneSucursal = !!sucursalNombre && sucursalNombre !== '—' && sucursalNombre !== null;
+
             return {
               ...visita,
-              nombreCliente: empresa ? empresa.nombre : 'Empresa desconocida',
+              nombreCliente: visita.nombreCliente || 'Empresa desconocida',
               direccion_visita: direccionLegible,
+              sucursalNombre: tieneSucursal ? sucursalNombre : null, // ✅ Solo si existe
+              sucursalId: tieneSucursal ? sucursalId : null, // ✅ Solo si existe
+              tieneSucursal, // ✅ Flag para fácil verificación
             };
           })
         );

@@ -34,8 +34,7 @@
         <!-- Cliente -->
         <ion-item>
           <ion-label position="stacked">Empresa / Cliente</ion-label>
-          <ion-select formControlName="cliente" placeholder="Selecciona un cliente" interface="popover"
-            (ionChange)="abrirListaSolicitantes()">
+          <ion-select formControlName="cliente" placeholder="Selecciona un cliente" interface="popover">
             <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
               {{ cliente.nombre }}
             </ion-select-option>
@@ -45,106 +44,119 @@
           Este campo es obligatorio.
         </ion-note>
 
-        <!-- Selector de Solicitantes - Diseño Mejorado -->
-        <ion-item lines="none" class="solicitante-item">
-          <ion-label position="stacked" class="input-label">
-            <div class="label-header">
-              <span>Solicitantes</span>
-              <span class="counter" [class.has-selection]="visitaForm.value.solicitante?.length > 0">
-                seleccionados {{ visitaForm.value.solicitante?.length || 0 }}
-              </span>
-            </div>
-          </ion-label>
 
-          <!-- Input que abre el selector -->
-          <div class="selector-trigger" (click)="abrirListaSolicitantes()"
-            [class.has-selection]="visitaForm.value.solicitante?.length > 0">
-            <div class="trigger-content">
-              <br>
-              <ion-icon name="person-outline" class="trigger-icon"></ion-icon>
-              <span class="trigger-text">
-                {{ visitaForm.value.solicitante?.length > 0 ? 'Ver seleccionados' : 'Seleccionar solicitantes' }}
-              </span>
-              <ion-icon [name]="mostrarListaSolicitantes ? 'chevron-up' : 'chevron-down'" class="trigger-arrow">
-              </ion-icon>
-            </div>
-          </div>
+        <!-- SUCURSAL (solo si existen) -->
+        <ion-item *ngIf="tieneSucursales">
+          <ion-label position="stacked">Sucursal</ion-label>
+          <ion-select formControlName="sucursal" placeholder="Selecciona una sucursal">
+            <ion-select-option *ngFor="let s of sucursales" [value]="s.id_sucursal">
+              {{ s.nombre }} - {{ s.direccion }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
 
-        <!-- Chips de selección (siempre visibles cuando hay selección) -->
-        <div *ngIf="visitaForm.value.solicitante?.length > 0" class="chips-section">
-          <div class="chips-container">
-            <ion-chip *ngFor="let s of visitaForm.value.solicitante" color="primary" class="selection-chip">
-              <ion-avatar *ngIf="s.iniciales" class="avatar-chip">
-                <span>{{ s.iniciales }}</span>
-              </ion-avatar>
-              <ion-label>{{ s.nombre }}</ion-label>
-              <ion-icon name="close-circle" (click)="eliminarSolicitante(s)" class="remove-icon"></ion-icon>
-            </ion-chip>
-          </div>
-        </div>
+        <!-- Selector de Solicitantes - Diseño Mejorado -->
+        <div *ngIf="visitaForm.get('cliente')?.value && (!tieneSucursales || visitaForm.get('sucursal')?.value)">
 
-        <!-- Panel de selección desplegable -->
-        <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card modern-dropdown open">
-          <div class="dropdown-header">
-            <ion-button fill="clear" size="small" (click)="mostrarListaSolicitantes = false" class="close-btn">
-              <ion-icon name="close"></ion-icon>
-            </ion-button>
-          </div>
+          <ion-item lines="none" class="solicitante-item">
+            <ion-label position="stacked" class="input-label">
+              <div class="label-header">
+                <span>Solicitantes</span>
+                <span class="counter" [class.has-selection]="visitaForm.value.solicitante?.length > 0">
+                  seleccionados {{ visitaForm.value.solicitante?.length || 0 }}
+                </span>
+              </div>
+            </ion-label>
 
-          <!-- Barra de búsqueda mejorada -->
-          <div class="search-section">
-            <ion-searchbar class="searchbar-solicitante" placeholder="Buscar solicitantes..."
-              formControlName="busquedaSolicitante" debounce="300" (ionInput)="filtrarSolicitantes()" animated>
-            </ion-searchbar>
-            <div class="search-stats" *ngIf="filtradosSolicitantes.length > 0">
-              {{ filtradosSolicitantes.length }} resultado{{ filtradosSolicitantes.length !== 1 ? 's' : '' }}
+            <div class="selector-trigger" (click)="abrirListaSolicitantes()"
+              [class.has-selection]="visitaForm.value.solicitante?.length > 0">
+              <div class="trigger-content">
+                <br>
+                <ion-icon name="person-outline" class="trigger-icon"></ion-icon>
+                <span class="trigger-text">
+                  {{ visitaForm.value.solicitante?.length > 0 ? 'Ver seleccionados' : 'Seleccionar solicitantes' }}
+                </span>
+                <ion-icon [name]="mostrarListaSolicitantes ? 'chevron-up' : 'chevron-down'"
+                  class="trigger-arrow"></ion-icon>
+              </div>
+            </div>
+          </ion-item>
+
+          <!-- Chips de selección (siempre visibles cuando hay selección) -->
+          <div *ngIf="visitaForm.value.solicitante?.length > 0" class="chips-section">
+            <div class="chips-container">
+              <ion-chip *ngFor="let s of visitaForm.value.solicitante" color="primary" class="selection-chip">
+                <ion-avatar *ngIf="s.iniciales" class="avatar-chip">
+                  <span>{{ s.iniciales }}</span>
+                </ion-avatar>
+                <ion-label>{{ s.nombre }}</ion-label>
+                <ion-icon name="close-circle" (click)="eliminarSolicitante(s)" class="remove-icon"></ion-icon>
+              </ion-chip>
             </div>
           </div>
 
-          <!-- Lista de solicitantes mejorada -->
-          <ion-list class="lista-solicitantes modern-list" lines="none">
-            <ion-item *ngFor="let s of filtradosSolicitantes" button (click)="seleccionarSolicitante(s)"
-              [class.selected]="esSolicitanteSeleccionado(s)" class="solicitante-item-list">
+          <!-- Panel de selección desplegable -->
+          <ion-card *ngIf="mostrarListaSolicitantes" class="dropdown-card modern-dropdown open">
+            <div class="dropdown-header">
+              <ion-button fill="clear" size="small" (click)="mostrarListaSolicitantes = false" class="close-btn">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </div>
 
-              <!-- Información del solicitante -->
-              <ion-label class="solicitante-info">
-                <h3>{{ s.nombre }}</h3>
-              </ion-label>
-
-              <!-- Estado de selección -->
-              <div slot="end" class="selection-indicator">
-                <ion-icon [name]="esSolicitanteSeleccionado(s) ? 'checkmark-circle' : 'ellipse-outline'"
-                  [color]="esSolicitanteSeleccionado(s) ? 'primary' : 'medium'" class="check-icon">
-                </ion-icon>
+            <!-- Barra de búsqueda mejorada -->
+            <div class="search-section">
+              <ion-searchbar class="searchbar-solicitante" placeholder="Buscar solicitantes..."
+                formControlName="busquedaSolicitante" debounce="300" (ionInput)="filtrarSolicitantes()" animated>
+              </ion-searchbar>
+              <div class="search-stats" *ngIf="filtradosSolicitantes.length > 0">
+                {{ filtradosSolicitantes.length }} resultado{{ filtradosSolicitantes.length !== 1 ? 's' : '' }}
               </div>
-            </ion-item>
+            </div>
 
-            <!-- Estado vacío -->
-            <ion-item *ngIf="filtradosSolicitantes.length === 0" class="empty-state">
-              <ion-icon name="search-outline" slot="start" color="medium"></ion-icon>
-              <ion-label color="medium">
-                <h3>No se encontraron solicitantes</h3>
-                <p>Intenta con otros términos de búsqueda</p>
-              </ion-label>
-            </ion-item>
-          </ion-list>
+            <!-- Lista de solicitantes mejorada -->
+            <ion-list class="lista-solicitantes modern-list" lines="none">
+              <ion-item *ngFor="let s of filtradosSolicitantes" button (click)="seleccionarSolicitante(s)"
+                [class.selected]="esSolicitanteSeleccionado(s)" class="solicitante-item-list">
 
-          <!-- Footer del dropdown -->
-          <div class="dropdown-footer">
-            <ion-button fill="solid" color="primary" (click)="mostrarListaSolicitantes = false" class="done-btn">
-              <ion-icon name="checkmark" slot="start"></ion-icon>
-              Listo
-            </ion-button>
-          </div>
-        </ion-card>
+                <!-- Información del solicitante -->
+                <ion-label class="solicitante-info">
+                  <h3>{{ s.nombre }}</h3>
+                </ion-label>
 
-        <!-- Mensaje de error -->
-        <ion-note color="danger" class="error-note"
-          *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
-          <ion-icon name="warning" slot="start"></ion-icon>
-          Debes seleccionar al menos un solicitante
-        </ion-note>
+                <!-- Estado de selección -->
+                <div slot="end" class="selection-indicator">
+                  <ion-icon [name]="esSolicitanteSeleccionado(s) ? 'checkmark-circle' : 'ellipse-outline'"
+                    [color]="esSolicitanteSeleccionado(s) ? 'primary' : 'medium'" class="check-icon">
+                  </ion-icon>
+                </div>
+              </ion-item>
+
+              <!-- Estado vacío -->
+              <ion-item *ngIf="filtradosSolicitantes.length === 0" class="empty-state">
+                <ion-icon name="search-outline" slot="start" color="medium"></ion-icon>
+                <ion-label color="medium">
+                  <h3>No se encontraron solicitantes</h3>
+                  <p>Intenta con otros términos de búsqueda</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+
+            <!-- Footer del dropdown -->
+            <div class="dropdown-footer">
+              <ion-button fill="solid" color="primary" (click)="mostrarListaSolicitantes = false" class="done-btn">
+                <ion-icon name="checkmark" slot="start"></ion-icon>
+                Listo
+              </ion-button>
+            </div>
+          </ion-card>
+
+          <!-- Mensaje de error -->
+          <ion-note color="danger" class="error-note"
+            *ngIf="visitaForm.get('solicitante')?.invalid && visitaForm.get('solicitante')?.touched">
+            <ion-icon name="warning" slot="start"></ion-icon>
+            Debes seleccionar al menos un solicitante
+          </ion-note>
+        </div>
 
       </ion-card-content>
     </ion-card>
@@ -223,7 +235,7 @@
         </ion-item>
         <ion-item>
           <ion-label class="nowrap">Ecógrafo</ion-label>
-            <ion-checkbox slot="end" formControlName="ecografo"></ion-checkbox>
+          <ion-checkbox slot="end" formControlName="ecografo"></ion-checkbox>
         </ion-item>
       </ion-card-content>
     </ion-card>

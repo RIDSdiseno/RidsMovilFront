@@ -106,4 +106,20 @@ export class ApiService {
     return this.http.post(`${environment.apiUrl}/auth/createSolicitante`, usuarioData, { headers });
   }
 
+  // 🔹 Obtener sucursales por empresa
+  getSucursalesPorEmpresa(empresaId: number): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+
+    return this.http.get(`${environment.apiUrl}/auth/empresas/${empresaId}/sucursales`, { headers });
+  }
+
+  getSolicitantesPorSucursal(sucursalId: number): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+    return this.http.get(`${environment.apiUrl}/auth/sucursales/${sucursalId}/solicitantes`, { headers });
+  }
 }

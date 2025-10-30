@@ -435,3 +435,43 @@ ion-content {
         }
     }
 }
+
+// ==========================================================
+// NUEVO BLOQUE: ESTILOS PARA LA SUCURSAL EN EL HISTORIAL
+// ==========================================================
+.sucursal-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: #2563eb; // azul medio (complementa #1976d2)
+    background: #f0f7ff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border-left: 3px solid #3b82f6;
+
+    .small-icon {
+        font-size: 16px;
+        color: #3b82f6;
+        margin-right: 4px;
+    }
+
+    .sucursal-text {
+        font-weight: 500;
+        color: #1e3a8a;
+        line-height: 1.3;
+    }
+}
+
+@media (max-width: 768px) {
+    .sucursal-info {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+
+        .small-icon {
+            font-size: 14px;
+        }
+    }
+}
