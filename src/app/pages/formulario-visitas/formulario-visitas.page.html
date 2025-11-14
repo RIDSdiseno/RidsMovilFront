@@ -19,8 +19,15 @@
       <ion-button expand="block" (click)="iniciarVisita()" [disabled]="visitaEnCurso">Iniciar Visita</ion-button>
       <ion-button expand="block" (click)="terminarVisita()" [disabled]="!visitaEnCurso">Guardar Visita</ion-button>
       <ion-button expand="block" fill="outline" (click)="resetFormulario()">Limpiar Datos de Visita</ion-button>
+  <ion-button color="medium" expand="block" (click)="refrescarUsuarios()">
+  <ion-icon name="refresh"></ion-icon>
+  Actualizar Usuarios
+</ion-button>
+
+
     </ion-card-content>
   </ion-card>
+
 
   <!-- Formulario -->
   <form [formGroup]="visitaForm">

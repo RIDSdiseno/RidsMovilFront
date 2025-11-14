@@ -223,7 +223,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
         this.tieneSucursales = false;
       }
     });
-  
+
     this.username = localStorage.getItem('username') || '';
     this.tecnicoId = localStorage.getItem('tecnicoId') || '';
 
@@ -1021,6 +1021,87 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     };
   }
 
+  /**
+   * Recarga la lista de usuarios (solicitantes) para el cliente seleccionado.
+   * Retorna una Promise para poder await-earlo desde refrescarUsuarios().
+   */
+  async cargarUsuarios(): Promise<void> {
+    const clienteId = this.visitaForm.get('cliente')?.value || this.empresaId;
+    if (!clienteId) {
+      // Si no hay cliente seleccionado, limpiamos y resolvemos sin error.
+      this.todosSolicitantes = [];
+      this.filtradosSolicitantes = [];
+      return;
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      this.api.getSolicitantes(clienteId).subscribe(
+        (res: any) => {
+          this.todosSolicitantes = res.solicitantes || res || [];
+          this.filtradosSolicitantes = [...this.todosSolicitantes];
+          resolve();
+        },
+        (err: any) => {
+          console.error('Error cargando usuarios (solicitantes):', err);
+          // Mostrar toast suave de error y rechazar la promesa
+          this.showToast('No se pudieron cargar los solicitantes');
+          reject(err);
+        }
+      );
+    });
+  }
+
+  /**
+   * Recarga la lista de clientes desde el backend.
+   * (Se usa si quieres refrescar también el select de clientes).
+   */
+  async cargarClientes(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.api.getClientes().subscribe(
+        (data: any) => {
+          this.clientes = data || [];
+          resolve();
+        },
+        (err: any) => {
+          console.error('Error al cargar clientes:', err);
+          this.showToast('No se pudieron actualizar los clientes');
+          reject(err);
+        }
+      );
+    });
+  }
+
+  /**
+   * Alias simple para mantener compatibilidad con llamadas antiguas a presentToast()
+   * (algunas partes de tu código verificaban si existe presentToast)
+   */
+  presentToast(message: string) {
+    // Reutiliza showToast que ya existe (es async), pero no await-amos para mantener compatibilidad.
+    this.showToast(message);
+  }
+
+async refrescarUsuarios() {
+  try {
+    await this.cargarUsuarios(); // Recarga los usuarios
+
+    if (this.cargarClientes) {
+      await this.cargarClientes(); // Si existe esta función, también recarga clientes
+    }
+
+    if (this.presentToast) {
+      this.presentToast("Usuarios actualizados");
+    }
+  } catch (error) {
+    console.error("Error al refrescar usuarios", error);
+    if (this.presentToast) {
+      this.presentToast("Error al refrescar");
+    }
+  }
+}
+
+
+
+
   guardarVisita() {
     const inicioFmt = this.inicio ? this.datePipe.transform(this.inicio, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
     const finFmt = this.fin ? this.datePipe.transform(this.fin, 'dd/MM/yyyy HH:mm', '', 'es-CL') : null;
@@ -1045,5 +1126,10 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
       duration: 2000
     });
     await toast.present();
+
   }
+
+
+
+
 }
