@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar class="custom-header-toolbar">
-    <ion-title class="header-title">Agregar Usuario</ion-title>
+    <ion-title class="header-title">Sincronizar Usuarios</ion-title>
     <ion-buttons slot="end">
       <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" class="header-logo" />
     </ion-buttons>
@@ -9,12 +9,12 @@
 
 <ion-content class="ion-padding main-content">
   <div class="content-wrapper">
-    <!-- Card Principal -->
+    <!-- Card Principal: selección de cliente/empresa -->
     <ion-card class="selection-card">
       <ion-card-header class="card-header">
         <ion-card-title class="card-title">
           <ion-icon name="business" class="title-icon"></ion-icon>
-          Selección de Empresa
+          Selección de Empresa / Cliente
         </ion-card-title>
       </ion-card-header>
 
@@ -25,16 +25,25 @@
             <ion-item class="form-item custom-item" lines="none">
               <ion-label position="stacked" class="form-label">
                 <ion-icon name="business-outline" class="label-icon"></ion-icon>
-                Empresa *
+                Cliente / Empresa *
               </ion-label>
-              <ion-select formControlName="cliente" placeholder="Selecciona una empresa para asignar..."
-                interface="action-sheet" class="custom-select">
-                <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
+              <ion-select
+                formControlName="cliente"
+                placeholder="Selecciona una empresa..."
+                interface="action-sheet"
+                class="custom-select"
+              >
+                <ion-select-option
+                  *ngFor="let cliente of clientes"
+                  [value]="cliente.id_empresa"
+                >
                   {{ cliente.nombre }}
                 </ion-select-option>
               </ion-select>
-              <ion-note *ngIf="usuarioForm.get('cliente')?.invalid && usuarioForm.get('cliente')?.touched"
-                class="error-note">
+              <ion-note
+                *ngIf="usuarioForm.get('cliente')?.invalid && usuarioForm.get('cliente')?.touched"
+                class="error-note"
+              >
                 <ion-icon name="warning-outline"></ion-icon>
                 Selecciona un cliente
               </ion-note>
@@ -48,7 +57,7 @@
                 <h4 class="cliente-title">Cliente seleccionado:</h4>
                 <ion-badge color="primary" class="selection-badge">
                   <ion-icon name="checkmark-circle"></ion-icon>
-                  Listo para agregar usuario
+                  Listo para sincronizar usuarios
                 </ion-badge>
               </div>
               <ion-chip class="custom-chip selected-chip" color="primary">
@@ -60,14 +69,10 @@
                 </ion-label>
               </ion-chip>
 
-              <!-- Botón para agregar usuario -->
-              <div class="action-button-container">
-                <ion-button expand="block" color="primary" (click)="abrirFormularioUsuario()"
-                  class="add-usuario-button">
-                  <ion-icon name="person-add-outline" slot="start"></ion-icon>
-                  Agregar Usuario para {{ getClienteSeleccionadoNombre() }}
-                </ion-button>
-              </div>
+              <p class="helper-text">
+                Ahora puedes configurar los parámetros de sincronización para este cliente
+                en la tarjeta inferior.
+              </p>
             </div>
           </div>
 
@@ -82,116 +87,150 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Formulario para agregar usuario -->
-    <ion-card *ngIf="mostrarFormularioUsuario" class="usuario-form-card floating-card">
+    <!-- Card de sincronización (Google / Microsoft) -->
+    <ion-card
+      *ngIf="usuarioForm.get('cliente')?.value"
+      class="usuario-form-card floating-card"
+    >
       <ion-card-header class="card-header success-header">
         <ion-card-title class="card-title">
-          <ion-icon name="person-add-outline" class="title-icon"></ion-icon>
-          Agregar Usuario para {{ getClienteSeleccionadoNombre() }}
+          <ion-icon name="sync-outline" class="title-icon"></ion-icon>
+          Sincronizar usuarios para {{ getClienteSeleccionadoNombre() }}
         </ion-card-title>
         <ion-card-subtitle class="card-subtitle">
-          Completa la información del nuevo usuario
+          Define el dominio y, opcionalmente, un email para sincronizar solo un usuario.
         </ion-card-subtitle>
-        <ion-button fill="clear" slot="end" (click)="cerrarFormularioUsuario()" class="close-button">
-          <ion-icon name="close-circle-outline"></ion-icon>
-        </ion-button>
       </ion-card-header>
 
       <ion-card-content class="card-content">
         <form [formGroup]="usuarioForm">
           <div class="form-grid">
-            <!-- Campos requeridos -->
+            <!-- Parámetros de sincronización -->
             <div class="form-section required-section">
               <h4 class="section-title">
-                <ion-icon name="alert-circle-outline" class="section-icon"></ion-icon>
-                Información requerida
+                <ion-icon name="globe-outline" class="section-icon"></ion-icon>
+                Parámetros de sincronización
               </h4>
 
+              <!-- Dominio -->
               <ion-item class="form-item custom-item" lines="none">
                 <ion-label position="stacked" class="form-label required">
-                  <ion-icon name="person-outline" class="label-icon"></ion-icon>
-                  Nombre Completo
+                  <ion-icon name="at-outline" class="label-icon"></ion-icon>
+                  Dominio (ej: colegio.cl) *
                 </ion-label>
-                <ion-input formControlName="nombre" placeholder="Ingresa el nombre completo" class="custom-input"
-                  clearInput>
+                <ion-input
+                  formControlName="domain"
+                  placeholder="ej: colegio.cl"
+                  class="custom-input"
+                  clearInput
+                >
                 </ion-input>
               </ion-item>
-              <ion-note *ngIf="usuarioForm.get('nombre')?.touched && usuarioForm.get('nombre')?.errors"
-                class="error-note">
+              <ion-note
+                *ngIf="usuarioForm.get('domain')?.touched && usuarioForm.get('domain')?.invalid"
+                class="error-note"
+              >
                 <ion-icon name="warning-outline"></ion-icon>
-                El nombre es requerido
+                El dominio es requerido
               </ion-note>
-            </div>
 
-            <!-- Campos opcionales -->
-            <div class="form-section optional-section">
-              <h4 class="section-title optional">
-                <ion-icon name="information-circle-outline" class="section-icon"></ion-icon>
-                Información adicional
-              </h4>
-
+              <!-- Email opcional -->
               <ion-item class="form-item custom-item" lines="none">
                 <ion-label position="stacked" class="form-label">
                   <ion-icon name="mail-outline" class="label-icon"></ion-icon>
-                  Email
+                  Email (opcional, para sincronizar solo un usuario)
                 </ion-label>
-                <ion-input formControlName="email" placeholder="usuario@empresa.com" type="email" class="custom-input"
-                  clearInput [class]="!validarEmail() ? 'ion-invalid' : ''"></ion-input>
+                <ion-input
+                  formControlName="email"
+                  placeholder="usuario@colegio.cl"
+                  type="email"
+                  class="custom-input"
+                  clearInput
+                  [class]="!validarEmail() ? 'ion-invalid' : ''"
+                >
+                </ion-input>
               </ion-item>
               <ion-note *ngIf="!validarEmail()" class="error-note">
                 <ion-icon name="warning-outline"></ion-icon>
                 Formato de email inválido
               </ion-note>
-
-              <ion-item class="form-item custom-item" lines="none">
-                <ion-label position="stacked" class="form-label">
-                  <ion-icon name="call-outline" class="label-icon"></ion-icon>
-                  Teléfono
-                </ion-label>
-                <ion-input formControlName="telefono" placeholder="+56912345678" type="tel" class="custom-input"
-                  clearInput></ion-input>
-              </ion-item>
             </div>
-          </div>
-
-          <!-- Resumen de datos -->
-          <div class="summary-card" *ngIf="usuarioForm.get('nombre')?.value">
-            <ion-card class="preview-card">
-              <ion-card-header>
-                <ion-card-title>Resumen del Usuario</ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                <div class="summary-content">
-                  <div class="summary-item">
-                    <strong>Cliente:</strong> {{ getClienteSeleccionadoNombre() }}
-                  </div>
-                  <div class="summary-item">
-                    <strong>Nombre:</strong> {{ usuarioForm.get('nombre')?.value }}
-                  </div>
-                  <div class="summary-item" *ngIf="usuarioForm.get('email')?.value">
-                    <strong>Email:</strong> {{ usuarioForm.get('email')?.value }}
-                  </div>
-                  <div class="summary-item" *ngIf="usuarioForm.get('telefono')?.value">
-                    <strong>Teléfono:</strong> {{ usuarioForm.get('telefono')?.value }}
-                  </div>
-                </div>
-              </ion-card-content>
-            </ion-card>
           </div>
 
           <!-- Botones de acción -->
           <div class="actions-container">
-            <ion-button expand="block" color="primary" (click)="crearUsuario()"
-              [disabled]="usuarioForm.invalid || !validarEmail()" class="action-button primary-button">
-              <ion-icon name="save-outline" slot="start"></ion-icon>
-              Crear Usuario
+            <ion-button
+              expand="block"
+              color="primary"
+              (click)="syncGoogle()"
+              [disabled]="
+                sincronizando ||
+                usuarioForm.get('cliente')?.invalid ||
+                usuarioForm.get('domain')?.invalid ||
+                !validarEmail()
+              "
+              class="action-button primary-button"
+            >
+              <ion-icon name="logo-google" slot="start"></ion-icon>
+              Sincronizar desde Google Workspace
             </ion-button>
 
-            <ion-button expand="block" fill="outline" color="medium" (click)="cerrarFormularioUsuario()"
-              class="action-button outline-button">
-              <ion-icon name="close-outline" slot="start"></ion-icon>
-              Cancelar
+            <ion-button
+              expand="block"
+              color="secondary"
+              (click)="syncMicrosoft()"
+              [disabled]="
+                sincronizando ||
+                usuarioForm.get('cliente')?.invalid ||
+                !validarEmail()
+              "
+              class="action-button outline-button"
+            >
+              <ion-icon name="logo-microsoft" slot="start"></ion-icon>
+              Sincronizar desde Microsoft 365
             </ion-button>
+          </div>
+
+          <!-- Estado de sincronización -->
+          <div *ngIf="sincronizando" class="loading-container">
+            <ion-item class="loading-item">
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              <ion-label>Ejecutando sincronización...</ion-label>
+            </ion-item>
+          </div>
+
+          <!-- Resumen de la última sincronización -->
+          <div class="summary-card" *ngIf="resultadoSync">
+            <ion-card class="preview-card">
+              <ion-card-header>
+                <ion-card-title>Resultado de la última sincronización</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="summary-content">
+                  <div class="summary-item">
+                    <strong>Origen:</strong> {{ resultadoSync.origen }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Dominio:</strong> {{ resultadoSync.domain || '—' }}
+                  </div>
+                  <div class="summary-item" *ngIf="resultadoSync.filter">
+                    <strong>Filtro (email):</strong> {{ resultadoSync.filter }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Total procesados:</strong> {{ resultadoSync.total }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Creados:</strong> {{ resultadoSync.created }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Actualizados:</strong> {{ resultadoSync.updated }}
+                  </div>
+                  <div class="summary-item">
+                    <strong>Omitidos:</strong> {{ resultadoSync.skipped }}
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
           </div>
         </form>
       </ion-card-content>

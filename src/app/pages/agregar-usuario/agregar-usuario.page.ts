@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { ApiService } from 'src/app/services/api';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-agregar-usuario',
@@ -14,11 +13,13 @@ import { Router } from '@angular/router';
 })
 export class AgregarUsuarioPage implements OnInit, OnDestroy {
   usuarioForm: FormGroup;
-  clientes: any[] = []; // ← CAMBIÉ empresas por clientes
-  mostrarFormularioUsuario = false;
+  clientes: any[] = [];
 
   // Estados de carga
-  cargandoClientes = false; // ← CAMBIÉ cargandoEmpresas por cargandoClientes
+  cargandoClientes = false;
+  sincronizando = false;
+
+  resultadoSync: any = null;
 
   private destroy$ = new Subject<void>();
 
@@ -26,15 +27,12 @@ export class AgregarUsuarioPage implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private api: ApiService,
     private toastController: ToastController,
-    private loadingController: LoadingController,
-    private router: Router,
+    private loadingController: LoadingController
   ) {
     this.usuarioForm = this.fb.group({
-      cliente: ['', Validators.required], // ← Este control se llama 'cliente'
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.email]],
-      telefono: [''],
-      clienteId: ['']
+      cliente: ['', Validators.required],  // id_empresa
+      domain: ['', Validators.required],   // dominio (colegio.cl)
+      email: ['', []],                     // opcional para 1 solo usuario
     });
   }
 
@@ -48,10 +46,10 @@ export class AgregarUsuarioPage implements OnInit, OnDestroy {
   }
 
   cargarClientes() {
-    this.cargandoClientes = true; // ← CAMBIÉ cargandoEmpresas por cargandoClientes
-    this.api.getClientes().subscribe(
+    this.cargandoClientes = true;
+    this.api.getClientes().pipe(takeUntil(this.destroy$)).subscribe(
       (data) => {
-        this.clientes = data; // ← CORREGIDO: ahora sí existe this.clientes
+        this.clientes = data;
         this.cargandoClientes = false;
       },
       (error) => {
@@ -62,92 +60,114 @@ export class AgregarUsuarioPage implements OnInit, OnDestroy {
     );
   }
 
-  abrirFormularioUsuario() {
-    const cliente = this.usuarioForm.get('cliente')?.value; // ← CAMBIÉ empresa por cliente
-    if (!cliente) {
-      this.showToast('Primero selecciona un cliente');
+  /* ===================== SYNC GOOGLE ===================== */
+
+  async syncGoogle() {
+    if (this.usuarioForm.get('cliente')?.invalid || this.usuarioForm.get('domain')?.invalid) {
+      this.usuarioForm.get('cliente')?.markAsTouched();
+      this.usuarioForm.get('domain')?.markAsTouched();
+      this.showToast('Selecciona un cliente y un dominio');
       return;
     }
 
-    this.mostrarFormularioUsuario = true;
+    const empresaId = this.usuarioForm.get('cliente')?.value;
+    const domain = (this.usuarioForm.get('domain')?.value || '').trim();
+    const email = (this.usuarioForm.get('email')?.value || '').trim();
 
-    // Resetear solo los campos de usuario, manteniendo el cliente seleccionado
-    this.usuarioForm.patchValue({
-      nombre: '',
-      email: '',
-      telefono: '',
-      clienteId: ''
-    });
-  }
-
-  cerrarFormularioUsuario() {
-    this.mostrarFormularioUsuario = false;
-    // Mantener el cliente seleccionado pero limpiar los demás campos
-    const clienteSeleccionado = this.usuarioForm.get('cliente')?.value; // ← CAMBIÉ empresa por cliente
-    this.usuarioForm.reset({ cliente: clienteSeleccionado });
-  }
-
-  async crearUsuario() {
-    if (this.usuarioForm.invalid) {
-      this.marcarCamposUsuarioComoSucios();
-      return;
-    }
-
-    const clienteId = this.usuarioForm.get('cliente')?.value; // ← CAMBIÉ empresa por cliente
-    if (!clienteId) {
-      this.showToast('Debe seleccionar un cliente');
+    if (!domain) {
+      this.showToast('El dominio es requerido');
       return;
     }
 
     const loading = await this.loadingController.create({
-      message: 'Creando usuario...',
+      message: email
+        ? 'Sincronizando usuario desde Google Workspace...'
+        : 'Sincronizando todos los usuarios de Google Workspace...',
     });
     await loading.present();
 
-    const usuarioData = {
-      empresaId: clienteId, // ← En el backend sigue siendo empresaId, pero en frontend es cliente
-      nombre: this.usuarioForm.get('nombre')?.value,
-      email: this.usuarioForm.get('email')?.value || undefined,
-      telefono: this.usuarioForm.get('telefono')?.value || undefined,
-      clienteId: this.usuarioForm.get('clienteId')?.value || undefined
-    };
+    this.sincronizando = true;
+    this.resultadoSync = null;
 
-    this.api.crearUsuario(usuarioData).subscribe(
-      async (response: any) => {
+    const obs$ = email
+      ? this.api.syncGoogleUser({ domain, empresaId, email })
+      : this.api.syncGoogleAll({ domain, empresaId });
+
+    obs$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: async (res: any) => {
         await loading.dismiss();
-        this.showToast(`Usuario creado exitosamente`);
-        this.cerrarFormularioUsuario();
+        this.sincronizando = false;
+        this.resultadoSync = {
+          origen: 'Google Workspace',
+          ...res,
+        };
+        this.showToast('Sincronización Google finalizada');
       },
-      async (error) => {
+      error: async (err) => {
         await loading.dismiss();
-        console.error('Error al crear usuario:', error);
-
-        let mensajeError = 'Error al crear el usuario';
-        if (error.error?.error) {
-          mensajeError = error.error.error;
-        } else if (error.status === 400) {
-          mensajeError = error.error?.error || 'Datos inválidos';
-        } else if (error.status === 500) {
-          mensajeError = 'Error interno del servidor';
-        }
-
-        this.showToast(mensajeError);
-      }
-    );
-  }
-
-  private marcarCamposUsuarioComoSucios() {
-    Object.keys(this.usuarioForm.controls).forEach(key => {
-      if (key !== 'cliente') { // ← CAMBIÉ empresa por cliente
-        this.usuarioForm.get(key)?.markAsTouched();
-      }
+        this.sincronizando = false;
+        console.error('Error al sincronizar Google:', err);
+        const msg = err?.error?.error || 'Error al sincronizar usuarios de Google';
+        this.showToast(msg);
+      },
     });
-    this.showToast('Por favor, completa los campos requeridos');
   }
 
-  getClienteSeleccionadoNombre(): string { // ← CAMBIÉ getEmpresaSeleccionadaNombre por getClienteSeleccionadoNombre
-    const clienteId = this.usuarioForm.get('cliente')?.value; // ← CAMBIÉ empresa por cliente
-    const cliente = this.clientes.find(c => c.id_empresa === clienteId); // ← CAMBIÉ empresas por clientes
+  /* ===================== SYNC MICROSOFT ===================== */
+
+  async syncMicrosoft() {
+    if (this.usuarioForm.get('cliente')?.invalid) {
+      this.usuarioForm.get('cliente')?.markAsTouched();
+      this.showToast('Selecciona un cliente');
+      return;
+    }
+
+    const empresaId = this.usuarioForm.get('cliente')?.value;
+    const domain = (this.usuarioForm.get('domain')?.value || '').trim();
+    const email = (this.usuarioForm.get('email')?.value || '').trim();
+
+    const loading = await this.loadingController.create({
+      message: email
+        ? 'Sincronizando usuario desde Microsoft 365...'
+        : 'Sincronizando todos los usuarios de Microsoft 365...',
+    });
+    await loading.present();
+
+    this.sincronizando = true;
+    this.resultadoSync = null;
+
+    const payloadBase: any = { empresaId };
+    if (domain) payloadBase.domain = domain;
+
+    const obs$ = email
+      ? this.api.syncMicrosoftUser({ ...payloadBase, email })
+      : this.api.syncMicrosoftAll({ ...payloadBase, concurrency: 8, chunkSize: 200 });
+
+    obs$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: async (res: any) => {
+        await loading.dismiss();
+        this.sincronizando = false;
+        this.resultadoSync = {
+          origen: 'Microsoft 365',
+          ...res,
+        };
+        this.showToast('Sincronización Microsoft finalizada');
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        this.sincronizando = false;
+        console.error('Error al sincronizar Microsoft:', err);
+        const msg = err?.error?.error || 'Error al sincronizar usuarios de Microsoft';
+        this.showToast(msg);
+      },
+    });
+  }
+
+  /* ===================== Helpers ===================== */
+
+  getClienteSeleccionadoNombre(): string {
+    const clienteId = this.usuarioForm.get('cliente')?.value;
+    const cliente = this.clientes.find((c) => c.id_empresa === clienteId);
     return cliente ? cliente.nombre : 'Selecciona un cliente';
   }
 
@@ -160,21 +180,13 @@ export class AgregarUsuarioPage implements OnInit, OnDestroy {
     await toast.present();
   }
 
-  // Validación en tiempo real para email
+  // Validación simple de email (opcional)
   validarEmail(): boolean {
     const email = this.usuarioForm.get('email')?.value;
     if (email && email.trim() !== '') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(email);
     }
-    return true; // Email vacío es válido (es opcional)
-  }
-
-  // HostListener para cerrar con escape key
-  @HostListener('document:keydown.escape')
-  onEscapeKey() {
-    if (this.mostrarFormularioUsuario) {
-      this.cerrarFormularioUsuario();
-    }
+    return true; // vacío es válido, es opcional
   }
 }

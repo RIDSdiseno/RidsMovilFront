@@ -124,4 +124,34 @@ export class ApiService {
 
     return this.http.get(`${environment.apiUrl}/auth/sucursales/${sucursalId}/solicitantes`, { headers });
   }
+  /* ========= SYNC GOOGLE ========= */
+
+  syncGoogleAll(payload: { domain: string; empresaId: number }) {
+    return this.http.post(`${environment.apiUrl1}/sync/google/users`, payload);
+  }
+
+  syncGoogleUser(payload: { domain: string; empresaId: number; email: string }) {
+    return this.http.put(`${environment.apiUrl1}/sync/google/users`, payload);
+  }
+
+  /* ========= SYNC MICROSOFT ========= */
+
+  syncMicrosoftAll(payload: {
+    empresaId: number;
+    domain?: string;
+    concurrency?: number;
+    chunkSize?: number;
+  }) {
+    return this.http.post(`${environment.apiUrl1}/sync/microsoft/users`, payload);
+  }
+
+  syncMicrosoftUser(payload: {
+    empresaId: number;
+    domain?: string;
+    email: string;
+    concurrency?: number;
+  }) {
+    return this.http.put(`${environment.apiUrl1}/sync/microsoft/users`, payload);
+  }
+
 }
