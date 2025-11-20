@@ -2,7 +2,7 @@ import { DatePipe, registerLocaleData } from '@angular/common';
 import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, ToastController, Platform } from '@ionic/angular';
+import { AlertController, ToastController, Platform, LoadingController } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api';
 import { VisitaStateService } from 'src/app/services/visita-state';
 import { Subscription } from 'rxjs';
@@ -28,6 +28,8 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   visitas: any[] = [];
   filtradosSolicitantes: any[] = [];
   todosSolicitantes: any[] = [];
+
+  private isSaving: boolean = false;
 
   mostrarListaSolicitantes = false;
   busquedaSolicitante = '';
@@ -67,6 +69,7 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private visitaState: VisitaStateService,
     private platform: Platform,
+    private loadingCtrl: LoadingController,
   ) {
     this.visitaForm = this.fb.group({
       cliente: ['', Validators.required],
@@ -133,6 +136,18 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     [actividadesSub, otrosDetalleSub, clienteSub].forEach(sub => {
       if (sub) this.formSubscriptions.push(sub);
     });
+  }
+
+  //  Mostrar spinner bloqueante
+  private async presentLoading(mensaje: string = 'Guardando visita...') {
+    const loading = await this.loadingCtrl.create({
+      message: mensaje,
+      spinner: 'crescent',
+      backdropDismiss: false, // bloquea pantalla
+      cssClass: 'custom-loading',
+    });
+    await loading.present();
+    return loading;
   }
 
   ngOnDestroy() {
@@ -385,9 +400,9 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
         lat = position.coords.latitude;
         lon = position.coords.longitude;
       }
-/*
-      console.log('📍 Coordenadas obtenidas:', lat, lon);
-*/
+      /*
+            console.log('📍 Coordenadas obtenidas:', lat, lon);
+      */
       // ✅ GUARDAR COORDENADAS PARA EL BACKEND
       this.latitud = lat;
       this.longitud = lon;
@@ -908,93 +923,114 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
   }
 
   // Terminar visita con obtención automática de dirección actualizada
+  // Terminar visita con obtención automática de dirección actualizada
   async terminarVisita() {
-    if (!this.visitaId) {
-      const alert = await this.alertController.create({
-        header: 'Error',
-        message: 'No se ha iniciado ninguna visita. Por favor, inicia una visita antes de finalizarla.',
-        buttons: ['Aceptar']
-      });
-      await alert.present();
-      return;
-    }
+    if (this.isSaving) return; // 🔒 Evita doble clic
+    this.isSaving = true;
 
-    this.visitaForm.markAllAsTouched();
-    if (this.visitaForm.invalid) {
-      const alert = await this.alertController.create({
-        header: 'Formulario incompleto',
-        message: 'Por favor, completa todos los campos obligatorios antes de terminar la visita.',
-        buttons: ['Aceptar']
-      });
-      await alert.present();
-      return;
-    }
-
-    // Obtener dirección actualizada al finalizar
-    await this.obtenerDireccion();
-
-    this.fin = new Date();
-    this.visitaEnCurso = false;
-    this.estado = 'Completada';
-    this.estadoTexto = 'La visita ha sido registrada.';
-
-    const actividades = this.visitaForm.get('actividades')?.value || {};
-    const seleccion = this.visitaForm.get('solicitante')?.value as any[];
-
-    if (!Array.isArray(seleccion) || seleccion.length === 0) {
-      this.showToast('Por favor, selecciona al menos un solicitante.');
-      return;
-    }
-
-    // ✅ SOLUCIÓN: Formatear coordenadas para el backend
-    const coordenadasParaBackend = this.latitud && this.longitud
-      ? `${this.latitud},${this.longitud}`
-      : null;
-
-    const data = {
-      confImpresoras: actividades.impresoras,
-      confTelefonos: actividades.telefonos,
-      confPiePagina: actividades.pie,
-      otros: actividades.otros,
-      ccleaner: actividades.ccleaner,
-      actualizaciones: actividades.actualizaciones,
-      antivirus: actividades.antivirus,
-      estadoDisco: actividades.estadoDisco,
-      licenciaWindows: actividades.licenciaWindows,
-      licenciaOffice: actividades.licenciaOffice,
-      rendimientoEquipo: actividades.rendimientoEquipo,
-      mantenimientoReloj: actividades.mantenimientoReloj,
-      ecografo: actividades.ecografo,
-      otrosDetalle: this.visitaForm.value.otrosDetalle,
-      solicitantes: seleccion,
-      direccion_visita: coordenadasParaBackend,  // ← Solo coordenadas
-      sucursalId: this.visitaForm.value.sucursal || null,
-    };
-
-
-    this.api.completarVisita(this.visitaId, data).subscribe(
-      (response: any) => {
-        console.log('✅ RESPUESTA BACKEND:', response);
-        this.guardarVisita();
-        this.visitaState.clearState();
-        this.showToast('Visita finalizada con éxito');
-      },
-      async (err) => {
-        console.error('❌ completarVisita error:', err);
-        const detalle = (() => {
-          try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
-        })();
+    const loading = await this.presentLoading('Guardando visita...');
+    try {
+      if (!this.visitaId) {
+        await loading.dismiss();
+        this.isSaving = false;
         const alert = await this.alertController.create({
-          header: `Error al guardar (${err?.status || 'sin status'})`,
-          message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
-          buttons: ['OK']
+          header: 'Error',
+          message: 'No se ha iniciado ninguna visita. Por favor, inicia una visita antes de finalizarla.',
+          buttons: ['Aceptar']
         });
         await alert.present();
-        this.showToast('No se pudo finalizar la visita.');
+        return;
       }
-    );
 
+      this.visitaForm.markAllAsTouched();
+      if (this.visitaForm.invalid) {
+        await loading.dismiss();
+        this.isSaving = false;
+        const alert = await this.alertController.create({
+          header: 'Formulario incompleto',
+          message: 'Por favor, completa todos los campos obligatorios antes de terminar la visita.',
+          buttons: ['Aceptar']
+        });
+        await alert.present();
+        return;
+      }
+
+      // Obtener dirección actualizada al finalizar
+      await this.obtenerDireccion();
+
+      this.fin = new Date();
+      this.visitaEnCurso = false;
+      this.estado = 'Completada';
+      this.estadoTexto = 'La visita ha sido registrada.';
+
+      const actividades = this.visitaForm.get('actividades')?.value || {};
+      const seleccion = this.visitaForm.get('solicitante')?.value as any[];
+
+      if (!Array.isArray(seleccion) || seleccion.length === 0) {
+        await loading.dismiss();
+        this.isSaving = false;
+        this.showToast('Por favor, selecciona al menos un solicitante.');
+        return;
+      }
+
+      const coordenadasParaBackend = this.latitud && this.longitud
+        ? `${this.latitud},${this.longitud}`
+        : null;
+
+      const data = {
+        confImpresoras: actividades.impresoras,
+        confTelefonos: actividades.telefonos,
+        confPiePagina: actividades.pie,
+        otros: actividades.otros,
+        ccleaner: actividades.ccleaner,
+        actualizaciones: actividades.actualizaciones,
+        antivirus: actividades.antivirus,
+        estadoDisco: actividades.estadoDisco,
+        licenciaWindows: actividades.licenciaWindows,
+        licenciaOffice: actividades.licenciaOffice,
+        rendimientoEquipo: actividades.rendimientoEquipo,
+        mantenimientoReloj: actividades.mantenimientoReloj,
+        ecografo: actividades.ecografo,
+        otrosDetalle: this.visitaForm.value.otrosDetalle,
+        solicitantes: seleccion,
+        direccion_visita: coordenadasParaBackend,
+        sucursalId: this.visitaForm.value.sucursal || null,
+      };
+
+      this.api.completarVisita(this.visitaId, data).subscribe(
+        async (response: any) => {
+          console.log('✅ RESPUESTA BACKEND:', response);
+          this.guardarVisita();
+          this.visitaState.clearState();
+          this.showToast('Visita finalizada con éxito');
+        },
+        async (err) => {
+          console.error('❌ completarVisita error:', err);
+          this.showToast('No se pudo finalizar la visita.');
+          const detalle = (() => {
+            try { return JSON.stringify(err?.error || err, null, 2).slice(0, 1200); } catch { return String(err); }
+          })();
+          const alert = await this.alertController.create({
+            header: `Error al guardar (${err?.status || 'sin status'})`,
+            message: `<pre style="white-space:pre-wrap">${detalle}</pre>`,
+            buttons: ['OK']
+          });
+          await alert.present();
+        },
+        async () => {
+          await loading.dismiss();
+          this.isSaving = false;
+        }
+      );
+
+    } catch (error) {
+      console.error('Error general al guardar visita:', error);
+      this.showToast('Error inesperado al guardar visita.');
+      await loading.dismiss();
+      this.isSaving = false;
+    }
   }
+
 
   resetFormulario() {
     this.visitaForm.reset();
@@ -1080,24 +1116,24 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
     this.showToast(message);
   }
 
-async refrescarUsuarios() {
-  try {
-    await this.cargarUsuarios(); // Recarga los usuarios
+  async refrescarUsuarios() {
+    try {
+      await this.cargarUsuarios(); // Recarga los usuarios
 
-    if (this.cargarClientes) {
-      await this.cargarClientes(); // Si existe esta función, también recarga clientes
-    }
+      if (this.cargarClientes) {
+        await this.cargarClientes(); // Si existe esta función, también recarga clientes
+      }
 
-    if (this.presentToast) {
-      this.presentToast("Usuarios actualizados");
-    }
-  } catch (error) {
-    console.error("Error al refrescar usuarios", error);
-    if (this.presentToast) {
-      this.presentToast("Error al refrescar");
+      if (this.presentToast) {
+        this.presentToast("Usuarios actualizados");
+      }
+    } catch (error) {
+      console.error("Error al refrescar usuarios", error);
+      if (this.presentToast) {
+        this.presentToast("Error al refrescar");
+      }
     }
   }
-}
 
 
 

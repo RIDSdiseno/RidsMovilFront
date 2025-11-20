@@ -310,3 +310,10 @@ ion-item {
         font-size: 14px;
     }
 }
+
+.custom-loading {
+    --spinner-color: var(--ion-color-primary);
+    --background: rgba(255, 255, 255, 0.9);
+    color: var(--ion-color-dark);
+    font-weight: 500;
+}
