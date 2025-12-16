@@ -5,7 +5,7 @@
 export const environment = {
   apiUrl: 'https://ridsmovilback.railway.internal/api', 
   apiUrl1: 'https://rids-intranet-backend-production.up.railway.app/api',
-  production: false
+  production: true
 };
 
 /*
