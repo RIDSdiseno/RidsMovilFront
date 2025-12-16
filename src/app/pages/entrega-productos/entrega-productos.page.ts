@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { ToastController } from '@ionic/angular';
-import { ApiService } from 'src/app/services/api';
+import { EvidenciasService, EvidenciaTipo } from 'src/app/services/evidencias.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -11,7 +11,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class EntregaProductosPage implements OnInit, AfterViewInit {
   private readonly toastController = inject(ToastController);
-  private readonly api = inject(ApiService);
+  private readonly evidenciasService = inject(EvidenciasService);
   private readonly submittedFingerprintsStorageKey = 'rids.entregaProductos.submittedFingerprints.v1';
   private readonly maxUploadImageBytes = 220_000;
   private readonly maxUploadImageDimension = 1280;
@@ -27,11 +27,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   signatureDataUrl: string | null = null;
 
   receptorNombre = '';
-  empresaId: number | null = null;
   empresaNombre = '';
   fechaEntrega: Date = new Date();
   fechaEntregaTexto = '';
-  clientes: any[] = [];
   isRegistering = false;
   private readonly submittedFingerprints = new Set<string>();
 
@@ -49,8 +47,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
       this.selectedImage &&
         this.hasSignature &&
         this.receptorNombre.trim() &&
-        this.empresaId !== null &&
-        this.empresaId !== undefined &&
+        this.empresaNombre.trim() &&
         !this.isDuplicateSubmission
     );
   }
@@ -59,7 +56,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.tecnicoNombre = this.getTecnicoNombre();
     this.loadSubmittedFingerprints();
     this.setFechaEntrega(new Date());
-    this.cargarClientes();
   }
 
   ngAfterViewInit() {
@@ -87,17 +83,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
 
   openFilePicker() {
     this.fileInput?.nativeElement.click();
-  }
-
-  onEmpresaChange() {
-    if (this.empresaId === null || this.empresaId === undefined) {
-      this.empresaNombre = '';
-      return;
-    }
-
-    const idNum = Number(this.empresaId);
-    const match = this.clientes.find((c: any) => Number(c?.id_empresa) === idNum);
-    this.empresaNombre = match?.nombre ? String(match.nombre) : '';
   }
 
   clearImage() {
@@ -211,16 +196,11 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         await this.showToast('Ingresa el nombre de quien recibe.');
         return;
       }
-      if (this.empresaId === null || this.empresaId === undefined) {
-        await this.showToast('Selecciona una empresa.');
+      if (!this.empresaNombre.trim()) {
+        await this.showToast('Ingresa la empresa.');
         return;
       }
-      const empresaFinal = this.resolveEmpresaNombre();
-      if (!empresaFinal) {
-        await this.showToast('Selecciona una empresa.');
-        return;
-      }
-      this.empresaNombre = empresaFinal;
+      this.empresaNombre = this.empresaNombre.trim();
 
       const signatureDataUrl = this.signatureCanvas?.nativeElement?.toDataURL('image/png') || null;
       if (!signatureDataUrl) {
@@ -243,51 +223,41 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         quality: 0.75,
       });
 
-      const payload = {
-        receptorNombre: this.receptorNombre.trim(),
-        empresaId: Number(this.empresaId),
-        fechaEntrega: this.fechaEntrega.toISOString(),
-        imagenEntrega: imagenEntregaDataUrl,
-        firmaDigital: signatureDataUrl,
-      };
+      const entregaResp = await firstValueFrom(
+        this.evidenciasService.crearEntrega({
+          empresaNombre: this.empresaNombre,
+          receptorNombre: this.receptorNombre.trim(),
+          fecha: this.fechaEntrega.toISOString(),
+        })
+      );
 
-      let resp: any;
-      try {
-        resp = await firstValueFrom(this.api.registrarEntregaProducto(payload));
-      } catch (err: any) {
-        if (err?.status !== 413) throw err;
-        const imagenEntregaMasLiviana = await this.compressPhotoDataUrl(this.selectedImage.dataUrl, {
-          maxBytes: Math.min(140_000, this.maxUploadImageBytes),
-          maxDimension: 960,
-          quality: 0.65,
-        });
-        resp = await firstValueFrom(
-          this.api.registrarEntregaProducto({
-            ...payload,
-            imagenEntrega: imagenEntregaMasLiviana,
-          })
-        );
+      const entregaId = (
+        entregaResp?.entrega?.id_entrega ?? entregaResp?.entrega?.id ?? entregaResp?.id_entrega ?? null
+      );
+
+      if (!entregaId) {
+        throw new Error('No se pudo crear la entrega en el backend.');
       }
-      console.log('Entrega guardada en backend:', resp);
+
+      await this.subirEvidencia(entregaId, 'foto', imagenEntregaDataUrl);
+      await this.subirEvidencia(entregaId, 'firma', signatureDataUrl);
+
+      console.log('Entrega guardada en backend:', entregaResp);
       if (fingerprint) {
         this.submittedFingerprints.add(fingerprint);
         this.persistSubmittedFingerprints();
       }
       await this.showToast('Entrega registrada.');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error registrando entrega:', err);
       const message =
-        err?.status === 413
-          ? 'La imagen es muy pesada para el servidor. Intenta con una foto más liviana.'
-          : err?.error?.error ||
-            err?.error?.message ||
-            'No se pudo registrar la entrega.';
+        (err as any)?.error?.error || (err as any)?.error?.message || (err as any)?.message ||
+        'No se pudo registrar la entrega.';
       await this.showToast(message);
     } finally {
       this.isRegistering = false;
     }
   }
-
   private clearSignatureCanvas() {
     const canvas = this.signatureCanvas?.nativeElement;
     if (!canvas) return;
@@ -429,14 +399,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   }
 
   private resolveEmpresaNombre(): string {
-    const fromState = this.empresaNombre.trim();
-    if (fromState) return fromState;
-
-    if (this.empresaId === null || this.empresaId === undefined) return '';
-    const idNum = Number(this.empresaId);
-    const match = this.clientes.find((c: any) => Number(c?.id_empresa) === idNum);
-    const nombre = match?.nombre ? String(match.nombre).trim() : '';
-    return nombre;
+    return this.empresaNombre.trim();
   }
 
   private loadImage(dataUrl: string): Promise<HTMLImageElement> {
@@ -510,6 +473,79 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     }
   }
 
+  private async subirEvidencia(entregaId: number, tipo: EvidenciaTipo, dataUrl: string) {
+    const info = this.parseDataUrl(dataUrl, tipo === 'foto' ? 'jpeg' : 'png');
+    const signature = await firstValueFrom(
+      this.evidenciasService.solicitarFirmaSubida(entregaId, {
+        tipo,
+        formato: info.formato,
+        bytes: info.bytes,
+      })
+    );
+
+    const allowed = (signature.allowedFormats || []).map((f) => this.normalizeFormat(f));
+    if (allowed.length && !allowed.includes(info.formato)) {
+      throw new Error('El formato de la evidencia no es admitido por el servidor.');
+    }
+
+    if (signature.maxBytes && info.bytes > signature.maxBytes) {
+      throw new Error('La evidencia supera el tamano permitido para la subida.');
+    }
+
+    const uploadResp = await this.evidenciasService.uploadToCloudinary(
+      signature,
+      info.blob,
+      `${tipo}-${entregaId}.${this.formatExtension(info.formato)}`
+    );
+
+    const url = uploadResp?.secure_url || uploadResp?.url;
+    const publicId = uploadResp?.public_id || uploadResp?.publicId || uploadResp?.public_id;
+    const bytes = Number(uploadResp?.bytes) || info.bytes;
+
+    if (!url || !publicId) {
+      throw new Error('No se pudo confirmar la evidencia (respuesta incompleta de subida).');
+    }
+
+    await firstValueFrom(
+      this.evidenciasService.confirmarEvidencia(entregaId, {
+        tipo,
+        formato: info.formato,
+        bytes,
+        url,
+        publicId,
+      })
+    );
+  }
+
+  private parseDataUrl(dataUrl: string, fallbackExt: string) {
+    const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+    if (!match) {
+      throw new Error('No se pudo leer la imagen seleccionada.');
+    }
+    const mime = match[1] || `image/${fallbackExt}`;
+    const base64 = match[2];
+    const binary = atob(base64);
+    const len = binary.length;
+    const arr = new Uint8Array(len);
+    for (let i = 0; i < len; i += 1) {
+      arr[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([arr], { type: mime });
+    const formatoRaw = (mime.split('/').pop() || fallbackExt).toLowerCase();
+    const formato = this.normalizeFormat(formatoRaw) || fallbackExt.toLowerCase();
+    return { blob, formato, bytes: blob.size || len };
+  }
+
+  private normalizeFormat(format: string) {
+    const val = (format || '').toLowerCase();
+    if (val === 'jpg') return 'jpeg';
+    return val;
+  }
+
+  private formatExtension(format: string) {
+    return format === 'jpeg' ? 'jpg' : format;
+  }
+
   private fileToDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -522,13 +558,13 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   private computeCurrentFingerprint(signatureDataUrl: string | null = this.signatureDataUrl): string | null {
     if (!this.selectedImage) return null;
     if (!this.receptorNombre.trim()) return null;
-    if (this.empresaId === null || this.empresaId === undefined) return null;
+    if (!this.empresaNombre.trim()) return null;
     if (!signatureDataUrl) return null;
 
     const file = this.selectedImage.file;
     const base = JSON.stringify({
       receptor: this.receptorNombre.trim().toLowerCase(),
-      empresaId: Number(this.empresaId),
+      empresa: this.empresaNombre.trim().toLowerCase(),
       file: {
         name: file.name,
         size: file.size,
@@ -595,16 +631,4 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fechaEntregaTexto = date.toLocaleString('es-CL');
   }
 
-  private cargarClientes() {
-    this.api.getClientes().subscribe({
-      next: (data: any) => {
-        this.clientes = data || [];
-        this.onEmpresaChange();
-      },
-      error: async () => {
-        this.clientes = [];
-        await this.showToast('No se pudieron cargar las empresas.');
-      },
-    });
-  }
 }

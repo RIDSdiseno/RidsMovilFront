@@ -28,17 +28,11 @@
 
         <ion-item class="form-item" lines="none">
           <ion-label position="stacked">Empresa *</ion-label>
-          <ion-select
-            [(ngModel)]="empresaId"
-            name="empresaId"
-            placeholder="Selecciona una empresa"
-            interface="action-sheet"
-            (ionChange)="onEmpresaChange()"
-          >
-            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
-              {{ cliente.nombre }}
-            </ion-select-option>
-          </ion-select>
+          <ion-input
+            [(ngModel)]="empresaNombre"
+            name="empresaNombre"
+            placeholder="Ej: Acme Ltda."
+          ></ion-input>
         </ion-item>
 
         <ion-item class="form-item" lines="none">
@@ -118,7 +112,7 @@
       </div>
 
       <ion-text color="medium">
-        Pantalla en construcción. Dime qué campos necesitas (producto, cantidad, cliente, firma, etc.) y la armamos.
+        Las evidencias se envian como foto y firma. Usa imagenes livianas (max 5MB) para evitar rechazos.
       </ion-text>
     </ion-card-content>
   </ion-card>
