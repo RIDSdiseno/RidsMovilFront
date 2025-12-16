@@ -37,6 +37,10 @@ const routes: Routes = [
     path: 'agregar-usuario',
     loadChildren: () => import('./pages/agregar-usuario/agregar-usuario.module').then(m => m.AgregarUsuarioPageModule)
   },
+  {
+    path: 'entrega-productos',
+    loadChildren: () => import('./pages/entrega-productos/entrega-productos.module').then(m => m.EntregaProductosPageModule)
+  },
 
   // comodín
   { path: '**', redirectTo: 'home' }

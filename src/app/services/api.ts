@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth-service';
-import { environment } from 'src/environments/environment.prod';  // para usar apiUrl desde environment.ts
+import { environment } from 'src/environments/environment';  // para usar apiUrl desde environment.ts
 
 @Injectable({
   providedIn: 'root'
@@ -88,6 +88,23 @@ export class ApiService {
     });
 
     return this.http.post(`${environment.apiUrl}/auth/crearequipo`, data, { headers });
+  }
+
+  registrarEntregaProducto(data: {
+    receptorNombre: string;
+    empresaId: number;
+    fechaEntrega?: string;
+    imagenEntrega?: string | null;
+    firmaDigital?: string | null;
+    items?: any;
+  }): Observable<any> {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    });
+
+    return this.http.post(`${environment.apiUrl}/entregas`, data, { headers });
   }
 
   // Método para crear solicitante

@@ -94,3 +94,7 @@ li {
         }
     }
 }
+
+ion-content.has-footer-menu {
+    --padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}

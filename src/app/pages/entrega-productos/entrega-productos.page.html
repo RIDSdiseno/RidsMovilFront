@@ -1,0 +1,127 @@
+<ion-header>
+  <ion-toolbar class="custom-header-toolbar">
+    <ion-title class="header-title">Entrega de productos</ion-title>
+    <ion-buttons slot="end">
+      <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding has-footer-menu" fullscreen="true">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Registro de entrega</ion-card-title>
+      <ion-card-subtitle>Acá podrás registrar la entrega de productos.</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="section">
+        <ion-label class="section-label">Datos del receptor</ion-label>
+
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked">Nombre de quien recibe *</ion-label>
+          <ion-input
+            [(ngModel)]="receptorNombre"
+            name="receptorNombre"
+            placeholder="Ej: Juan Pérez"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked">Empresa *</ion-label>
+          <ion-select
+            [(ngModel)]="empresaId"
+            name="empresaId"
+            placeholder="Selecciona una empresa"
+            interface="action-sheet"
+            (ionChange)="onEmpresaChange()"
+          >
+            <ion-select-option *ngFor="let cliente of clientes" [value]="cliente.id_empresa">
+              {{ cliente.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked">Fecha</ion-label>
+          <ion-input [value]="fechaEntregaTexto" readonly></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="section">
+        <ion-label class="section-label">Imagen (foto de entrega)</ion-label>
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          hidden
+        />
+        <ion-button expand="block" (click)="openFilePicker()">
+          <ion-icon name="image-outline" slot="start"></ion-icon>
+          Subir imagen
+        </ion-button>
+
+        <ion-card class="preview-card" *ngIf="selectedImage as img">
+          <ion-card-content>
+            <img class="preview-image" [src]="img.dataUrl" alt="Imagen seleccionada" />
+            <div class="preview-actions">
+              <ion-text color="medium" class="file-meta">
+                {{ img.file.name }}
+              </ion-text>
+              <ion-button fill="clear" color="danger" (click)="clearImage()">
+                <ion-icon name="trash-outline" slot="start"></ion-icon>
+                Quitar
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div class="section">
+        <ion-label class="section-label">Firma digital (acredita la entrega)</ion-label>
+
+        <ion-card class="signature-card">
+          <ion-card-content>
+            <div class="signature-wrapper">
+              <canvas
+                #signatureCanvas
+                class="signature-canvas"
+                (pointerdown)="onSignaturePointerDown($event)"
+                (pointermove)="onSignaturePointerMove($event)"
+                (pointerup)="onSignaturePointerUp($event)"
+                (pointercancel)="onSignaturePointerUp($event)"
+                (pointerleave)="onSignaturePointerUp($event)"
+              ></canvas>
+            </div>
+
+            <div class="signature-actions">
+              <ion-button fill="outline" (click)="clearSignature()" [disabled]="!hasSignature">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Limpiar firma
+              </ion-button>
+            </div>
+
+            <ion-note color="medium" class="signature-hint">Firma con el dedo o mouse.</ion-note>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button
+          expand="block"
+          color="primary"
+          class="register-btn"
+          (click)="registrarEntrega()"
+          [disabled]="!canRegistrarEntrega || isRegistering"
+        >
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Registrar entrega
+        </ion-button>
+      </div>
+
+      <ion-text color="medium">
+        Pantalla en construcción. Dime qué campos necesitas (producto, cantidad, cliente, firma, etc.) y la armamos.
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+<app-footer-menu></app-footer-menu>
