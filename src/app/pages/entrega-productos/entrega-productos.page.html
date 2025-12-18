@@ -50,10 +50,24 @@
           (change)="onFileSelected($event)"
           hidden
         />
-        <ion-button expand="block" (click)="openFilePicker()">
-          <ion-icon name="image-outline" slot="start"></ion-icon>
-          Subir imagen
-        </ion-button>
+        <input
+          #cameraInput
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="onFileSelected($event)"
+          hidden
+        />
+        <div class="photo-actions">
+          <ion-button expand="block" (click)="openFilePicker()">
+            <ion-icon name="image-outline" slot="start"></ion-icon>
+            Subir imagen
+          </ion-button>
+          <ion-button expand="block" color="secondary" (click)="openCameraPicker()">
+            <ion-icon name="camera-outline" slot="start"></ion-icon>
+            Tomar foto
+          </ion-button>
+        </div>
 
         <ion-card class="preview-card" *ngIf="selectedImage as img">
           <ion-card-content>

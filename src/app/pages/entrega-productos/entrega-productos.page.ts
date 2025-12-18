@@ -19,6 +19,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   @ViewChild('fileInput', { static: false })
   fileInput?: ElementRef<HTMLInputElement>;
 
+  @ViewChild('cameraInput', { static: false })
+  cameraInput?: ElementRef<HTMLInputElement>;
+
   @ViewChild('signatureCanvas', { static: false })
   signatureCanvas?: ElementRef<HTMLCanvasElement>;
 
@@ -85,9 +88,14 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fileInput?.nativeElement.click();
   }
 
+  openCameraPicker() {
+    this.cameraInput?.nativeElement.click();
+  }
+
   clearImage() {
     this.selectedImage = null;
     if (this.fileInput) this.fileInput.nativeElement.value = '';
+    if (this.cameraInput) this.cameraInput.nativeElement.value = '';
   }
 
   async onFileSelected(event: Event) {
@@ -115,6 +123,13 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
       quality: 0.75,
     });
     this.selectedImage = { file, dataUrl: compressedDataUrl };
+
+    if (input === this.fileInput?.nativeElement && this.cameraInput) {
+      this.cameraInput.nativeElement.value = '';
+    }
+    if (input === this.cameraInput?.nativeElement && this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 
   clearSignature() {
