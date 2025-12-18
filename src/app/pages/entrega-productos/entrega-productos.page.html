@@ -132,4 +132,29 @@
   </ion-card>
 </ion-content>
 
+<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Estado de la entrega</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="confirmarModalEntrega()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-text>
+        <h2>Entrega registrada</h2>
+        <p>{{ estadoEntregaMensaje }}</p>
+      </ion-text>
+      <ion-button expand="block" color="primary" (click)="confirmarModalEntrega()">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Entendido
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
 <app-footer-menu></app-footer-menu>

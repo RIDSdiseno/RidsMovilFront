@@ -1,3 +1,4 @@
+// ./src/app/service/evidencias.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,16 +8,21 @@ import { AuthService } from './auth-service';
 export type EvidenciaTipo = 'foto' | 'firma';
 
 export type UploadSignatureResponse = {
-  apiKey: string;
-  cloudName: string;
-  folder: string;
-  publicId: string;
-  signature: string;
-  timestamp: number;
+  // Para fotos (Cloudinary)
+  apiKey?: string;
+  cloudName?: string;
+  folder?: string;
+  publicId?: string;
+  signature?: string;
+  timestamp?: number;
   resourceType?: string;
   allowedFormats?: string[];
   maxBytes?: number;
   uploadUrl?: string;
+  // Para firmas (sin upload)
+  requiresUpload?: boolean;
+  storage?: string;
+  message?: string;
 };
 
 @Injectable({
@@ -31,7 +37,6 @@ export class EvidenciasService {
       receptorNombre: payload.receptorNombre,
       fecha: payload.fecha ? new Date(payload.fecha).toISOString() : undefined,
     };
-
     return this.http.post(`${environment.apiUrl}/entregas`, body, { headers: this.buildAuthHeaders() });
   }
 
@@ -44,7 +49,6 @@ export class EvidenciasService {
       formato: data.formato || undefined,
       bytes: data.bytes ?? undefined,
     };
-
     return this.http.post<UploadSignatureResponse>(
       `${environment.apiUrl}/entregas/${entregaId}/evidencias/firma`,
       body,
@@ -54,7 +58,14 @@ export class EvidenciasService {
 
   confirmarEvidencia(
     entregaId: number,
-    data: { tipo: EvidenciaTipo; formato: string; bytes: number; url: string; publicId: string }
+    data: {
+      tipo: EvidenciaTipo;
+      formato?: string;
+      bytes?: number;
+      url?: string;
+      publicId?: string;
+      vector?: any; // payload de firma vectorial
+    }
   ): Observable<any> {
     return this.http.post(
       `${environment.apiUrl}/entregas/${entregaId}/evidencias/confirmar`,
@@ -63,11 +74,12 @@ export class EvidenciasService {
     );
   }
 
-  async uploadToCloudinary(
-    signature: UploadSignatureResponse,
-    file: Blob,
-    fileName: string
-  ): Promise<any> {
+  async uploadToCloudinary(signature: UploadSignatureResponse, file: Blob, fileName: string): Promise<any> {
+    if (!signature.cloudName) throw new Error('cloudName no recibido');
+    if (!signature.apiKey || !signature.signature || !signature.timestamp) {
+      throw new Error('Faltan datos de firma para Cloudinary');
+    }
+
     const endpoint =
       signature.uploadUrl ||
       `https://api.cloudinary.com/v1_1/${signature.cloudName}/${signature.resourceType || 'auto'}/upload`;

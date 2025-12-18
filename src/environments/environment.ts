@@ -3,11 +3,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  apiUrl: 'https://ridsmovilback-production.up.railway.app/api',
+  apiUrl: 'https://ridsmovilback.railway.internal/api', 
   apiUrl1: 'https://rids-intranet-backend-production.up.railway.app/api',
   production: true
 };
-
 
 /*
  * For easier debugging in development mode, you can import the following file

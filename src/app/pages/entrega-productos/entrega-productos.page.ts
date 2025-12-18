@@ -1,3 +1,4 @@
+// ./src/app/pages/entrega-productos/entrega-productos.page.ts
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { EvidenciasService, EvidenciaTipo } from 'src/app/services/evidencias.service';
@@ -28,6 +29,8 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   selectedImage: { file: File; dataUrl: string } | null = null;
   hasSignature = false;
   signatureDataUrl: string | null = null;
+  mostrarModalEstado = false;
+  estadoEntregaMensaje = '';
 
   receptorNombre = '';
   empresaNombre = '';
@@ -246,9 +249,8 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         })
       );
 
-      const entregaId = (
-        entregaResp?.entrega?.id_entrega ?? entregaResp?.entrega?.id ?? entregaResp?.id_entrega ?? null
-      );
+      const entregaId =
+        entregaResp?.entrega?.id_entrega ?? entregaResp?.entrega?.id ?? entregaResp?.id_entrega ?? null;
 
       if (!entregaId) {
         throw new Error('No se pudo crear la entrega en el backend.');
@@ -262,17 +264,38 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         this.submittedFingerprints.add(fingerprint);
         this.persistSubmittedFingerprints();
       }
-      await this.showToast('Entrega registrada.');
+      this.estadoEntregaMensaje = 'La entrega se genero correctamente.';
+      this.mostrarModalEstado = true;
     } catch (err) {
       console.error('Error registrando entrega:', err);
       const message =
-        (err as any)?.error?.error || (err as any)?.error?.message || (err as any)?.message ||
+        (err as any)?.error?.error ||
+        (err as any)?.error?.message ||
+        (err as any)?.message ||
         'No se pudo registrar la entrega.';
       await this.showToast(message);
     } finally {
       this.isRegistering = false;
     }
   }
+
+  confirmarModalEntrega() {
+    this.mostrarModalEstado = false;
+    this.resetFormulario();
+  }
+
+  private resetFormulario() {
+    this.receptorNombre = '';
+    this.empresaNombre = '';
+    this.selectedImage = null;
+    this.hasSignature = false;
+    this.signatureDataUrl = null;
+    if (this.fileInput) this.fileInput.nativeElement.value = '';
+    this.clearSignatureCanvas();
+    this.setFechaEntrega(new Date());
+    requestAnimationFrame(() => this.resizeSignatureCanvas());
+  }
+
   private clearSignatureCanvas() {
     const canvas = this.signatureCanvas?.nativeElement;
     if (!canvas) return;
@@ -341,10 +364,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   }
 
   private async mergePhotoAndSignature(photoDataUrl: string, signatureDataUrl: string): Promise<string> {
-    const [photo, signature] = await Promise.all([
-      this.loadImage(photoDataUrl),
-      this.loadImage(signatureDataUrl),
-    ]);
+    const [photo, signature] = await Promise.all([this.loadImage(photoDataUrl), this.loadImage(signatureDataUrl)]);
 
     const canvas = document.createElement('canvas');
     canvas.width = photo.naturalWidth || photo.width;
@@ -368,7 +388,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     if (String(empresa).trim()) lines.push(`Empresa: ${String(empresa).trim()}`);
     lines.push(`Fecha: ${now}`);
 
-    const minHeightForText = padding + (lines.length * lineHeight) + padding;
+    const minHeightForText = padding + lines.length * lineHeight + padding;
     const boxHeight = Math.min(
       canvas.height,
       Math.max(140, Math.round(canvas.height * 0.22), minHeightForText)
@@ -394,9 +414,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     ctx.font = `${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
     ctx.textBaseline = 'top';
 
-    const maxTextWidth = Math.max(0, sigX - (padding * 2));
+    const maxTextWidth = Math.max(0, sigX - padding * 2);
     lines.forEach((line, idx) => {
-      const y = overlayY + padding + (idx * lineHeight);
+      const y = overlayY + padding + idx * lineHeight;
       ctx.fillText(this.fitText(ctx, line, maxTextWidth), padding, y);
     });
 
@@ -489,7 +509,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   }
 
   private async subirEvidencia(entregaId: number, tipo: EvidenciaTipo, dataUrl: string) {
+    // Fotos: flujo Cloudinary. Firmas: se envía directo al backend como vector.
     const info = this.parseDataUrl(dataUrl, tipo === 'foto' ? 'jpeg' : 'png');
+
     const signature = await firstValueFrom(
       this.evidenciasService.solicitarFirmaSubida(entregaId, {
         tipo,
@@ -497,6 +519,22 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         bytes: info.bytes,
       })
     );
+
+    // Si es firma y el backend indica que no se sube (o no da cloudName), enviamos vector directamente.
+    if (tipo === 'firma' && (signature.requiresUpload === false || !signature.cloudName)) {
+      await firstValueFrom(
+        this.evidenciasService.confirmarEvidencia(entregaId, {
+          tipo: 'firma',
+          vector: dataUrl, // guardamos el dataURL como vector (string)
+        })
+      );
+      return;
+    }
+
+    // Para fotos, validamos y subimos a Cloudinary
+    if (!signature.cloudName) {
+      throw new Error('cloudName no recibido para la foto.');
+    }
 
     const allowed = (signature.allowedFormats || []).map((f) => this.normalizeFormat(f));
     if (allowed.length && !allowed.includes(info.formato)) {
@@ -645,5 +683,4 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fechaEntrega = date;
     this.fechaEntregaTexto = date.toLocaleString('es-CL');
   }
-
 }
