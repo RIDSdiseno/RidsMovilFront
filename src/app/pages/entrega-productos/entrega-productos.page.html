@@ -19,20 +19,18 @@
 
         <ion-item class="form-item" lines="none">
           <ion-label position="stacked">Nombre de quien recibe *</ion-label>
-          <ion-input
-            [(ngModel)]="receptorNombre"
-            name="receptorNombre"
-            placeholder="Ej: Juan Pérez"
-          ></ion-input>
+          <ion-input [(ngModel)]="receptorNombre" name="receptorNombre"
+            placeholder="Ingrese el nombre completo del encargado"></ion-input>
         </ion-item>
 
         <ion-item class="form-item" lines="none">
           <ion-label position="stacked">Empresa *</ion-label>
-          <ion-input
-            [(ngModel)]="empresaNombre"
-            name="empresaNombre"
-            placeholder="Ej: Acme Ltda."
-          ></ion-input>
+          <ion-select [(ngModel)]="empresaSeleccionadaId" name="empresaSeleccionadaId"
+            placeholder="Selecciona una empresa" interface="popover" (ionChange)="onEmpresaSeleccionada($event)">
+            <ion-select-option *ngFor="let e of empresas" [value]="e.id_empresa">
+              {{ e.nombre }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
 
         <ion-item class="form-item" lines="none">
@@ -43,16 +41,10 @@
 
       <div class="section">
         <ion-label class="section-label">Imagen (foto de entrega)</ion-label>
-        <input
-          #fileInput
-          type="file"
-          accept="image/*"
-          (change)="onFileSelected($event)"
-          hidden
-        />
-        <ion-button expand="block" (click)="openFilePicker()">
-          <ion-icon name="image-outline" slot="start"></ion-icon>
-          Subir imagen
+        <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+        <ion-button expand="block" (click)="seleccionarImagen()">
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          Tomar o subir imagen
         </ion-button>
 
         <ion-card class="preview-card" *ngIf="selectedImage as img">
@@ -77,15 +69,9 @@
         <ion-card class="signature-card">
           <ion-card-content>
             <div class="signature-wrapper">
-              <canvas
-                #signatureCanvas
-                class="signature-canvas"
-                (pointerdown)="onSignaturePointerDown($event)"
-                (pointermove)="onSignaturePointerMove($event)"
-                (pointerup)="onSignaturePointerUp($event)"
-                (pointercancel)="onSignaturePointerUp($event)"
-                (pointerleave)="onSignaturePointerUp($event)"
-              ></canvas>
+              <canvas #signatureCanvas class="signature-canvas" (pointerdown)="onSignaturePointerDown($event)"
+                (pointermove)="onSignaturePointerMove($event)" (pointerup)="onSignaturePointerUp($event)"
+                (pointercancel)="onSignaturePointerUp($event)" (pointerleave)="onSignaturePointerUp($event)"></canvas>
             </div>
 
             <div class="signature-actions">
@@ -94,18 +80,11 @@
                 Limpiar firma
               </ion-button>
             </div>
-
-            <ion-note color="medium" class="signature-hint">Firma con el dedo o mouse.</ion-note>
           </ion-card-content>
         </ion-card>
 
-        <ion-button
-          expand="block"
-          color="primary"
-          class="register-btn"
-          (click)="registrarEntrega()"
-          [disabled]="!canRegistrarEntrega || isRegistering"
-        >
+        <ion-button expand="block" color="primary" class="register-btn" (click)="registrarEntrega()"
+          [disabled]="!canRegistrarEntrega || isRegistering">
           <ion-icon name="save-outline" slot="start"></ion-icon>
           Registrar entrega
         </ion-button>

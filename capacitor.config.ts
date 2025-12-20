@@ -4,14 +4,14 @@ const config: CapacitorConfig = {
   appId: 'com.rids.RidsMovilFront',
   appName: 'RidsMovilFront',
   webDir: 'www',
+
   server: {
-    cleartext: true, // Permite conexiones HTTP no seguras en desarrollo
+    cleartext: true,
   },
 
   ios: {
-    // Ajustes específicos de iOS
-    contentInset: 'always', // Ajusta el padding automático (opcional)
-    scrollEnabled: true, // Si quieres permitir scroll nativo
+    contentInset: 'always',
+    scrollEnabled: true,
   },
 
   plugins: {
@@ -22,9 +22,15 @@ const config: CapacitorConfig = {
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true
-    }
-  }
-  
+    },
+
+    Camera: {
+      permissions: {
+        camera: 'prompt',
+        photos: 'prompt',
+      },
+    },
+  },
 };
 
 export default config;

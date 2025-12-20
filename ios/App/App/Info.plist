@@ -47,5 +47,15 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
     <string>Necesitamos acceder a tu ubicación para registrar la visita.</string>
 	<true/>
+
+	<key>NSCameraUsageDescription</key>
+<string>La cámara se utiliza para registrar la evidencia fotográfica de la entrega.</string>
+
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Se requiere acceso a la galería para subir imágenes de la entrega.</string>
+
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Se requiere guardar evidencias de la entrega.</string>
+
 </dict>
 </plist>

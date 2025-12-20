@@ -47,14 +47,14 @@ export class ApiService {
   }
 
   getHistorialPorTecnico(tecnicoId: number, page = 1, limit = 5) {
-  const token = this.authService.getToken();
-  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-  return this.http.get<any>(`${environment.apiUrl}/auth/historial/${tecnicoId}`, {
-    headers,
-    params: { page, limit }
-  });
-}
+    return this.http.get<any>(`${environment.apiUrl}/auth/historial/${tecnicoId}`, {
+      headers,
+      params: { page, limit }
+    });
+  }
 
   getSolicitantes(empresaId: number): Observable<any> {
     return this.http.get(`${environment.apiUrl}/auth/solicitantes?empresaId=${empresaId}`);

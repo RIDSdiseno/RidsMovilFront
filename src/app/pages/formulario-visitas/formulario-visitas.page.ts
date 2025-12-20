@@ -1165,7 +1165,4 @@ export class FormularioVisitasPage implements OnInit, OnDestroy {
 
   }
 
-
-
-
 }

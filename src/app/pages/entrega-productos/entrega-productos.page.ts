@@ -3,6 +3,10 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild, 
 import { ToastController } from '@ionic/angular';
 import { EvidenciasService, EvidenciaTipo } from 'src/app/services/evidencias.service';
 import { firstValueFrom } from 'rxjs';
+import { ApiService } from 'src/app/services/api';
+
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-entrega-productos',
@@ -16,12 +20,16 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   private readonly submittedFingerprintsStorageKey = 'rids.entregaProductos.submittedFingerprints.v1';
   private readonly maxUploadImageBytes = 220_000;
   private readonly maxUploadImageDimension = 1280;
+  private readonly apiService = inject(ApiService);
 
   @ViewChild('fileInput', { static: false })
   fileInput?: ElementRef<HTMLInputElement>;
 
   @ViewChild('signatureCanvas', { static: false })
   signatureCanvas?: ElementRef<HTMLCanvasElement>;
+
+  empresas: any[] = [];
+  empresaSeleccionadaId: number | null = null;
 
   selectedImage: { file: File; dataUrl: string } | null = null;
   hasSignature = false;
@@ -48,10 +56,10 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   get canRegistrarEntrega(): boolean {
     return Boolean(
       this.selectedImage &&
-        this.hasSignature &&
-        this.receptorNombre.trim() &&
-        this.empresaNombre.trim() &&
-        !this.isDuplicateSubmission
+      this.hasSignature &&
+      this.receptorNombre.trim() &&
+      this.empresaSeleccionadaId &&
+      !this.isDuplicateSubmission
     );
   }
 
@@ -59,6 +67,15 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.tecnicoNombre = this.getTecnicoNombre();
     this.loadSubmittedFingerprints();
     this.setFechaEntrega(new Date());
+    this.apiService.getClientes().subscribe({
+      next: (data) => {
+        this.empresas = data || [];
+      },
+      error: async (err) => {
+        console.error('Error cargando empresas', err);
+        await this.showToast('No se pudieron cargar las empresas');
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -81,6 +98,53 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
       return typeof nombre === 'string' && nombre.trim() ? nombre.trim() : null;
     } catch {
       return null;
+    }
+  }
+
+  onEmpresaSeleccionada(event: any) {
+    const empresaId = event.detail.value;
+    this.empresaSeleccionadaId = empresaId;
+
+    const empresa = this.empresas.find(e => e.id_empresa === empresaId);
+
+    if (empresa) {
+      this.empresaNombre = empresa.nombre; // 🔑 compatibilidad backend
+    } else {
+      this.empresaNombre = '';
+    }
+  }
+
+  async tomarFoto() {
+    try {
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt, // cámara o galería
+      });
+
+      if (!photo?.dataUrl) {
+        await this.showToast('No se pudo obtener la imagen');
+        return;
+      }
+
+      // Simulamos un File para NO romper tu lógica actual
+      this.selectedImage = {
+        file: new File([], 'foto.jpg', { type: 'image/jpeg' }),
+        dataUrl: photo.dataUrl,
+      };
+
+    } catch (err) {
+      console.error('Error al usar cámara:', err);
+      await this.showToast('No se pudo abrir la cámara');
+    }
+  }
+
+  seleccionarImagen() {
+    if (Capacitor.isNativePlatform()) {
+      this.tomarFoto();      // 📱 iOS / Android
+    } else {
+      this.openFilePicker(); // 🌐 Web
     }
   }
 
@@ -504,17 +568,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         bytes: info.bytes,
       })
     );
-
-    // Si es firma y el backend indica que no se sube (o no da cloudName), enviamos vector directamente.
-    if (tipo === 'firma' && (signature.requiresUpload === false || !signature.cloudName)) {
-      await firstValueFrom(
-        this.evidenciasService.confirmarEvidencia(entregaId, {
-          tipo: 'firma',
-          vector: dataUrl, // guardamos el dataURL como vector (string)
-        })
-      );
-      return;
-    }
 
     // Para fotos, validamos y subimos a Cloudinary
     if (!signature.cloudName) {
