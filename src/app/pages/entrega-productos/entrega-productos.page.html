@@ -85,7 +85,8 @@
 
         <ion-button expand="block" color="primary" class="register-btn" (click)="registrarEntrega()"
           [disabled]="!canRegistrarEntrega || isRegistering">
-          <ion-icon name="save-outline" slot="start"></ion-icon>
+          <ion-spinner *ngIf="isRegistering" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!isRegistering" name="save-outline" slot="start"></ion-icon>
           Registrar entrega
         </ion-button>
       </div>
@@ -97,24 +98,28 @@
   </ion-card>
 </ion-content>
 
-<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal">
+<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
+  (didDismiss)="cerrarModalEntrega()">
   <ng-template>
-    <ion-header>
+    <ion-header translucent>
       <ion-toolbar>
         <ion-title>Estado de la entrega</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="confirmarModalEntrega()">
+          <ion-button (click)="cerrarModalEntrega()">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <ion-content class="ion-padding">
-      <ion-text>
+
+    <ion-content class="ion-padding" fullscreen>
+      <div class="success-content">
+        <ion-icon name="checkmark-circle" color="success"></ion-icon>
         <h2>Entrega registrada</h2>
         <p>{{ estadoEntregaMensaje }}</p>
-      </ion-text>
-      <ion-button expand="block" color="primary" (click)="confirmarModalEntrega()">
+      </div>
+
+      <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
         <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
         Entendido
       </ion-button>
@@ -123,3 +128,33 @@
 </ion-modal>
 
 <app-footer-menu></app-footer-menu>
+
+<!-- ✅ Modal FUERA del ion-content para evitar problemas de z-index -->
+<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
+  (didDismiss)="cerrarModalEntrega()">
+  <ng-template>
+    <ion-header translucent>
+      <ion-toolbar>
+        <ion-title>Estado de la entrega</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalEntrega()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding" fullscreen>
+      <div class="success-content">
+        <ion-icon name="checkmark-circle" color="success"></ion-icon>
+        <h2>Entrega registrada</h2>
+        <p>{{ estadoEntregaMensaje }}</p>
+      </div>
+
+      <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Entendido
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
