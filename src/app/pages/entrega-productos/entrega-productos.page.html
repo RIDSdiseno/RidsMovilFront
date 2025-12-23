@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar class="custom-header-toolbar">
-    <ion-title class="header-title">Entrega de productos</ion-title>
+    <ion-title class="header-title">Entrega de Productos</ion-title>
     <ion-buttons slot="end">
       <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
     </ion-buttons>
@@ -75,7 +75,9 @@
                 (pointermove)="onSignaturePointerMove($event)" (pointerup)="onSignaturePointerUp($event)"
                 (pointercancel)="onSignaturePointerUp($event)" (pointerleave)="onSignaturePointerUp($event)"></canvas>
             </div>
-
+            
+            <br>
+            <br>
             <div class="signature-actions">
               <ion-button fill="outline" (click)="clearSignature()" [disabled]="!hasSignature">
                 <ion-icon name="refresh-outline" slot="start"></ion-icon>
@@ -100,63 +102,4 @@
   </ion-card>
 </ion-content>
 
-<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
-  (didDismiss)="cerrarModalEntrega()">
-  <ng-template>
-    <ion-header translucent>
-      <ion-toolbar>
-        <ion-title>Estado de la entrega</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="cerrarModalEntrega()">
-            <ion-icon name="close-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding" fullscreen>
-      <div class="success-content">
-        <ion-icon name="checkmark-circle" color="success"></ion-icon>
-        <h2>Entrega registrada</h2>
-        <p>{{ estadoEntregaMensaje }}</p>
-      </div>
-
-      <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
-        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-        Entendido
-      </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
-
 <app-footer-menu></app-footer-menu>
-
-<!--  Modal FUERA del ion-content para evitar problemas de z-index -->
-<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
-  (didDismiss)="cerrarModalEntrega()">
-  <ng-template>
-    <ion-header translucent>
-      <ion-toolbar>
-        <ion-title>Estado de la entrega</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="cerrarModalEntrega()">
-            <ion-icon name="close-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding" fullscreen>
-      <div class="success-content">
-        <ion-icon name="checkmark-circle" color="success"></ion-icon>
-        <h2>Entrega registrada</h2>
-        <p>{{ estadoEntregaMensaje }}</p>
-      </div>
-
-      <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
-        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-        Entendido
-      </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>

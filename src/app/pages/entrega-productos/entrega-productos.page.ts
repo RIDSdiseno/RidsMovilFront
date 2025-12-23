@@ -36,10 +36,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   hasSignature = false;
   signatureDataUrl: string | null = null;
 
-  // === MODAL DE CONFIRMACIÓN ===
-  mostrarModalEstado: boolean = false;
-  estadoEntregaMensaje: string = '';
-
   receptorNombre = '';
   empresaNombre = '';
   fechaEntrega: Date = new Date();
@@ -335,12 +331,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         this.persistSubmittedFingerprints();
       }
 
-      // Mostrar mensaje de éxito
-      this.estadoEntregaMensaje = 'La entrega se generó correctamente.';
+      await this.showSuccessToast('Entrega registrada correctamente');
+      this.resetFormulario();
 
-      // Esperar un momento antes de mostrar el modal
-      await new Promise(resolve => setTimeout(resolve, 100));
-      this.mostrarModalEstado = true;
 
     } catch (err) {
       console.error('Error registrando entrega:', err);
@@ -357,27 +350,21 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     }
   }
 
-  cerrarModalEntrega() {
-    this.mostrarModalEstado = false;
+  private async showSuccessToast(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2500,
+      position: 'middle',
+      color: 'success',
+      buttons: [
+        {
+          icon: 'close',
+          role: 'cancel',
+        },
+      ],
+    });
 
-    // Esperar a que el modal se cierre completamente
-    setTimeout(() => {
-      this.resetFormulario();
-    }, 300);
-  }
-
-  nuevaEntrega(): void {
-    // Cerrar el modal
-    this.mostrarModalEstado = false;
-
-    // Esperar el cierre visual del modal
-    setTimeout(() => {
-      this.resetFormulario();
-    }, 300);
-  }
-
-  onModalDismiss() {
-    this.resetFormulario();
+    await toast.present();
   }
 
   private resetFormulario() {
@@ -791,4 +778,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fechaEntrega = date;
     this.fechaEntregaTexto = date.toLocaleString('es-CL');
   }
+
+  
 }
