@@ -73,12 +73,10 @@ ion-content {
 /* Contenedor AISLADO */
 .preview-image-wrapper {
   position: relative;
-  background: #000;
   border-radius: 12px;
   overflow: hidden;
 
   /* 🔥 FIX DEFINITIVO iOS */
-  isolation: isolate;
   z-index: 1;
 }
 
@@ -88,15 +86,6 @@ ion-content {
   height: auto;
   display: block;
   border-radius: 12px;
-
-  /* 🔒 Blindaje contra filtros iOS */
-  filter: none !important;
-  backdrop-filter: none !important;
-  mix-blend-mode: normal !important;
-
-  /* fuerza render GPU correcto */
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 /* Overlay botones */
