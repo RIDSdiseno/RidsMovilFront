@@ -277,17 +277,75 @@ ion-content {
 }
 
 /* =================================================
-   iOS DARK MODE PROTECCIÓN EXTRA
+   ENTREGA PRODUCTOS — PROTECCIÓN iOS / SAFARI
 ================================================= */
 
-@media (prefers-color-scheme: dark) {
+.preview-card {
+  isolation: isolate;
+  background: #ffffff !important;
+  border-radius: 12px;
+  box-shadow: none;
 
-  .preview-image,
-  .signature-canvas,
-  .preview-card ion-card-content {
-    filter: none !important;
-    -webkit-filter: none !important;
-    color-scheme: light !important;
-    -webkit-color-scheme: light !important;
-  }
+  color-scheme: light !important;
+  -webkit-color-scheme: light !important;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+.preview-card ion-card-content {
+  background: #ffffff !important;
+  isolation: isolate;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* Imagen protegida */
+.preview-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+
+  color-scheme: light !important;
+  -webkit-color-scheme: light !important;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  transform: translateZ(0);
+}
+
+/* Acciones */
+.preview-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  background: #ffffff;
+}
+
+/* Firma */
+.signature-card {
+  isolation: isolate;
+  background: #ffffff !important;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+
+  color-scheme: light !important;
+  -webkit-color-scheme: light !important;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+
+  transform: translateZ(0);
 }
