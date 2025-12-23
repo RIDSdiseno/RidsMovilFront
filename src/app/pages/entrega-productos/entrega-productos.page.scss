@@ -15,6 +15,7 @@ ion-content {
     animation: backgroundPulse 15s ease-in-out infinite;
     z-index: -1;
     opacity: 0.85;
+    pointer-events: none; // 🔥 Evitar interferencia
   }
 }
 
@@ -67,53 +68,67 @@ ion-content {
 }
 
 /* ================================
-   PREVIEW IMAGEN (FIX iOS 🔥)
+   PREVIEW IMAGEN - FIX DEFINITIVO iOS
 ================================ */
 
-/* Contenedor AISLADO */
-.preview-image-wrapper {
+.preview-card {
+  // 🔥 Crear nuevo contexto de apilamiento aislado
+  isolation: isolate;
   position: relative;
-  border-radius: 12px;
-  overflow: hidden;
+  z-index: 10;
+  background: white;
 
-  /* 🔥 FIX DEFINITIVO iOS */
-  z-index: 1;
+  ion-card-content {
+    background: white;
+    // 🔥 Resetear cualquier filtro heredado
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
-/* Imagen protegida */
 .preview-image {
   width: 100%;
   height: auto;
   display: block;
   border-radius: 12px;
+
+  // 🔥 FIX CRÍTICO: Forzar renderizado correcto en iOS
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  // 🔥 Forzar aceleración de hardware sin filtros
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+
+  // 🔥 Asegurar que la imagen use sRGB
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+
+  // 🔥 Prevenir inversión de color en dark mode
+  color-scheme: light;
+  -webkit-color-scheme: light;
 }
 
-/* Overlay botones */
-.image-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  padding: 8px;
-  pointer-events: none;
-}
-
-.image-overlay ion-button {
-  pointer-events: auto;
-}
-
-/* Info archivo */
 .preview-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
+  background: white;
 }
 
 /* ================================
    FIRMA DIGITAL
 ================================ */
+
+.signature-card {
+  isolation: isolate;
+  background: white;
+}
 
 .signature-canvas {
   width: 100%;
@@ -123,9 +138,14 @@ ion-content {
   border: 1px solid rgba(0, 0, 0, 0.15);
   touch-action: none;
 
-  /* iOS safety */
+  // 🔥 Proteger canvas de filtros
   filter: none !important;
   backdrop-filter: none !important;
+  -webkit-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* ================================
@@ -196,6 +216,7 @@ ion-content {
     font-size: 72px;
     color: #10b981;
     margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
     animation: successIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
@@ -211,14 +232,22 @@ ion-content {
     font-size: 1rem;
     line-height: 1.6;
     max-width: 300px;
+    margin-bottom: 2rem;
   }
 
   ion-button {
     width: 100%;
     max-width: 280px;
-    margin-top: 1rem;
     --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      --box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
   }
 }
 
@@ -246,14 +275,71 @@ ion-content {
   ::ng-deep .modal-wrapper {
     max-width: 440px;
   }
+
+  .success-content {
+    padding: 2.5rem 2rem;
+
+    ion-icon {
+      font-size: 80px;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+    }
+
+    p {
+      font-size: 1.05rem;
+      max-width: 350px;
+    }
+  }
 }
 
 /* ================================
    iOS OPTIMIZACIÓN EXTRA
 ================================ */
 
-@supports (-webkit-touch-callout: none) {
-  ion-content::before {
-    animation: none;
+// 🔥 Prevenir filtros en modo oscuro de iOS
+@media (prefers-color-scheme: dark) {
+
+  .preview-image,
+  .signature-canvas,
+  .preview-card ion-card-content {
+    filter: none !important;
+    -webkit-filter: none !important;
   }
+}
+
+// 🔥 Fix específico para Safari/WebKit
+@supports (-webkit-touch-callout: none) {
+  .preview-image {
+    // Deshabilitar cualquier optimización que pueda invertir colores
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  // Optimización de animación solo en iOS
+  ion-content::before {
+    will-change: opacity;
+  }
+
+  // Asegurar que las tarjetas no hereden el filtro
+  ion-card {
+    isolation: isolate;
+
+    ion-card-content {
+      isolation: isolate;
+    }
+  }
+}
+
+/* ================================
+   FIX GLOBAL PARA IMÁGENES
+================================ */
+
+// 🔥 Aplicar a TODAS las imágenes dentro del contenido
+ion-content img {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

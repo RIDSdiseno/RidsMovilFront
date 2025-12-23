@@ -81,20 +81,3 @@ li {
         font-size: 1.2rem;
     }
 }
-
-.shared-form-item {
-    margin-bottom: 20px;
-
-    @media (min-width: 600px) and (max-width: 1024px) {
-        margin-bottom: 25px;
-
-        ion-label,
-        ion-input {
-            font-size: 1.1rem;
-        }
-    }
-}
-
-ion-content.has-footer-menu {
-    --padding-bottom: calc(104px + env(safe-area-inset-bottom));
-}

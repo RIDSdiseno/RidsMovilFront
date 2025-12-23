@@ -36,11 +36,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   hasSignature = false;
   signatureDataUrl: string | null = null;
 
+  // === MODAL DE CONFIRMACIÓN ===
   mostrarModalEstado: boolean = false;
   estadoEntregaMensaje: string = '';
-
-  // (opcional, pero recomendado)
-  entregaId: number | null = null;
 
   receptorNombre = '';
   empresaNombre = '';
@@ -128,10 +126,12 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   async tomarFoto() {
     try {
       const photo = await Camera.getPhoto({
-        quality: 80,
+        quality: 90, // 🔥 Calidad alta para evitar problemas de color
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt,
+        correctOrientation: true, // 🔥 IMPORTANTE: Corregir orientación
+        saveToGallery: false,
       });
 
       if (!photo?.dataUrl) {
@@ -139,6 +139,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
         return;
       }
 
+      // 🔥 Usar la imagen directamente sin compresión en preview
       this.selectedImage = {
         file: new File([], 'foto.jpg', { type: 'image/jpeg' }),
         dataUrl: photo.dataUrl,
@@ -186,12 +187,9 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     }
 
     const originalDataUrl = await this.fileToDataUrl(file);
-    const compressedDataUrl = await this.compressPhotoDataUrl(originalDataUrl, {
-      maxBytes: this.maxUploadImageBytes,
-      maxDimension: this.maxUploadImageDimension,
-      quality: 0.75,
-    });
-    this.selectedImage = { file, dataUrl: compressedDataUrl };
+
+    // 🔥 NO comprimir para preview, solo para subida
+    this.selectedImage = { file, dataUrl: originalDataUrl };
   }
 
   clearSignature() {
@@ -362,11 +360,20 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   cerrarModalEntrega() {
     this.mostrarModalEstado = false;
 
+    // Esperar a que el modal se cierre completamente
+    setTimeout(() => {
+      this.resetFormulario();
+    }, 300);
   }
 
-  nuevaEntrega() {
-    this.resetFormulario();
+  nuevaEntrega(): void {
+    // Cerrar el modal
     this.mostrarModalEstado = false;
+
+    // Esperar el cierre visual del modal
+    setTimeout(() => {
+      this.resetFormulario();
+    }, 300);
   }
 
   onModalDismiss() {
