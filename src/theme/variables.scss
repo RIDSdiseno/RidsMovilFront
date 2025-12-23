@@ -76,8 +76,6 @@ $breakpoint-lg: 1200px;
         background: rgba(0, 0, 0, 0) !important;
     }
 
-    img,
-    video,
     ion-icon {
         filter: invert(1) hue-rotate(180deg); // revertir imágenes y logos
     }
