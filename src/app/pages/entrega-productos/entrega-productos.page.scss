@@ -1,6 +1,6 @@
-/* ================================
-   MOBILE-FIRST STYLES
-================================ */
+/* =================================================
+   MOBILE-FIRST BASE
+================================================= */
 
 ion-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
@@ -15,7 +15,7 @@ ion-content {
     animation: backgroundPulse 15s ease-in-out infinite;
     z-index: -1;
     opacity: 0.85;
-    pointer-events: none; // 🔥 Evitar interferencia
+    pointer-events: none;
   }
 }
 
@@ -31,9 +31,9 @@ ion-content {
   }
 }
 
-/* ================================
+/* =================================================
    HEADER
-================================ */
+================================================= */
 
 .custom-header-toolbar {
   --background: rgba(255, 255, 255, 0.95);
@@ -54,9 +54,9 @@ ion-content {
   }
 }
 
-/* ================================
+/* =================================================
    SECCIONES
-================================ */
+================================================= */
 
 .section {
   margin-bottom: 16px;
@@ -67,50 +67,36 @@ ion-content {
   margin-bottom: 8px;
 }
 
-/* ================================
-   PREVIEW IMAGEN - FIX DEFINITIVO iOS
-================================ */
+/* =================================================
+   PREVIEW IMAGEN — FIX DEFINITIVO iOS / DARK MODE
+================================================= */
 
 .preview-card {
-  // 🔥 Crear nuevo contexto de apilamiento aislado
   isolation: isolate;
-  position: relative;
-  z-index: 10;
-  background: white;
+  background: #ffffff;
+  border-radius: 12px;
+}
 
-  ion-card-content {
-    background: white;
-    // 🔥 Resetear cualquier filtro heredado
-    filter: none !important;
-    backdrop-filter: none !important;
-    -webkit-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
+.preview-card ion-card-content {
+  background: #ffffff;
 }
 
 .preview-image {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
   border-radius: 12px;
 
-  // 🔥 FIX CRÍTICO: Forzar renderizado correcto en iOS
+  /* 🔥 PROTECCIÓN TOTAL iOS */
+  color-scheme: light;
+  -webkit-color-scheme: light;
+
   filter: none !important;
   -webkit-filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 
-  // 🔥 Forzar aceleración de hardware sin filtros
   transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-
-  // 🔥 Asegurar que la imagen use sRGB
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-
-  // 🔥 Prevenir inversión de color en dark mode
-  color-scheme: light;
-  -webkit-color-scheme: light;
 }
 
 .preview-actions {
@@ -118,16 +104,17 @@ ion-content {
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
-  background: white;
+  background: #ffffff;
 }
 
-/* ================================
+/* =================================================
    FIRMA DIGITAL
-================================ */
+================================================= */
 
 .signature-card {
   isolation: isolate;
-  background: white;
+  background: #ffffff;
+  border-radius: 12px;
 }
 
 .signature-canvas {
@@ -138,19 +125,21 @@ ion-content {
   border: 1px solid rgba(0, 0, 0, 0.15);
   touch-action: none;
 
-  // 🔥 Proteger canvas de filtros
+  /* 🔥 MISMA PROTECCIÓN QUE LA FOTO */
+  color-scheme: light;
+  -webkit-color-scheme: light;
+
   filter: none !important;
-  backdrop-filter: none !important;
   -webkit-filter: none !important;
+  backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 
   transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
-/* ================================
+/* =================================================
    BOTÓN REGISTRAR
-================================ */
+================================================= */
 
 .register-btn {
   margin-top: 14px;
@@ -162,9 +151,9 @@ ion-content {
   font-size: 0.875rem;
 }
 
-/* ================================
-   MODAL ÉXITO
-================================ */
+/* =================================================
+   MODAL DE ÉXITO
+================================================= */
 
 ::ng-deep {
   ion-modal {
@@ -184,7 +173,7 @@ ion-content {
 
   ion-modal ion-header ion-toolbar {
     --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --color: white;
+    --color: #ffffff;
 
     ion-title {
       font-weight: 700;
@@ -192,7 +181,7 @@ ion-content {
     }
 
     ion-button {
-      --color: white;
+      --color: #ffffff;
     }
   }
 
@@ -201,9 +190,9 @@ ion-content {
   }
 }
 
-/* ================================
+/* =================================================
    CONTENIDO ÉXITO
-================================ */
+================================================= */
 
 .success-content {
   display: flex;
@@ -216,7 +205,6 @@ ion-content {
     font-size: 72px;
     color: #10b981;
     margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
     animation: successIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
@@ -242,12 +230,6 @@ ion-content {
     --border-radius: 12px;
     --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     font-weight: 600;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      --box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-    }
   }
 }
 
@@ -267,9 +249,9 @@ ion-content {
   }
 }
 
-/* ================================
+/* =================================================
    RESPONSIVE
-================================ */
+================================================= */
 
 @media (min-width: 768px) {
   ::ng-deep .modal-wrapper {
@@ -294,11 +276,10 @@ ion-content {
   }
 }
 
-/* ================================
-   iOS OPTIMIZACIÓN EXTRA
-================================ */
+/* =================================================
+   iOS DARK MODE PROTECCIÓN EXTRA
+================================================= */
 
-// 🔥 Prevenir filtros en modo oscuro de iOS
 @media (prefers-color-scheme: dark) {
 
   .preview-image,
@@ -306,40 +287,7 @@ ion-content {
   .preview-card ion-card-content {
     filter: none !important;
     -webkit-filter: none !important;
+    color-scheme: light !important;
+    -webkit-color-scheme: light !important;
   }
-}
-
-// 🔥 Fix específico para Safari/WebKit
-@supports (-webkit-touch-callout: none) {
-  .preview-image {
-    // Deshabilitar cualquier optimización que pueda invertir colores
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  // Optimización de animación solo en iOS
-  ion-content::before {
-    will-change: opacity;
-  }
-
-  // Asegurar que las tarjetas no hereden el filtro
-  ion-card {
-    isolation: isolate;
-
-    ion-card-content {
-      isolation: isolate;
-    }
-  }
-}
-
-/* ================================
-   FIX GLOBAL PARA IMÁGENES
-================================ */
-
-// 🔥 Aplicar a TODAS las imágenes dentro del contenido
-ion-content img {
-  filter: none !important;
-  -webkit-filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
