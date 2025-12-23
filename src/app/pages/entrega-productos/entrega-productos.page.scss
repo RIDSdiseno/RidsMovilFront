@@ -1,18 +1,21 @@
-// MOBILE-FIRST STYLES
+/* ================================
+   MOBILE-FIRST STYLES
+================================ */
+
 ion-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+  position: relative;
+  overflow: hidden;
 
-  // Animación más suave para mejor rendimiento
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
     animation: backgroundPulse 15s ease-in-out infinite;
     z-index: -1;
+    opacity: 0.85;
+    pointer-events: none; // 🔥 Evitar interferencia
   }
 }
 
@@ -20,17 +23,18 @@ ion-content {
 
   0%,
   100% {
-    opacity: 1;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
   }
 
   50% {
-    opacity: 0.95;
     background: linear-gradient(135deg, #f8fbff 0%, #1e6bb8 100%);
   }
 }
 
-// HEADER IMPROVEMENTS
+/* ================================
+   HEADER
+================================ */
+
 .custom-header-toolbar {
   --background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -40,7 +44,6 @@ ion-content {
     font-size: 1.3rem;
     font-weight: 700;
     color: #222;
-    text-align: left;
     padding-left: 10px;
   }
 
@@ -51,111 +54,304 @@ ion-content {
   }
 }
 
+/* ================================
+   SECCIONES
+================================ */
+
 .section {
   margin-bottom: 16px;
 }
 
 .section-label {
-  display: block;
   font-weight: 600;
-  margin: 0 0 10px 2px;
+  margin-bottom: 8px;
 }
 
+/* ================================
+   PREVIEW IMAGEN - FIX DEFINITIVO iOS
+================================ */
+
 .preview-card {
-  margin-top: 12px;
+  // 🔥 Crear nuevo contexto de apilamiento aislado
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+  background: white;
+
+  ion-card-content {
+    background: white;
+    // 🔥 Resetear cualquier filtro heredado
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
 .preview-image {
   width: 100%;
   height: auto;
-  border-radius: 10px;
   display: block;
+  border-radius: 12px;
+
+  // 🔥 FIX CRÍTICO: Forzar renderizado correcto
   filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  // 🔥 Forzar aceleración de hardware sin filtros
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+
+  // 🔥 Asegurar que la imagen use sRGB
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+
+  // 🔥 Prevenir inversión de color en dark mode
+  color-scheme: light;
+  -webkit-color-scheme: light;
+}
+
+// 🔥 PROTECCIÓN EXTRA en modo oscuro
+@media (prefers-color-scheme: dark) {
+
+  .preview-image,
+  .content-image,
+  .photo-image,
+  canvas.signature-canvas {
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
 }
 
 .preview-actions {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  align-items: center;
   margin-top: 10px;
+  background: white;
 }
 
-.file-meta {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* ================================
+   FIRMA DIGITAL
+================================ */
 
 .signature-card {
-  margin-top: 10px;
-}
-
-.signature-wrapper {
-  width: 100%;
+  isolation: isolate;
+  background: white;
 }
 
 .signature-canvas {
   width: 100%;
   height: 180px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  display: block;
   touch-action: none;
+
+  // 🔥 Proteger canvas de filtros
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
-.signature-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.signature-hint {
-  display: block;
-  margin-top: 8px;
-}
+/* ================================
+   BOTÓN REGISTRAR
+================================ */
 
 .register-btn {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
-/* Modal de estado de entrega responsivo */
-.estado-entrega-modal {
-  --width: 92vw;
-  --max-width: 420px;
-  --height: auto;
-  --border-radius: 16px;
-  --box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
+.hint-text {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.875rem;
+}
 
-  ion-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
+/* ================================
+   MODAL ÉXITO
+================================ */
+
+::ng-deep {
+  ion-modal {
+    --backdrop-opacity: 0.7;
+
+    &::part(backdrop) {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  .modal-wrapper {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  ion-modal ion-header ion-toolbar {
+    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --color: white;
+
+    ion-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    ion-button {
+      --color: white;
+    }
+  }
+
+  ion-modal ion-content {
+    --background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  }
+}
+
+/* ================================
+   CONTENIDO ÉXITO
+================================ */
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+
+  ion-icon {
+    font-size: 72px;
+    color: #10b981;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
+    animation: successIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   h2 {
-    margin: 0 0 6px;
-    font-weight: 700;
-    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1f2937;
   }
 
   p {
-    margin: 0;
-    color: var(--ion-color-medium);
-    line-height: 1.4;
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 300px;
+    margin-bottom: 2rem;
   }
 
   ion-button {
     width: 100%;
+    max-width: 280px;
+    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      --box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
   }
 }
 
-@media (min-width: 768px) {
-  .estado-entrega-modal {
-    --width: 480px;
+@keyframes successIconBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
   }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (min-width: 768px) {
+  ::ng-deep .modal-wrapper {
+    max-width: 440px;
+  }
+
+  .success-content {
+    padding: 2.5rem 2rem;
+
+    ion-icon {
+      font-size: 80px;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+    }
+
+    p {
+      font-size: 1.05rem;
+      max-width: 350px;
+    }
+  }
+}
+
+/* ================================
+   iOS OPTIMIZACIÓN EXTRA
+================================ */
+
+// 🔥 Prevenir filtros en modo oscuro de iOS
+@media (prefers-color-scheme: dark) {
+
+  .preview-image,
+  .signature-canvas,
+  .preview-card ion-card-content {
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+}
+
+// 🔥 Fix específico para Safari/WebKit
+@supports (-webkit-touch-callout: none) {
+  .preview-image {
+    // Deshabilitar cualquier optimización que pueda invertir colores
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  // Optimización de animación solo en iOS
+  ion-content::before {
+    will-change: opacity;
+  }
+
+  // Asegurar que las tarjetas no hereden el filtro
+  ion-card {
+    isolation: isolate;
+
+    ion-card-content {
+      isolation: isolate;
+    }
+  }
+}
+
+/* ================================
+   FIX GLOBAL PARA IMÁGENES
+================================ */
+
+// 🔥 Aplicar a TODAS las imágenes dentro del contenido
+ion-content img {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

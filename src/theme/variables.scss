@@ -7,11 +7,9 @@ $breakpoint-sm: 768px;
 $breakpoint-md: 992px;
 $breakpoint-lg: 1200px;
 
-
 @media (prefers-color-scheme: dark) {
     ion-content {
         --background: linear-gradient(135deg, #1a1a1a 0%, #0d4a7a 100%) !important;
-
     }
 
     .custom-header-toolbar {
@@ -61,7 +59,6 @@ $breakpoint-lg: 1200px;
 
     .time-card {
         background: #000000 !important;
-
     }
 
     .current-date {
@@ -76,10 +73,26 @@ $breakpoint-lg: 1200px;
         background: rgba(0, 0, 0, 0) !important;
     }
 
-    img,
-    video,
-    ion-icon {
-        filter: invert(1) hue-rotate(180deg); // revertir imágenes y logos
+    // 🔥 FIX CRÍTICO: Solo invertir logos e íconos, NO fotos de contenido
+    .header-logo,
+    ion-icon:not(.no-invert),
+    .logo-image,
+    [class*="logo"],
+    [class*="icon"]:not(.preview-image):not([class*="photo"]):not([class*="image"]) {
+        filter: invert(1) hue-rotate(180deg);
+    }
+
+    // 🔥 PROTEGER imágenes de contenido de la inversión
+    .preview-image,
+    .content-image,
+    .photo-image,
+    [class*="preview"],
+    [class*="photo"],
+    ion-img,
+    img[src*="data:image"],
+    canvas {
+        filter: none !important;
+        -webkit-filter: none !important;
     }
 
     ion-item {
@@ -118,7 +131,6 @@ $breakpoint-lg: 1200px;
 
     .solicitante-avatar {
         background: rgba(44, 143, 224, 0.2) !important;
-
     }
 
     .solicitantes-list-container {

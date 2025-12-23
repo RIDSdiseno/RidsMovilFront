@@ -49,7 +49,8 @@
 
         <ion-card class="preview-card" *ngIf="selectedImage as img">
           <ion-card-content>
-            <img class="preview-image" [src]="img.dataUrl" alt="Imagen seleccionada" />
+            <!-- 🔥 Agregar clase para proteger de inversión en dark mode -->
+            <img class="preview-image content-image" [src]="img.dataUrl" alt="Imagen seleccionada" />
             <div class="preview-actions">
               <ion-text color="medium" class="file-meta">
                 {{ img.file.name }}
@@ -129,8 +130,9 @@
 
 <app-footer-menu></app-footer-menu>
 
-<!--  Modal FUERA del ion-content para evitar problemas de z-index -->
-<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false">
+<!-- ✅ Modal FUERA del ion-content para evitar problemas de z-index -->
+<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
+  (didDismiss)="cerrarModalEntrega()">
   <ng-template>
     <ion-header translucent>
       <ion-toolbar>
@@ -150,16 +152,9 @@
         <p>{{ estadoEntregaMensaje }}</p>
       </div>
 
-      <!-- 🔹 Cerrar sin borrar -->
       <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
-        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-        Volver
-      </ion-button>
-
-      <!-- 🔹 Reset explícito -->
-      <ion-button expand="block" fill="outline" class="modal-button" (click)="nuevaEntrega()">
-        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-        Registrar nueva entrega
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Entendido
       </ion-button>
     </ion-content>
   </ng-template>
