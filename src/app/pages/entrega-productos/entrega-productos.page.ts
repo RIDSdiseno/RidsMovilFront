@@ -362,10 +362,11 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   cerrarModalEntrega() {
     this.mostrarModalEstado = false;
 
-    // Esperar a que el modal se cierre completamente
-    setTimeout(() => {
-      this.resetFormulario();
-    }, 300);
+  }
+
+  nuevaEntrega() {
+    this.resetFormulario();
+    this.mostrarModalEstado = false;
   }
 
   onModalDismiss() {

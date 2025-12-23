@@ -1,17 +1,20 @@
-// MOBILE-FIRST STYLES
+/* ================================
+   MOBILE-FIRST STYLES
+================================ */
+
 ion-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+  position: relative;
+  overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
     animation: backgroundPulse 15s ease-in-out infinite;
     z-index: -1;
+    opacity: 0.85;
   }
 }
 
@@ -19,17 +22,18 @@ ion-content {
 
   0%,
   100% {
-    opacity: 1;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
   }
 
   50% {
-    opacity: 0.95;
     background: linear-gradient(135deg, #f8fbff 0%, #1e6bb8 100%);
   }
 }
 
-// HEADER IMPROVEMENTS
+/* ================================
+   HEADER
+================================ */
+
 .custom-header-toolbar {
   --background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -39,7 +43,6 @@ ion-content {
     font-size: 1.3rem;
     font-weight: 700;
     color: #222;
-    text-align: left;
     padding-left: 10px;
   }
 
@@ -50,7 +53,10 @@ ion-content {
   }
 }
 
-/* ===== SECCIONES ===== */
+/* ================================
+   SECCIONES
+================================ */
+
 .section {
   margin-bottom: 16px;
 }
@@ -60,29 +66,83 @@ ion-content {
   margin-bottom: 8px;
 }
 
-/* ===== PREVIEW ===== */
-.preview-image {
-  width: 100%;
-  border-radius: 10px;
+/* ================================
+   PREVIEW IMAGEN (FIX iOS 🔥)
+================================ */
+
+/* Contenedor AISLADO */
+.preview-image-wrapper {
+  position: relative;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+
+  /* 🔥 FIX DEFINITIVO iOS */
+  isolation: isolate;
+  z-index: 1;
 }
 
+/* Imagen protegida */
+.preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+
+  /* 🔒 Blindaje contra filtros iOS */
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+
+  /* fuerza render GPU correcto */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Overlay botones */
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.image-overlay ion-button {
+  pointer-events: auto;
+}
+
+/* Info archivo */
 .preview-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 10px;
 }
 
-/* ===== FIRMA ===== */
+/* ================================
+   FIRMA DIGITAL
+================================ */
+
 .signature-canvas {
   width: 100%;
   height: 180px;
   border-radius: 12px;
-  background: #fff;
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.15);
   touch-action: none;
+
+  /* iOS safety */
+  filter: none !important;
+  backdrop-filter: none !important;
 }
 
-/* ===== BOTÓN ===== */
+/* ================================
+   BOTÓN REGISTRAR
+================================ */
+
 .register-btn {
   margin-top: 14px;
 }
@@ -93,7 +153,10 @@ ion-content {
   font-size: 0.875rem;
 }
 
-/* ===== MODAL ÉXITO MEJORADO ===== */
+/* ================================
+   MODAL ÉXITO
+================================ */
+
 ::ng-deep {
   ion-modal {
     --backdrop-opacity: 0.7;
@@ -110,23 +173,17 @@ ion-content {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   }
 
-  ion-modal ion-header {
-    ion-toolbar {
-      --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  ion-modal ion-header ion-toolbar {
+    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --color: white;
+
+    ion-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    ion-button {
       --color: white;
-
-      ion-title {
-        font-weight: 700;
-        font-size: 1.1rem;
-      }
-
-      ion-button {
-        --color: white;
-
-        &:hover {
-          opacity: 0.8;
-        }
-      }
     }
   }
 
@@ -135,69 +192,47 @@ ion-content {
   }
 }
 
+/* ================================
+   CONTENIDO ÉXITO
+================================ */
+
 .success-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem 1.5rem;
   text-align: center;
+  padding: 2rem 1.5rem;
 
-  // Animación del ícono de éxito
   ion-icon {
     font-size: 72px;
     color: #10b981;
     margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
     animation: successIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   h2 {
-    margin: 0 0 0.75rem;
+    margin-bottom: 0.75rem;
     font-size: 1.5rem;
     font-weight: 800;
     color: #1f2937;
-    line-height: 1.3;
-    animation: fadeInUp 0.5s ease-out 0.2s both;
   }
 
   p {
-    margin: 0 0 2rem;
     color: #6b7280;
     font-size: 1rem;
     line-height: 1.6;
     max-width: 300px;
-    animation: fadeInUp 0.5s ease-out 0.3s both;
   }
 
   ion-button {
-    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --background-hover: linear-gradient(135deg, #059669 0%, #047857 100%);
-    --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    --padding-top: 14px;
-    --padding-bottom: 14px;
-    font-weight: 600;
-    font-size: 1rem;
-    letter-spacing: 0.3px;
     width: 100%;
     max-width: 280px;
-    margin: 0 auto;
-    animation: fadeInUp 0.5s ease-out 0.4s both;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      --box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
+    margin-top: 1rem;
+    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --border-radius: 12px;
   }
 }
 
-// Animación de rebote para el ícono
 @keyframes successIconBounce {
   0% {
     transform: scale(0);
@@ -214,41 +249,22 @@ ion-content {
   }
 }
 
-// Animación de entrada desde abajo
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+/* ================================
+   RESPONSIVE
+================================ */
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media (min-width: 768px) {
+  ::ng-deep .modal-wrapper {
+    max-width: 440px;
   }
 }
 
-// Responsive
-@media (min-width: 768px) {
-  ::ng-deep {
-    .modal-wrapper {
-      max-width: 440px;
-    }
-  }
+/* ================================
+   iOS OPTIMIZACIÓN EXTRA
+================================ */
 
-  .success-content {
-    padding: 2.5rem 2rem 2rem;
-
-    ion-icon {
-      font-size: 80px;
-    }
-
-    h2 {
-      font-size: 1.75rem;
-    }
-
-    p {
-      font-size: 1.05rem;
-      max-width: 350px;
-    }
+@supports (-webkit-touch-callout: none) {
+  ion-content::before {
+    animation: none;
   }
 }

@@ -129,9 +129,8 @@
 
 <app-footer-menu></app-footer-menu>
 
-<!-- ✅ Modal FUERA del ion-content para evitar problemas de z-index -->
-<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false" [canDismiss]="true"
-  (didDismiss)="cerrarModalEntrega()">
+<!--  Modal FUERA del ion-content para evitar problemas de z-index -->
+<ion-modal [isOpen]="mostrarModalEstado" cssClass="estado-entrega-modal" [backdropDismiss]="false">
   <ng-template>
     <ion-header translucent>
       <ion-toolbar>
@@ -151,9 +150,16 @@
         <p>{{ estadoEntregaMensaje }}</p>
       </div>
 
+      <!-- 🔹 Cerrar sin borrar -->
       <ion-button expand="block" color="primary" (click)="cerrarModalEntrega()">
-        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-        Entendido
+        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+        Volver
+      </ion-button>
+
+      <!-- 🔹 Reset explícito -->
+      <ion-button expand="block" fill="outline" class="modal-button" (click)="nuevaEntrega()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Registrar nueva entrega
       </ion-button>
     </ion-content>
   </ng-template>
