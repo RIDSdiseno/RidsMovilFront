@@ -530,3 +530,26 @@ img.dark-mode-protected,
     -webkit-filter: none !important;
   }
 }
+
+/* ==============================
+   TOAST ÉXITO – iOS RESPONSIVE
+============================== */
+
+.success-toast {
+  --max-width: 90vw;
+  --width: auto;
+  --min-width: unset;
+
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  border-radius: 14px;
+  padding: 8px 12px;
+}
+
+/* iOS específico */
+html.ios .success-toast {
+  margin-left: auto;
+  margin-right: auto;
+}

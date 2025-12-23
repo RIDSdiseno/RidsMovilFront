@@ -353,9 +353,10 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   private async showSuccessToast(message: string) {
     const toast = await this.toastController.create({
       message,
-      duration: 2500,
+      duration: 2400,
       position: 'middle',
       color: 'success',
+      cssClass: 'success-toast',
       buttons: [
         {
           icon: 'close',
@@ -779,5 +780,5 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fechaEntregaTexto = date.toLocaleString('es-CL');
   }
 
-  
+
 }
