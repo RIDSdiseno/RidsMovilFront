@@ -367,6 +367,7 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
 
     await toast.present();
   }
+  
 
   private resetFormulario() {
     // Resetear datos
