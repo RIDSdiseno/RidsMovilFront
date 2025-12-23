@@ -73,26 +73,43 @@ $breakpoint-lg: 1200px;
         background: rgba(0, 0, 0, 0) !important;
     }
 
-    // 🔥 FIX CRÍTICO: Solo invertir logos e íconos, NO fotos de contenido
+    // 🔥 SOLUCIÓN: Excluir explícitamente las imágenes de contenido
+    // Mantener inversión solo para logos e íconos
     .header-logo,
     ion-icon:not(.no-invert),
     .logo-image,
-    [class*="logo"],
-    [class*="icon"]:not(.preview-image):not([class*="photo"]):not([class*="image"]) {
+    [class*="logo"]:not([class*="image"]):not([class*="photo"]):not(.preview-image),
+    [class*="icon"]:not([class*="image"]):not([class*="photo"]):not(.preview-image) {
         filter: invert(1) hue-rotate(180deg);
     }
 
-    // 🔥 PROTEGER imágenes de contenido de la inversión
+    // 🔥 PROTEGER EXPLÍCITAMENTE todas las imágenes de contenido
+    img:not(.header-logo):not(.logo-image):not([class*="icon"]),
+    ion-img:not(.header-logo):not(.logo-image),
     .preview-image,
-    .content-image,
-    .photo-image,
-    [class*="preview"],
+    [class*="image"]:not(.logo-image),
     [class*="photo"],
-    ion-img,
-    img[src*="data:image"],
     canvas {
         filter: none !important;
         -webkit-filter: none !important;
+        color-scheme: light !important;
+        transform: none !important;
+    }
+
+    // Proteger contenedores de imágenes específicamente
+    .preview-card,
+    .signature-card,
+    [class*="image-container"],
+    [class*="photo-container"] {
+        filter: none !important;
+        -webkit-filter: none !important;
+
+        img,
+        ion-img,
+        canvas {
+            filter: none !important;
+            -webkit-filter: none !important;
+        }
     }
 
     ion-item {
