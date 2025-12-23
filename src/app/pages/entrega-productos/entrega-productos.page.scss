@@ -359,11 +359,6 @@ ion-text[color="medium"] {
     .header-title {
       color: white !important;
     }
-
-    /* 🔥 Logo SI se invierte en modo oscuro */
-    .header-logo {
-      filter: invert(1) hue-rotate(180deg);
-    }
   }
 
   /* Tarjetas modo oscuro */

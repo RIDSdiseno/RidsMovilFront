@@ -76,24 +76,25 @@ $breakpoint-lg: 1200px;
     // 🔥 SOLUCIÓN: Excluir explícitamente las imágenes de contenido
     // Mantener inversión solo para logos e íconos
     .header-logo,
-    ion-icon:not(.no-invert),
     .logo-image,
     [class*="logo"]:not([class*="image"]):not([class*="photo"]):not(.preview-image),
     [class*="icon"]:not([class*="image"]):not([class*="photo"]):not(.preview-image) {
         filter: invert(1) hue-rotate(180deg);
     }
 
-    // 🔥 PROTEGER EXPLÍCITAMENTE todas las imágenes de contenido
-    img:not(.header-logo):not(.logo-image):not([class*="icon"]),
-    ion-img:not(.header-logo):not(.logo-image),
+    // ----------------------------------------------
+    // 🔒 IMÁGENES Y CANVAS (NO se invierten)
+    // ----------------------------------------------
+    img:not(.header-logo):not(.logo-image):not(.invert-in-dark),
+    ion-img,
+    canvas,
     .preview-image,
-    [class*="image"]:not(.logo-image),
-    [class*="photo"],
-    canvas {
+    .signature-canvas {
         filter: none !important;
         -webkit-filter: none !important;
+        background-color: white !important;
         color-scheme: light !important;
-        transform: none !important;
+        mix-blend-mode: normal !important;
     }
 
     // Proteger contenedores de imágenes específicamente
@@ -226,11 +227,6 @@ $breakpoint-lg: 1200px;
         -webkit-backdrop-filter: none !important;
         backdrop-filter: none !important;
         mix-blend-mode: normal !important;
-    }
-
-    /* 🔥 ANULAR estilos específicos de Ionic/Ionicons */
-    ion-icon:not(.no-invert) {
-        filter: invert(1) hue-rotate(180deg);
     }
 
     /* 🔥 Prevenir que los contenedores afecten imágenes */

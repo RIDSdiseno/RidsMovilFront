@@ -50,9 +50,8 @@
         <ion-card class="preview-card" *ngIf="selectedImage as img">
           <ion-card-content>
             <!-- 🔥 SOLUCIÓN: Agregar estos atributos específicos -->
-            <img class="preview-image content-image no-dark-invert" [src]="img.dataUrl" alt="Imagen seleccionada"
-              [attr.data-darkmode-protected]="true" [attr.data-no-invert]="true" [style.filter]="'none'"
-              [style.webkitFilter]="'none'" />
+            <img class="preview-image no-dark-invert" [src]="img.dataUrl" alt="Imagen seleccionada" role="presentation"
+              data-no-invert />
             <div class="preview-actions">
               <ion-text color="medium" class="file-meta">
                 {{ img.file.name }}

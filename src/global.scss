@@ -81,3 +81,22 @@ li {
         font-size: 1.2rem;
     }
 }
+
+/* =========================================
+   iOS DARK MODE – BLOQUEO DEFINITIVO
+========================================= */
+body.ios.dark {
+
+    img.preview-image,
+    img.no-dark-invert,
+    img[data-no-invert],
+    canvas.signature-canvas {
+        filter: none !important;
+        -webkit-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        mix-blend-mode: normal !important;
+        background-color: #ffffff !important;
+        color-scheme: light !important;
+    }
+}
