@@ -1,21 +1,18 @@
-/* =================================================
-   MOBILE-FIRST BASE
-================================================= */
-
+// MOBILE-FIRST STYLES
 ion-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
-  position: relative;
-  overflow: hidden;
 
+  // Animación más suave para mejor rendimiento
   &::before {
     content: '';
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
     animation: backgroundPulse 15s ease-in-out infinite;
     z-index: -1;
-    opacity: 0.85;
-    pointer-events: none;
   }
 }
 
@@ -23,18 +20,17 @@ ion-content {
 
   0%,
   100% {
+    opacity: 1;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
   }
 
   50% {
+    opacity: 0.95;
     background: linear-gradient(135deg, #f8fbff 0%, #1e6bb8 100%);
   }
 }
 
-/* =================================================
-   HEADER
-================================================= */
-
+// HEADER IMPROVEMENTS
 .custom-header-toolbar {
   --background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -44,6 +40,7 @@ ion-content {
     font-size: 1.3rem;
     font-weight: 700;
     color: #222;
+    text-align: left;
     padding-left: 10px;
   }
 
@@ -54,298 +51,111 @@ ion-content {
   }
 }
 
-/* =================================================
-   SECCIONES
-================================================= */
-
 .section {
   margin-bottom: 16px;
 }
 
 .section-label {
+  display: block;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin: 0 0 10px 2px;
 }
-
-/* =================================================
-   PREVIEW IMAGEN — FIX DEFINITIVO iOS / DARK MODE
-================================================= */
 
 .preview-card {
-  isolation: isolate;
-  background: #ffffff;
-  border-radius: 12px;
-}
-
-.preview-card ion-card-content {
-  background: #ffffff;
+  margin-top: 12px;
 }
 
 .preview-image {
-  display: block;
   width: 100%;
   height: auto;
-  border-radius: 12px;
-
-  /* 🔥 PROTECCIÓN TOTAL iOS */
-  color-scheme: light;
-  -webkit-color-scheme: light;
-
+  border-radius: 10px;
+  display: block;
   filter: none !important;
-  -webkit-filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-
-  transform: translateZ(0);
 }
 
 .preview-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 10px;
-  background: #ffffff;
 }
 
-/* =================================================
-   FIRMA DIGITAL
-================================================= */
+.file-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .signature-card {
-  isolation: isolate;
-  background: #ffffff;
-  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.signature-wrapper {
+  width: 100%;
 }
 
 .signature-canvas {
   width: 100%;
   height: 180px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.15);
+  display: block;
   touch-action: none;
-
-  /* 🔥 MISMA PROTECCIÓN QUE LA FOTO */
-  color-scheme: light;
-  -webkit-color-scheme: light;
-
-  filter: none !important;
-  -webkit-filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-
-  transform: translateZ(0);
 }
 
-/* =================================================
-   BOTÓN REGISTRAR
-================================================= */
+.signature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.signature-hint {
+  display: block;
+  margin-top: 8px;
+}
 
 .register-btn {
-  margin-top: 14px;
-}
-
-.hint-text {
-  display: block;
   margin-top: 12px;
-  font-size: 0.875rem;
 }
 
-/* =================================================
-   MODAL DE ÉXITO
-================================================= */
+/* Modal de estado de entrega responsivo */
+.estado-entrega-modal {
+  --width: 92vw;
+  --max-width: 420px;
+  --height: auto;
+  --border-radius: 16px;
+  --box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
 
-::ng-deep {
-  ion-modal {
-    --backdrop-opacity: 0.7;
-
-    &::part(backdrop) {
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-    }
-  }
-
-  .modal-wrapper {
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  }
-
-  ion-modal ion-header ion-toolbar {
-    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --color: #ffffff;
-
-    ion-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-
-    ion-button {
-      --color: #ffffff;
-    }
-  }
-
-  ion-modal ion-content {
-    --background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-  }
-}
-
-/* =================================================
-   CONTENIDO ÉXITO
-================================================= */
-
-.success-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 2rem 1.5rem;
-
-  ion-icon {
-    font-size: 72px;
-    color: #10b981;
-    margin-bottom: 1.5rem;
-    animation: successIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  ion-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
   }
 
   h2 {
-    margin-bottom: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #1f2937;
+    margin: 0 0 6px;
+    font-weight: 700;
+    font-size: 1.15rem;
   }
 
   p {
-    color: #6b7280;
-    font-size: 1rem;
-    line-height: 1.6;
-    max-width: 300px;
-    margin-bottom: 2rem;
+    margin: 0;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
   }
 
   ion-button {
     width: 100%;
-    max-width: 280px;
-    --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    font-weight: 600;
   }
 }
-
-@keyframes successIconBounce {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-
-  50% {
-    transform: scale(1.1);
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* =================================================
-   RESPONSIVE
-================================================= */
 
 @media (min-width: 768px) {
-  ::ng-deep .modal-wrapper {
-    max-width: 440px;
+  .estado-entrega-modal {
+    --width: 480px;
   }
-
-  .success-content {
-    padding: 2.5rem 2rem;
-
-    ion-icon {
-      font-size: 80px;
-    }
-
-    h2 {
-      font-size: 1.75rem;
-    }
-
-    p {
-      font-size: 1.05rem;
-      max-width: 350px;
-    }
-  }
-}
-
-/* =================================================
-   ENTREGA PRODUCTOS — PROTECCIÓN iOS / SAFARI
-================================================= */
-
-.preview-card {
-  isolation: isolate;
-  background: #ffffff !important;
-  border-radius: 12px;
-  box-shadow: none;
-
-  color-scheme: light !important;
-  -webkit-color-scheme: light !important;
-
-  filter: none !important;
-  -webkit-filter: none !important;
-}
-
-.preview-card ion-card-content {
-  background: #ffffff !important;
-  isolation: isolate;
-
-  filter: none !important;
-  -webkit-filter: none !important;
-}
-
-/* Imagen protegida */
-.preview-image {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-
-  color-scheme: light !important;
-  -webkit-color-scheme: light !important;
-
-  filter: none !important;
-  -webkit-filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-
-  transform: translateZ(0);
-}
-
-/* Acciones */
-.preview-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  background: #ffffff;
-}
-
-/* Firma */
-.signature-card {
-  isolation: isolate;
-  background: #ffffff !important;
-}
-
-.signature-canvas {
-  width: 100%;
-  height: 180px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-
-  color-scheme: light !important;
-  -webkit-color-scheme: light !important;
-
-  filter: none !important;
-  -webkit-filter: none !important;
-
-  transform: translateZ(0);
 }

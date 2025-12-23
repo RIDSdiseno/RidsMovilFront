@@ -76,6 +76,12 @@ $breakpoint-lg: 1200px;
         background: rgba(0, 0, 0, 0) !important;
     }
 
+    img,
+    video,
+    ion-icon {
+        filter: invert(1) hue-rotate(180deg); // revertir imágenes y logos
+    }
+
     ion-item {
         ion-input {
             --color: #ffffff !important;
@@ -182,16 +188,5 @@ $breakpoint-lg: 1200px;
 
     .solicitante-info {
         background: #2d2d2d !important;
-    }
-
-    ion-icon {
-        filter: invert(1) hue-rotate(180deg);
-    }
-
-    /* 🚫 EXCLUIR IMÁGENES Y CARDS */
-    ion-card img,
-    img {
-        filter: none !important;
-        -webkit-filter: none !important;
     }
 }
