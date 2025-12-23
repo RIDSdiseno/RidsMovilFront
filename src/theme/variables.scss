@@ -218,4 +218,26 @@ $breakpoint-lg: 1200px;
     .solicitante-info {
         background: #2d2d2d !important;
     }
+
+    /* 🔥 PROTECCIÓN GLOBAL para imágenes que NO deben invertirse */
+    img:not([class*="logo"]):not([class*="icon"]):not(.invert-in-dark) {
+        filter: none !important;
+        -webkit-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        mix-blend-mode: normal !important;
+    }
+
+    /* 🔥 ANULAR estilos específicos de Ionic/Ionicons */
+    ion-icon:not(.no-invert) {
+        filter: invert(1) hue-rotate(180deg);
+    }
+
+    /* 🔥 Prevenir que los contenedores afecten imágenes */
+    [class*="card"] img,
+    [class*="preview"] img,
+    [class*="image"]:not([class*="logo"]):not([class*="icon"]) {
+        filter: none !important;
+        -webkit-filter: none !important;
+    }
 }
