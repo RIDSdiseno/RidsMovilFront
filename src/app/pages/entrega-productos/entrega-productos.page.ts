@@ -43,6 +43,13 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
   isRegistering = false;
   private readonly submittedFingerprints = new Set<string>();
 
+  // ===== HISTORIAL =====
+  entregasHistorial: any[] = [];
+  cargandoHistorial = false;
+  mostrarHistorial = false;
+  entregas: any[] = [];
+  entregaAbiertaId: number | null = null;
+
   private isDrawingSignature = false;
   private lastSignaturePoint: { x: number; y: number } | null = null;
   private tecnicoNombre: string | null = null;
@@ -54,13 +61,13 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
 
   get canRegistrarEntrega(): boolean {
     return Boolean(
-      this.selectedImage &&
-      this.hasSignature &&
-      this.receptorNombre.trim() &&
-      this.empresaSeleccionadaId &&
+      this.selectedImage &&               // sigue siendo requerida
+      this.receptorNombre.trim() &&        // requerido
+      this.empresaSeleccionadaId &&        // requerido
       !this.isDuplicateSubmission
     );
   }
+
 
   ngOnInit() {
     this.tecnicoNombre = this.getTecnicoNombre();
@@ -87,9 +94,54 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     });
   }
 
+  // ================= HISTORIAL =================
+
+  toggleHistorial() {
+    this.mostrarHistorial = !this.mostrarHistorial;
+
+    if (this.mostrarHistorial && this.entregasHistorial.length === 0) {
+      this.cargarHistorial();
+    }
+  }
+
+  cargarHistorial() {
+    this.cargandoHistorial = true;
+
+    this.apiService.getEntregas().subscribe({
+      next: (resp) => {
+        console.log('HISTORIAL BACKEND:', resp);
+        this.entregasHistorial = resp.entregas || [];
+        this.cargandoHistorial = false;
+      },
+      error: async () => {
+        this.cargandoHistorial = false;
+        await this.showToast('No se pudo cargar el historial de entregas');
+      }
+    });
+  }
+
+  refrescarHistorial(event: any) {
+    this.apiService.getEntregas().subscribe({
+      next: (resp) => {
+        this.entregasHistorial = resp.entregas || [];
+        event.target.complete();
+      },
+      error: async () => {
+        event.target.complete();
+        await this.showToast('Error al refrescar historial');
+      }
+    });
+  }
+
+  trackByEntrega(_: number, e: any) {
+    return e.id_entrega;
+  }
+
   @HostListener('window:resize')
   onResize() {
-    this.resizeSignatureCanvas();
+    if (!this.isDrawingSignature) {
+      this.resizeSignatureCanvas();
+    }
   }
 
   private getTecnicoNombre(): string | null {
@@ -246,21 +298,19 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
       // ignore
     }
 
+    /* Firma opcional
     if (this.hasSignature) {
       this.signatureDataUrl = canvas.toDataURL('image/png');
-    }
+    } */
   }
 
+  // ================= REGISTRAR ENTREGA =================
   async registrarEntrega() {
     if (this.isRegistering) return;
 
     // Validaciones previas
     if (!this.selectedImage) {
       await this.showToast('Primero sube una imagen.');
-      return;
-    }
-    if (!this.hasSignature) {
-      await this.showToast('Falta la firma.');
       return;
     }
     if (!this.receptorNombre.trim()) {
@@ -277,11 +327,12 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     try {
       this.empresaNombre = this.empresaNombre.trim();
 
-      const signatureDataUrl = this.signatureCanvas?.nativeElement?.toDataURL('image/png') || null;
-      if (!signatureDataUrl) {
-        await this.showToast('No se pudo capturar la firma.');
-        return;
+      let signatureDataUrl: string | null = null;
+
+      if (this.hasSignature && this.signatureCanvas?.nativeElement) {
+        signatureDataUrl = this.signatureCanvas.nativeElement.toDataURL('image/png');
       }
+
 
       this.signatureDataUrl = signatureDataUrl;
       const fingerprint = this.computeCurrentFingerprint(signatureDataUrl);
@@ -321,7 +372,10 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
 
       // Subir evidencias
       await this.subirEvidencia(entregaId, 'foto', imagenEntregaDataUrl);
-      await this.subirEvidencia(entregaId, 'firma', signatureDataUrl);
+
+      if (signatureDataUrl) {
+        await this.subirEvidencia(entregaId, 'firma', signatureDataUrl);
+      }
 
       console.log('Entrega guardada correctamente:', entregaResp);
 
@@ -332,8 +386,6 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
       }
 
       await this.showSuccessToast('Entrega registrada correctamente');
-      this.resetFormulario();
-
 
     } catch (err) {
       console.error('Error registrando entrega:', err);
@@ -367,7 +419,16 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
 
     await toast.present();
   }
-  
+
+  toggleEvidencias(id: number) {
+    this.entregaAbiertaId = this.entregaAbiertaId === id ? null : id;
+  }
+
+  verEvidencia(ev: any) {
+    if (ev.url) {
+      window.open(ev.url, '_blank');
+    }
+  }
 
   private resetFormulario() {
     // Resetear datos
@@ -378,22 +439,24 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.hasSignature = false;
     this.signatureDataUrl = null;
 
+    // 🔥 RESET REAL DEL ESTADO DE FIRMA
+    this.isDrawingSignature = false;
+    this.lastSignaturePoint = null;
+
     // Limpiar input de archivo
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
 
-    // Limpiar canvas de firma de forma segura
+    // Limpiar canvas de firma
     this.clearSignatureCanvas();
 
     // Actualizar fecha
     this.setFechaEntrega(new Date());
 
-    // Esperar un frame antes de redimensionar el canvas
+    // 🔥 ESPERAR AL DOM antes de redimensionar
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        this.resizeSignatureCanvas();
-      });
+      this.resizeSignatureCanvas();
     });
   }
 
@@ -419,8 +482,8 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     const canvas = this.signatureCanvas?.nativeElement;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+    const rect = canvas.parentElement?.getBoundingClientRect();
+    if (!rect) return;
 
     const ratio = window.devicePixelRatio || 1;
     canvas.width = Math.floor(rect.width * ratio);
@@ -709,19 +772,19 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     if (!this.selectedImage) return null;
     if (!this.receptorNombre.trim()) return null;
     if (!this.empresaNombre.trim()) return null;
-    if (!signatureDataUrl) return null;
 
-    const file = this.selectedImage.file;
     const base = JSON.stringify({
       receptor: this.receptorNombre.trim().toLowerCase(),
       empresa: this.empresaNombre.trim().toLowerCase(),
       file: {
-        name: file.name,
-        size: file.size,
-        lastModified: file.lastModified,
-        type: file.type,
+        name: this.selectedImage.file.name,
+        size: this.selectedImage.file.size,
+        lastModified: this.selectedImage.file.lastModified,
+        type: this.selectedImage.file.type,
       },
-      signatureHash: this.hashStringFNV1a(signatureDataUrl),
+      signatureHash: signatureDataUrl
+        ? this.hashStringFNV1a(signatureDataUrl)
+        : 'no-signature',
     });
 
     return this.hashStringFNV1a(base);
@@ -780,6 +843,5 @@ export class EntregaProductosPage implements OnInit, AfterViewInit {
     this.fechaEntrega = date;
     this.fechaEntregaTexto = date.toLocaleString('es-CL');
   }
-
 
 }

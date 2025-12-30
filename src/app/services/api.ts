@@ -171,4 +171,39 @@ export class ApiService {
     return this.http.put(`${environment.apiUrl1}/sync/microsoft/users`, payload);
   }
 
+  // ================== ENTREGAS ==================
+
+  getEntregas() {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    return this.http.get<any>(`${environment.apiUrl}/entregas`, { headers });
+  }
+
+  getEntregaPorId(entregaId: number) {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    return this.http.get<any>(
+      `${environment.apiUrl}/entregas/${entregaId}`,
+      { headers }
+    );
+  }
+
+  getEvidenciasPorEntrega(entregaId: number) {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    return this.http.get<any>(
+      `${environment.apiUrl}/entregas/${entregaId}/evidencias`,
+      { headers }
+    );
+  }
+
 }

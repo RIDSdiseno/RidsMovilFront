@@ -1,17 +1,35 @@
+// Variables - Paleta profesional y formal
+:root {
+  --primary-blue: #1a5490;
+  --primary-blue-light: #2c7ab8;
+  --text-dark: #1a1a1a;
+  --text-medium: #4a4a4a;
+  --text-light: #717171;
+  --border-color: #e0e0e0;
+  --background-light: #fafafa;
+  --background-white: #ffffff;
+  --accent-red: #c62828;
+  --accent-orange: #e65100;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 // MOBILE-FIRST STYLES
 ion-content {
   --background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
+  --overflow: auto;
 
   // Animación más suave para mejor rendimiento
   &::before {
     content: '';
-    pointer-events: none;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: linear-gradient(135deg, #ffffff 0%, #2c8fe0 100%);
     animation: backgroundPulse 15s ease-in-out infinite;
+    z-index: -1;
   }
 }
 
@@ -50,506 +68,323 @@ ion-content {
   }
 }
 
-
-/* =================================================
-   TARJETA PRINCIPAL
-================================================= */
-
-ion-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-ion-card-header {
-  ion-card-title {
-    font-weight: 700;
-    color: #1f2937;
-  }
-
-  ion-card-subtitle {
-    color: #6b7280;
-  }
-}
-
-/* =================================================
-   FORMULARIOS
-================================================= */
-
-.form-item {
-  --background: #f9fafb;
-  --border-radius: 10px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --inner-padding-end: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #e5e7eb;
-
-  ion-label[position="stacked"] {
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 8px;
-  }
-
-  ion-input,
-  ion-select {
-    --background: transparent;
-    --padding-start: 0;
-    --padding-end: 0;
-    --placeholder-color: #9ca3af;
-    color: #111827;
-  }
-}
-
-/* =================================================
-   IMAGEN DE PREVIEW - PROTECCIÓN COMPLETA
-================================================= */
-
-.preview-card {
-  isolation: isolate;
-  background: #ffffff;
-  border-radius: 12px;
-  margin-top: 16px;
-  overflow: hidden;
+// Contenido principal
+.enhanced-content {
+  background: var(--background-light);
   position: relative;
-
-  /* Forzar esquema de color claro */
-  color-scheme: light !important;
-  forced-color-adjust: none !important;
+  min-height: 100vh;
+  padding-bottom: 100px; // ← Y ESTO para espacio extra
 }
 
-.preview-card ion-card-content {
-  background: #ffffff;
-  padding: 16px;
-
-  /* Proteger contenido del modo oscuro */
-  filter: none !important;
-  -webkit-filter: none !important;
+.main-container {
+  padding: 24px 16px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.preview-image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  display: block;
+// Header formal y profesional
+.enhanced-header {
+  background: var(--background-white);
+  border-bottom: 2px solid var(--primary-blue);
+  box-shadow: var(--shadow-sm);
 
-  /* 🔥 PROTECCIÓN COMPLETA CONTRA MODO OSCURO */
-  filter: none !important;
-  -webkit-filter: none !important;
-  color-scheme: light !important;
-  forced-color-adjust: none !important;
-  -webkit-forced-color-adjust: none !important;
-  mix-blend-mode: normal !important;
-  background-color: white !important;
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 64px;
+    max-width: 800px;
+    margin: 0 auto;
 
-  /* iOS específico */
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
 
-  /* Clases de protección adicionales */
-  &.no-dark-invert,
-  &.content-image,
-  &[data-no-invert],
-  &[data-darkmode-protected] {
-    filter: none !important;
-    -webkit-filter: none !important;
-    background-color: white !important;
-  }
-}
+      .header-main-icon {
+        font-size: 28px;
+        color: var(--primary-blue);
+      }
 
-.preview-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+      .header-titles {
+        .header-main-title {
+          font-size: 1.15rem;
+          font-weight: 600;
+          color: var(--text-dark);
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
 
-  .file-meta {
-    font-size: 0.875rem;
-    color: #6b7280;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 70%;
-  }
-}
+        .header-subtitle {
+          font-size: 0.85rem;
+          color: var(--text-medium);
+          margin: 2px 0 0;
+          font-weight: 400;
+        }
+      }
+    }
 
-/* =================================================
-   FIRMA DIGITAL - PROTECCIÓN COMPLETA
-================================================= */
-
-.signature-card {
-  isolation: isolate;
-  background: #ffffff;
-  border-radius: 12px;
-  margin-top: 8px;
-  overflow: hidden;
-
-  /* Forzar esquema claro */
-  color-scheme: light !important;
-}
-
-.signature-card ion-card-content {
-  background: #ffffff;
-  padding: 16px;
-}
-
-.signature-wrapper {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-}
-
-.signature-canvas {
-  width: 100%;
-  height: 180px;
-  display: block;
-  background: #ffffff;
-  touch-action: none;
-  cursor: crosshair;
-
-  /* 🔥 PROTECCIÓN COMPLETA CONTRA MODO OSCURO */
-  filter: none !important;
-  -webkit-filter: none !important;
-  color-scheme: light !important;
-  forced-color-adjust: none !important;
-  -webkit-forced-color-adjust: none !important;
-
-  /* iOS específico */
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-.signature-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
-
-/* =================================================
-   BOTONES
-================================================= */
-
-ion-button {
-  --border-radius: 10px;
-  font-weight: 600;
-
-  &[expand="block"] {
-    --padding-top: 14px;
-    --padding-bottom: 14px;
-  }
-
-  &[color="primary"] {
-    --background: linear-gradient(135deg, #2c8fe0, #1a6bb8);
-    --background-hover: linear-gradient(135deg, #1a6bb8, #0d4a7a);
-    --box-shadow: 0 4px 12px rgba(44, 143, 224, 0.25);
-
-    &:hover {
-      --box-shadow: 0 6px 16px rgba(44, 143, 224, 0.35);
+    .header-right {
+      .header-logo {
+        height: 36px;
+        width: auto;
+      }
     }
   }
+}
 
-  &[fill="clear"][color="danger"] {
-    --color: #dc2626;
-    --background-hover: rgba(220, 38, 38, 0.1);
+// Tarjeta principal con diseño formal
+.main-form-card {
+  background: var(--background-white);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+
+  .form-card-header {
+    padding: 24px 20px 20px;
+    background: linear-gradient(to bottom, var(--background-white), var(--background-light));
+    border-bottom: 1px solid var(--border-color);
+
+    .form-header-icon {
+      margin-bottom: 12px;
+
+      ion-icon {
+        font-size: 32px;
+        color: var(--primary-blue);
+      }
+    }
+
+    .form-header-content {
+      .form-main-title {
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+
+      .form-description {
+        font-size: 0.95rem;
+        color: var(--text-medium);
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
   }
 }
 
-.register-btn {
-  margin-top: 20px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-  font-size: 1rem;
+// Secciones del formulario con mejor espaciado
+.form-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
 
-  &:disabled {
-    opacity: 0.6;
-    --background: #9ca3af;
+  &:last-child {
+    border-bottom: none;
   }
 
-  ion-spinner {
-    margin-right: 8px;
+  .section-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--background-light);
+
+    .section-icon {
+      ion-icon {
+        font-size: 20px;
+        color: var(--primary-blue);
+      }
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    .required-tag,
+    .optional-tag {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .required-tag {
+      background: #ffebee;
+      color: var(--accent-red);
+      border: 1px solid #ffcdd2;
+    }
+
+    .optional-tag {
+      background: #fff3e0;
+      color: var(--accent-orange);
+      border: 1px solid #ffe0b2;
+    }
   }
 }
 
-/* =================================================
-   TEXTO INFORMATIVO
-================================================= */
+// Campos del formulario profesionales
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-ion-text[color="medium"] {
-  display: block;
+.form-field-group {
+  .field-label {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    letter-spacing: -0.01em;
+  }
+}
+
+.enhanced-form-item {
+  background: var(--background-white);
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  margin: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(26, 84, 144, 0.1);
+  }
+
+  .enhanced-input,
+  .enhanced-select {
+    --padding-start: 14px;
+    --padding-end: 14px;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+
+  .enhanced-input.readonly {
+    background: var(--background-light);
+    color: var(--text-medium);
+  }
+}
+
+// Área de carga de imagen formal
+.image-upload-area {
+  .upload-main-btn {
+    --background: var(--primary-blue);
+    --background-hover: var(--primary-blue-light);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    height: 44px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .image-preview-wrapper {
+    margin-top: 14px;
+
+    .preview-container {
+      border: 1.5px solid var(--border-color);
+      background: var(--background-white);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+
+      .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: var(--background-light);
+        border-bottom: 1px solid var(--border-color);
+
+        .file-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          ion-icon {
+            font-size: 20px;
+            color: var(--primary-blue);
+          }
+
+          .file-name {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            font-weight: 500;
+          }
+        }
+
+        .remove-btn {
+          color: var(--accent-red);
+          font-size: 20px;
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+
+          &:hover {
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.signature-area {
   margin-top: 16px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border-left: 4px solid #2c8fe0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  line-height: 1.5;
-}
 
-/* =================================================
-   MODO OSCURO - PROTECCIÓN ESPECÍFICA
-================================================= */
+  .signature-wrapper {
+    border: 2px dashed #1976d2; // ← BORDE AZUL VISIBLE
+    background: white;
+    border-radius: 8px;
+    height: 300px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-@media (prefers-color-scheme: dark) {
+    .signature-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      background: white !important; // ← FONDO BLANCO EXPLÍCITO
+      cursor: crosshair;
+      touch-action: none;
+    }
 
-  /* Fondo general modo oscuro */
-  ion-content {
-    --background: linear-gradient(135deg, #1a1a1a 0%, #0d4a7a 100%) !important;
-  }
+    .signature-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      pointer-events: none;
 
-  /* Header modo oscuro */
-  .custom-header-toolbar {
-    --background: #121212 !important;
-    border-bottom: 1px solid #333;
-
-    .header-title {
-      color: white !important;
     }
   }
 
-  /* Tarjetas modo oscuro */
-  ion-card {
-    background: #121212 !important;
-    border: 1px solid #333 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-  }
+  .signature-actions {
+    margin-top: 16px;
 
-  ion-card-header {
-    ion-card-title {
-      color: white !important;
-    }
+    .clear-signature-btn {
+      --border-color: #e0e0e0;
+      --color: #666;
+      font-size: 0.9rem;
 
-    ion-card-subtitle {
-      color: #a0aec0 !important;
     }
   }
-
-  /* Formularios modo oscuro */
-  .form-item {
-    --background: #1e1e1e;
-    border-color: #444;
-
-    ion-label[position="stacked"] {
-      color: #d1d5db;
-    }
-
-    ion-input,
-    ion-select {
-      color: #f3f4f6;
-      --placeholder-color: #9ca3af;
-    }
-  }
-
-  /* 🔥 CRÍTICO: PROTEGER IMÁGENES DE CONTENIDO DE LA INVERSIÓN */
-
-  /* 1. Proteger el contenedor principal */
-  .preview-card {
-    background: #121212 !important;
-    border-color: #333 !important;
-
-    /* Anular cualquier filtro heredado */
-    filter: none !important;
-    -webkit-filter: none !important;
-
-    /* Forzar que los hijos no hereden filtros */
-    &,
-    & * {
-      filter: none !important;
-      -webkit-filter: none !important;
-    }
-  }
-
-  /* 2. Protección EXHAUSTIVA para imágenes de contenido */
-  .preview-image,
-  .content-image,
-  img[class*="image"]:not(.header-logo):not(.logo-image),
-  img[data-no-invert],
-  img[data-darkmode-protected],
-  img.no-dark-invert {
-    /* Anular cualquier filtro de inversión */
-    filter: none !important;
-    -webkit-filter: none !important;
-
-    /* Forzar esquema claro */
-    color-scheme: light !important;
-    forced-color-adjust: none !important;
-    -webkit-forced-color-adjust: none !important;
-
-    /* Prevenir efectos de fusión */
-    mix-blend-mode: normal !important;
-
-    /* iOS específico */
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-
-    /* Mantener fondo blanco para imágenes */
-    background-color: white !important;
-  }
-
-  /* 3. Proteger canvas de firma */
-  .signature-canvas {
-    filter: none !important;
-    -webkit-filter: none !important;
-    background-color: white !important;
-    border-color: #444 !important;
-  }
-
-  /* 4. Contenedor de firma */
-  .signature-card {
-    background: #121212 !important;
-    border-color: #333 !important;
-
-    &,
-    & * {
-      filter: none !important;
-      -webkit-filter: none !important;
-    }
-  }
-
-  /* 5. Iconos generales SÍ se invierten (excepto dentro de imágenes) */
-  ion-icon:not(.preview-image):not(.content-image):not([class*="image"]) {
-    filter: invert(1) hue-rotate(180deg);
-  }
-
-  /* Acciones de preview modo oscuro */
-  .preview-actions {
-    background: #121212 !important;
-    border-color: #333 !important;
-
-    .file-meta {
-      color: #a0aec0 !important;
-    }
-  }
-
-  /* Botones modo oscuro */
-  ion-button[color="primary"] {
-    --background: linear-gradient(135deg, #1a6bb8, #0d4a7a);
-    --background-hover: linear-gradient(135deg, #0d4a7a, #08345c);
-  }
-
-  /* Texto informativo modo oscuro */
-  ion-text[color="medium"] {
-    background: #1e1e1e !important;
-    color: #a0aec0 !important;
-    border-left-color: #2c8fe0 !important;
-  }
-
-  /* Modal éxito modo oscuro */
-  ::ng-deep {
-    ion-modal ion-content {
-      --background: #121212 !important;
-    }
-  }
-
-  .success-content {
-    h2 {
-      color: #f3f4f6 !important;
-    }
-
-    p {
-      color: #a0aec0 !important;
-    }
-  }
-}
-
-/* =================================================
-   RESPONSIVE
-================================================= */
-
-@media (min-width: 768px) {
-  .form-item {
-    margin-bottom: 20px;
-  }
-
-  .section {
-    margin-bottom: 24px;
-  }
-
-  .preview-image {
-    max-height: 400px;
-    object-fit: contain;
-  }
-
-  .signature-canvas {
-    height: 220px;
-  }
-
-  .register-btn {
-    --padding-top: 18px;
-    --padding-bottom: 18px;
-    font-size: 1.1rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  ion-content {
-    --padding-start: 20px;
-    --padding-end: 20px;
-  }
-
-  .preview-image {
-    max-height: 450px;
-  }
-
-  .signature-canvas {
-    height: 250px;
-  }
-}
-
-/* =================================================
-   UTILIDADES
-================================================= */
-
-.has-footer-menu {
-  padding-bottom: 80px !important;
-}
-
-/* Protección global para imágenes (agregar si persiste el problema) */
-img.dark-mode-protected,
-.dark-mode-protected img {
-  filter: none !important;
-  -webkit-filter: none !important;
-  color-scheme: light !important;
-}
-
-/* Para asegurar que las reglas sean lo suficientemente específicas */
-@media (prefers-color-scheme: dark) {
-
-  body .preview-image,
-  body .signature-canvas {
-    filter: none !important;
-    -webkit-filter: none !important;
-  }
-}
-
-/* ==============================
-   TOAST ÉXITO – iOS RESPONSIVE
-============================== */
-
-.success-toast {
-  --max-width: 90vw;
-  --width: auto;
-  --min-width: unset;
-
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.95rem;
-
-  border-radius: 14px;
-  padding: 8px 12px;
-}
-
-/* iOS específico */
-html.ios .success-toast {
-  margin-left: auto;
-  margin-right: auto;
 }

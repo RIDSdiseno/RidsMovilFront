@@ -72,9 +72,13 @@
             </ion-col>
 
             <ion-col class="ion-text-center">
-              <h2>{{ daysRemaining }}</h2>
+              <h2 [class.payment-due]="daysRemaining === 0"
+                [class.payment-warning]="daysRemaining > 0 && daysRemaining <= 2">
+                {{ daysRemaining }}
+              </h2>
               <p>Días restantes para que paguen</p>
             </ion-col>
+
           </ion-row>
         </ion-grid>
       </ion-card>

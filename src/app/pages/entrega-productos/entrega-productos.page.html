@@ -1,106 +1,236 @@
 <ion-header>
   <ion-toolbar class="custom-header-toolbar">
-    <ion-title class="header-title">Entrega de Productos</ion-title>
+    <ion-title class="header-title">Registro de Evidencias</ion-title>
     <ion-buttons slot="end">
       <img src="assets/img/LOGO_RIDS.png" alt="Logo RIDS" style="height: 38px;" class="header-logo" />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
+<ion-content class="enhanced-content has-footer-menu" fullscreen="true">
+  <!-- Contenedor principal -->
+  <div class="main-container">
 
-<ion-content class="ion-padding has-footer-menu" fullscreen="true">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Registro de entrega</ion-card-title>
-      <ion-card-subtitle>Acá podrás registrar la entrega de productos.</ion-card-subtitle>
-    </ion-card-header>
-    <ion-card-content>
-      <div class="section">
-        <ion-label class="section-label">Datos del receptor</ion-label>
+    <!-- Tarjeta principal -->
+    <div class="main-form-card">
 
-        <ion-item class="form-item" lines="none">
-          <ion-label position="stacked">Nombre de quien recibe *</ion-label>
-          <ion-input [(ngModel)]="receptorNombre" name="receptorNombre"
-            placeholder="Ingrese el nombre completo del encargado"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item" lines="none">
-          <ion-label position="stacked">Empresa *</ion-label>
-          <ion-select [(ngModel)]="empresaSeleccionadaId" name="empresaSeleccionadaId"
-            placeholder="Selecciona una empresa" interface="popover" (ionChange)="onEmpresaSeleccionada($event)">
-            <ion-select-option *ngFor="let e of empresas" [value]="e.id_empresa">
-              {{ e.nombre }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item class="form-item" lines="none">
-          <ion-label position="stacked">Fecha</ion-label>
-          <ion-input [value]="fechaEntregaTexto" readonly></ion-input>
-        </ion-item>
+      <!-- Encabezado de la tarjeta -->
+      <div class="form-card-header">
+        <div class="form-header-icon">
+          <ion-icon name="document-text-outline"></ion-icon>
+        </div>
+        <div class="form-header-content">
+          <h2 class="form-main-title">Registrar Evidencias</h2>
+          <p class="form-description">Completa los datos para registrar una nueva evidencia</p>
+        </div>
       </div>
 
-      <div class="section">
-        <ion-label class="section-label">Imagen (foto de entrega)</ion-label>
+      <!-- Sección de datos del receptor -->
+      <div class="form-section">
+        <div class="section-title-bar">
+          <div class="section-icon">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <h3 class="section-title">Datos del Receptor</h3>
+        </div>
+
+        <div class="form-fields">
+          <div class="form-field-group">
+            <label class="field-label">
+              <ion-icon name="person-circle-outline"></ion-icon>
+              Nombre de quien recibe *
+            </label>
+            <ion-item class="enhanced-form-item" lines="none">
+              <ion-input [(ngModel)]="receptorNombre" name="receptorNombre" placeholder="Ingrese nombre completo"
+                class="enhanced-input" clearInput></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-field-group">
+            <label class="field-label">
+              <ion-icon name="business-outline"></ion-icon>
+              Empresa *
+            </label>
+            <ion-item class="enhanced-form-item" lines="none">
+              <ion-select [(ngModel)]="empresaSeleccionadaId" name="empresaSeleccionadaId"
+                placeholder="Selecciona una empresa" interface="popover" (ionChange)="onEmpresaSeleccionada($event)"
+                class="enhanced-select">
+                <ion-select-option *ngFor="let e of empresas" [value]="e.id_empresa">
+                  {{ e.nombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div class="form-field-group">
+            <label class="field-label">
+              <ion-icon name="calendar-outline"></ion-icon>
+              Fecha
+            </label>
+            <ion-item class="enhanced-form-item" lines="none">
+              <ion-input [value]="fechaEntregaTexto" readonly class="enhanced-input readonly"></ion-input>
+            </ion-item>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de imagen -->
+      <div class="form-section">
+        <div class="section-title-bar">
+          <div class="section-icon">
+            <ion-icon name="camera-outline"></ion-icon>
+          </div>
+          <h3 class="section-title">Imagen (foto de entrega)</h3>
+        </div>
+
         <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
-        <ion-button expand="block" (click)="seleccionarImagen()">
-          <ion-icon name="camera-outline" slot="start"></ion-icon>
-          Tomar o subir imagen
-        </ion-button>
 
-        <ion-card class="preview-card" *ngIf="selectedImage as img">
-          <ion-card-content>
-            <!-- 🔥 SOLUCIÓN: Agregar estos atributos específicos -->
-            <img class="preview-image no-dark-invert" [src]="img.dataUrl" alt="Imagen seleccionada" role="presentation"
-              data-no-invert />
-            <div class="preview-actions">
-              <ion-text color="medium" class="file-meta">
-                {{ img.file.name }}
-              </ion-text>
-              <ion-button fill="clear" color="danger" (click)="clearImage()">
-                <ion-icon name="trash-outline" slot="start"></ion-icon>
-                Quitar
-              </ion-button>
+        <div class="image-upload-area">
+          <!-- Botón principal de subida -->
+          <ion-button expand="block" class="upload-main-btn" (click)="seleccionarImagen()">
+            <ion-icon name="camera-outline" slot="start"></ion-icon>
+            Tomar o subir imagen
+          </ion-button>
+
+          <!-- Preview de imagen mejorado -->
+          <div class="image-preview-wrapper" *ngIf="selectedImage as img">
+            <div class="preview-container">
+              <div class="preview-header">
+                <div class="file-info">
+                  <ion-icon name="image-outline"></ion-icon>
+                  <span class="file-name">{{ img.file.name }}</span>
+                </div>
+                <ion-button fill="clear" size="small" color="danger" class="remove-btn" (click)="clearImage()">
+                  <ion-icon name="close-circle-outline"></ion-icon>
+                  Quitar
+                </ion-button>
+              </div>
+              <div class="image-display">
+                <img class="preview-image no-dark-invert" [src]="img.dataUrl" alt="Imagen seleccionada"
+                  role="presentation" data-no-invert />
+              </div>
             </div>
-          </ion-card-content>
-        </ion-card>
+          </div>
+        </div>
       </div>
 
-      <div class="section">
-        <ion-label class="section-label">Firma digital (acredita la entrega)</ion-label>
+      <!-- Historial de entregas -->
+      <div class="form-section">
+        <div class="section-title-bar clickable" (click)="toggleHistorial()">
+          <div class="section-icon">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+          <h3 class="section-title">Historial de Entregas</h3>
+          <div class="toggle-indicator">
+            <ion-icon [name]="mostrarHistorial ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+        </div>
 
-        <ion-card class="signature-card">
-          <ion-card-content>
-            <div class="signature-wrapper">
-              <canvas #signatureCanvas class="signature-canvas" (pointerdown)="onSignaturePointerDown($event)"
-                (pointermove)="onSignaturePointerMove($event)" (pointerup)="onSignaturePointerUp($event)"
-                (pointercancel)="onSignaturePointerUp($event)" (pointerleave)="onSignaturePointerUp($event)"></canvas>
-            </div>
-            
-            <br>
-            <br>
-            <div class="signature-actions">
-              <ion-button fill="outline" (click)="clearSignature()" [disabled]="!hasSignature">
-                <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                Limpiar firma
-              </ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
+        <div class="historial-content" *ngIf="mostrarHistorial">
+          <ion-refresher slot="fixed" (ionRefresh)="refrescarHistorial($event)">
+            <ion-refresher-content></ion-refresher-content>
+          </ion-refresher>
 
-        <ion-button expand="block" color="primary" class="register-btn" (click)="registrarEntrega()"
+          <div class="historial-list">
+            <ion-spinner *ngIf="cargandoHistorial" name="crescent"></ion-spinner>
+
+            <div *ngIf="!cargandoHistorial && entregasHistorial.length === 0" class="empty-historial">
+              <ion-icon name="file-tray-outline"></ion-icon>
+              <p>No hay entregas registradas</p>
+            </div>
+
+            <div class="historial-item" *ngFor="let e of entregasHistorial; trackBy: trackByEntrega">
+              <div class="historial-item-header" (click)="toggleEvidencias(e.id_entrega)">
+                <div class="historial-info">
+                  <h4 class="historial-empresa">{{ e.empresaNombre }}</h4>
+                  <div class="historial-details">
+                    <span class="historial-receptor">{{ e.receptorNombre }}</span>
+                    <br>
+                    <span class="historial-date">{{ e.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </div>
+                <div class="historial-actions">
+                  <div class="evidencias-badge">
+                    {{ e.evidencias?.length || 0 }}
+                    <ion-icon name="images-outline"></ion-icon>
+                  </div>
+                  <ion-icon [name]="entregaAbiertaId === e.id_entrega ? 'chevron-up-outline' : 'chevron-down-outline'"
+                    class="chevron-icon"></ion-icon>
+                </div>
+              </div>
+
+              <div class="evidencias-container" *ngIf="entregaAbiertaId === e.id_entrega">
+                <div class="evidencia-item" *ngFor="let ev of e.evidencias">
+                  <div class="evidencia-info">
+                    <ion-icon [name]="ev.tipo === 'foto' ? 'image-outline' : 'create-outline'"
+                      [color]="ev.tipo === 'foto' ? 'primary' : 'success'"></ion-icon>
+                    <span class="evidencia-text">{{ ev.tipo === 'foto' ? 'Fotografía' : 'Firma digital' }}</span>
+                  </div>
+                  <ion-button fill="clear" size="small" (click)="verEvidencia(ev)">
+                    <ion-icon name="eye-outline"></ion-icon>
+                    Ver
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de firma -->
+      <div class="form-section">
+        <div class="section-title-bar">
+          <div class="section-icon">
+            <ion-icon name="create-outline"></ion-icon>
+          </div>
+          <h3 class="section-title">Firma Digital</h3>
+        </div>
+
+        <div class="signature-area">
+          <div class="signature-instruction">
+            <ion-icon name="hand-right-outline"></ion-icon>
+            <span>Firme en el área inferior para confirmar la recepción</span>
+          </div>
+
+          <div class="signature-wrapper">
+            <canvas #signatureCanvas class="signature-canvas" (pointerdown)="onSignaturePointerDown($event)"
+              (pointermove)="onSignaturePointerMove($event)" (pointerup)="onSignaturePointerUp($event)"
+              (pointercancel)="onSignaturePointerUp($event)"></canvas>
+          </div>
+
+          <div class="signature-actions">
+            <ion-button fill="outline" (click)="clearSignature()" [disabled]="!hasSignature"
+              class="clear-signature-btn">
+              <ion-icon name="refresh-outline" slot="start"></ion-icon>
+              Limpiar firma
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón de registro -->
+      <div class="submit-section">
+        <ion-button expand="block" color="primary" class="register-btn enhanced" (click)="registrarEntrega()"
           [disabled]="!canRegistrarEntrega || isRegistering">
           <ion-spinner *ngIf="isRegistering" name="crescent" slot="start"></ion-spinner>
-          <ion-icon *ngIf="!isRegistering" name="save-outline" slot="start"></ion-icon>
-          Registrar entrega
+          <ion-icon *ngIf="!isRegistering" name="checkmark-circle-outline" slot="start"></ion-icon>
+          {{ isRegistering ? 'Procesando...' : 'Registrar Entrega' }}
         </ion-button>
-      </div>
 
-      <ion-text color="medium">
-        Las evidencias se envian como foto y firma. Usa imagenes livianas (max 5MB) para evitar rechazos.
-      </ion-text>
-    </ion-card-content>
-  </ion-card>
+        <div class="form-info">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>Las evidencias se envían como foto y firma. Usa imágenes livianas (max 5MB) para evitar rechazos.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+
 </ion-content>
 
 <app-footer-menu></app-footer-menu>

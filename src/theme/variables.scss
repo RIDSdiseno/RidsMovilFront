@@ -85,7 +85,6 @@ $breakpoint-lg: 1200px;
     // ----------------------------------------------
     // 🔒 IMÁGENES Y CANVAS (NO se invierten)
     // ----------------------------------------------
-    img:not(.header-logo):not(.logo-image):not(.invert-in-dark),
     ion-img,
     canvas,
     .preview-image,
@@ -95,22 +94,6 @@ $breakpoint-lg: 1200px;
         background-color: white !important;
         color-scheme: light !important;
         mix-blend-mode: normal !important;
-    }
-
-    // Proteger contenedores de imágenes específicamente
-    .preview-card,
-    .signature-card,
-    [class*="image-container"],
-    [class*="photo-container"] {
-        filter: none !important;
-        -webkit-filter: none !important;
-
-        img,
-        ion-img,
-        canvas {
-            filter: none !important;
-            -webkit-filter: none !important;
-        }
     }
 
     ion-item {
@@ -220,20 +203,7 @@ $breakpoint-lg: 1200px;
         background: #2d2d2d !important;
     }
 
-    /* 🔥 PROTECCIÓN GLOBAL para imágenes que NO deben invertirse */
-    img:not([class*="logo"]):not([class*="icon"]):not(.invert-in-dark) {
-        filter: none !important;
-        -webkit-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        backdrop-filter: none !important;
-        mix-blend-mode: normal !important;
-    }
-
-    /* 🔥 Prevenir que los contenedores afecten imágenes */
-    [class*="card"] img,
-    [class*="preview"] img,
-    [class*="image"]:not([class*="logo"]):not([class*="icon"]) {
-        filter: none !important;
-        -webkit-filter: none !important;
+    .home-image-container img {
+        filter: invert(1) hue-rotate(180deg) !important;
     }
 }

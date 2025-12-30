@@ -496,3 +496,42 @@ ion-grid {
         }
     }
 }
+
+// Estilos para alertas de pago
+.payment-due {
+    color: #d32f2f !important;
+    font-size: 3.2rem !important;
+    font-weight: 900;
+    animation: payNowPulse 1.2s infinite ease-in-out;
+    text-shadow: 0 0 12px rgba(211, 47, 47, 0.6);
+}
+
+.payment-warning {
+    color: #f57c00 !important;
+    font-weight: 800;
+    animation: softBlink 2s infinite;
+}
+
+@keyframes payNowPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(211, 47, 47, 0.6);
+    }
+    50% {
+        transform: scale(1.25);
+        box-shadow: 0 0 25px rgba(211, 47, 47, 0.9);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(211, 47, 47, 0.6);
+    }
+}
+
+@keyframes softBlink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
