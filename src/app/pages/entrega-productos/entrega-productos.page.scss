@@ -72,7 +72,6 @@ ion-content {
 .enhanced-content {
   background: var(--background-light);
   position: relative;
-  min-height: 100vh;
   padding-bottom: 100px; // ← Y ESTO para espacio extra
 }
 
@@ -347,10 +346,10 @@ ion-content {
     border: 2px dashed #1976d2; // ← BORDE AZUL VISIBLE
     background: white;
     border-radius: 8px;
-    height: 300px;
     position: relative;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    height: auto;
 
     .signature-canvas {
       width: 100% !important;

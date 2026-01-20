@@ -14,6 +14,10 @@ export class EquiposPage implements OnInit {
   searchTerm: string = '';
   selectedEquipo: any = null;
 
+  solicitantesEmpresa: any[] = [];
+
+  solicitantesFiltrados: any[] = [];
+
   constructor(
     private api: ApiService,
     private router: Router,
@@ -24,17 +28,85 @@ export class EquiposPage implements OnInit {
     this.loadEquipment();
   }
 
+  filtrarSolicitantes(ev: any) {
+    const value = ev.target.value?.toLowerCase() || '';
+
+    this.solicitantesFiltrados = this.solicitantesEmpresa.filter(s =>
+      s.nombre.toLowerCase().includes(value)
+    );
+  }
+
   // Métodos existentes de tu código
   cancelEdit() {
     this.selectedEquipo = null;
+    this.solicitantesEmpresa = [];
+    this.solicitantesFiltrados = [];
+  }
+
+  cambiarSolicitante() {
+    if (!this.selectedEquipo) return;
+
+    const nuevoSolicitante = this.selectedEquipo.idSolicitante;
+    const originalSolicitante = this.selectedEquipo._original.idSolicitante;
+
+    if (!nuevoSolicitante) {
+      console.warn('Debe seleccionar un solicitante');
+      return;
+    }
+
+    if (nuevoSolicitante === originalSolicitante) {
+      console.warn('El solicitante no cambió');
+      return;
+    }
+
+    this.api.cambiarSolicitanteEquipo(
+      this.selectedEquipo.id_equipo,
+      nuevoSolicitante
+    ).subscribe({
+      next: () => {
+        this.selectedEquipo._original.idSolicitante = nuevoSolicitante;
+
+        const eq = this.equipment.find(
+          e => e.id_equipo === this.selectedEquipo.id_equipo
+        );
+        if (eq) eq.idSolicitante = nuevoSolicitante;
+
+        console.log('Solicitante actualizado correctamente');
+      },
+      error: (err: any) => {
+        console.error('Error al cambiar solicitante', err);
+      }
+    });
+  }
+
+  cargarSolicitantesEmpresa(empresaId: number) {
+    this.api.getSolicitantes(empresaId).subscribe({
+      next: (res) => {
+        this.solicitantesEmpresa = res.solicitantes || [];
+        this.solicitantesFiltrados = [...this.solicitantesEmpresa]; // 👈 CLAVE
+      },
+      error: (err) => {
+        console.error('Error cargando solicitantes', err);
+        this.solicitantesEmpresa = [];
+        this.solicitantesFiltrados = [];
+      }
+    });
   }
 
   selectEquipo(equipo: any) {
+    console.log('Equipo recibido:', equipo);
     this.selectedEquipo = {
       ...equipo,
-      _original: { ...equipo }
+      idSolicitante: equipo.idSolicitante ?? null,
+      _original: {
+        ...equipo,
+        idSolicitante: equipo.idSolicitante ?? null
+      }
     };
-    console.log(this.selectedEquipo);
+
+    if (equipo.empresaId) {
+      this.cargarSolicitantesEmpresa(equipo.empresaId);
+    }
   }
 
   loadEquipment() {

@@ -79,13 +79,37 @@
           </ion-label>
           <ion-input [(ngModel)]="selectedEquipo.ram" class="custom-input"></ion-input>
         </ion-item>
-         <ion-item class="form-item" lines="none">
-    <ion-label position="stacked" class="input-label">
-      <ion-icon name="disc-outline" class="label-icon"></ion-icon>
-      Tipo de Disco Duro
-    </ion-label>
-    <ion-input [(ngModel)]="selectedEquipo.tipoDd" class="custom-input" placeholder="Ej: SSD, HDD, M.2"></ion-input>
-  </ion-item>
+        <ion-item class="form-item" lines="none">
+          <ion-label position="stacked" class="input-label">
+            <ion-icon name="disc-outline" class="label-icon"></ion-icon>
+            Tipo de Disco Duro
+          </ion-label>
+          <ion-input [(ngModel)]="selectedEquipo.tipoDd" class="custom-input"
+            placeholder="Ej: SSD, HDD, M.2"></ion-input>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-label position="stacked">
+            <ion-icon name="person-outline"></ion-icon>
+            Buscar solicitante
+          </ion-label>
+
+          <ion-searchbar placeholder="Buscar por nombre..." debounce="300" (ionInput)="filtrarSolicitantes($event)">
+          </ion-searchbar>
+
+          <ion-select [(ngModel)]="selectedEquipo.idSolicitante" placeholder="Selecciona solicitante">
+            <ion-select-option *ngFor="let s of solicitantesFiltrados" [value]="s.id_solicitante">
+              {{ s.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-button expand="block" color="tertiary" (click)="cambiarSolicitante()" [disabled]="
+    selectedEquipo.idSolicitante === selectedEquipo._original?.idSolicitante
+  ">
+          <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
+          Cambiar solicitante
+        </ion-button>
+
         <br>
       </div>
       <div class="action-buttons">

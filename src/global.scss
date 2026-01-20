@@ -100,3 +100,7 @@ body.ios.dark {
         color-scheme: light !important;
     }
 }
+
+ion-content {
+    --padding-bottom: 140px !important; // espacio para tab bar
+}

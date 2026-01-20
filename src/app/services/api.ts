@@ -81,6 +81,21 @@ export class ApiService {
     return this.http.put(`${environment.apiUrl}/auth/equipos/${id}`, data, { headers });
   }
 
+  cambiarSolicitanteEquipo(equipoId: number, solicitanteId: number) {
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.put(
+      `${environment.apiUrl}/auth/equipos/${equipoId}/solicitante`,
+      { solicitanteId }, // ✅ OBJETO
+      { headers }
+    );
+  }
+
+
   crearEquipo(data: any): Observable<any> {
     const token = this.authService.getToken();
     const headers = new HttpHeaders({

@@ -13,7 +13,7 @@ import { ViewChild } from '@angular/core';
 registerLocaleData(localeEsCl, 'es-CL');
 
 interface Visita {
-  
+
   solicitante: string;
   realizado: string;
   inicio: string;
@@ -39,7 +39,7 @@ interface Visita {
 })
 export class PerfilPage implements ViewWillEnter {
   @ViewChild(IonContent, { static: true }) content!: IonContent;
- page = 1;
+  page = 1;
   limit = 5;
   hasMore = true;
   loading = false;
@@ -61,7 +61,7 @@ export class PerfilPage implements ViewWillEnter {
 
     if (id) {
       this.tecnicoId = parseInt(id, 10);
-       this.visitas = [];
+      this.visitas = [];
       this.page = 1;
       this.hasMore = true;
 
@@ -76,102 +76,102 @@ export class PerfilPage implements ViewWillEnter {
   }
 
   // ✅ Cargar historial con direcciones exactas o aproximadas
-    // ✅ Cargar historial paginado (acumula resultados)
-private async cargarHistorial(event?: CustomEvent) {
-  if (this.loading || !this.hasMore) {
-    event?.target && (event.target as HTMLIonInfiniteScrollElement).complete();
-    return;
-  }
-  this.loading = true;
+  // ✅ Cargar historial paginado (acumula resultados)
+  private async cargarHistorial(event?: CustomEvent) {
+    if (this.loading || !this.hasMore) {
+      event?.target && (event.target as HTMLIonInfiniteScrollElement).complete();
+      return;
+    }
+    this.loading = true;
 
-  this.api.getHistorialPorTecnico(this.tecnicoId, this.page, this.limit).subscribe({
-    next: (res) => {
-      const historial = res.historial || res.visitas || [];
+    this.api.getHistorialPorTecnico(this.tecnicoId, this.page, this.limit).subscribe({
+      next: (res) => {
+        const historial = res.historial || res.visitas || [];
 
-      // 1) pintar rápido (no bloquear por geocoding)
-      const transformados: Visita[] = historial.map((visita: any) => {
-        let direccionFallback = 'Ubicación no disponible';
-        if (visita.direccion_visita && this.esCoordenada(visita.direccion_visita)) {
-          const [lat, lon] = visita.direccion_visita.split(',').map((n: string) => parseFloat(n.trim()));
-          direccionFallback = `${this.detectarComunaSantiago(lat, lon)}, Santiago, Región Metropolitana`;
+        // 1) pintar rápido (no bloquear por geocoding)
+        const transformados: Visita[] = historial.map((visita: any) => {
+          let direccionFallback = 'Ubicación no disponible';
+          if (visita.direccion_visita && this.esCoordenada(visita.direccion_visita)) {
+            const [lat, lon] = visita.direccion_visita.split(',').map((n: string) => parseFloat(n.trim()));
+            direccionFallback = `${this.detectarComunaSantiago(lat, lon)}, Santiago, Región Metropolitana`;
+          }
+          const sucursalNombre = visita.sucursalNombre || visita.solicitanteRef?.sucursal?.nombre;
+          const sucursalId = visita.sucursalId || visita.solicitanteRef?.sucursal?.id_sucursal;
+          const tieneSucursal = !!sucursalNombre && sucursalNombre !== '—';
+
+          return {
+            ...visita,
+            nombreCliente: visita.empresa?.nombre ?? 'Empresa desconocida',
+            solicitante: visita.solicitanteRef?.nombre ?? 'Cliente desconocido',
+            direccion_visita: direccionFallback,
+            sucursalNombre: tieneSucursal ? sucursalNombre : null,
+            sucursalId: tieneSucursal ? sucursalId : null,
+            tieneSucursal,
+          } as Visita;
+        });
+
+        this.visitas = [...this.visitas, ...transformados];
+
+        // 2) paginación
+        const hasMoreFromApi = typeof res?.hasMore === 'boolean' ? res.hasMore : null;
+        this.hasMore = hasMoreFromApi ?? (
+          typeof res?.total === 'number'
+            ? this.page * this.limit < res.total
+            : (historial.length === this.limit)
+        );
+        if (this.hasMore) {
+          this.page = typeof res?.nextPage === 'number' ? res.nextPage : this.page + 1;
         }
-        const sucursalNombre = visita.sucursalNombre || visita.solicitanteRef?.sucursal?.nombre;
-        const sucursalId = visita.sucursalId || visita.solicitanteRef?.sucursal?.id_sucursal;
-        const tieneSucursal = !!sucursalNombre && sucursalNombre !== '—';
 
-        return {
-          ...visita,
-          nombreCliente: visita.nombreCliente || 'Empresa desconocida',
-          solicitante: visita.nombreSolicitante || 'Cliente desconocido',
-          direccion_visita: direccionFallback,
-          sucursalNombre: tieneSucursal ? sucursalNombre : null,
-          sucursalId: tieneSucursal ? sucursalId : null,
-          tieneSucursal,
-        } as Visita;
-      });
+        // 3) mejorar direcciones luego, sin bloquear (throttle suave)
+        transformados.forEach((v, idx) => {
+          const raw = (v as any).direccion_visita_raw ?? v.direccion_visita;
+          if (!raw || typeof raw !== 'string' || raw.split(',').length !== 2) return;
 
-      this.visitas = [...this.visitas, ...transformados];
+          setTimeout(async () => {
+            if (!Capacitor.isNativePlatform()) return;
+            const [lat, lon] = raw.split(',').map((n: string) => parseFloat(n.trim()));
+            const exacta = await this.obtenerDireccionExactaSantiago(lat, lon);
+            if (exacta) {
+              const i = this.visitas.indexOf(v);
+              if (i > -1) this.visitas[i] = { ...this.visitas[i], direccion_visita: exacta };
+            }
+          }, idx * 250);
+        });
 
-      // 2) paginación
-      const hasMoreFromApi = typeof res?.hasMore === 'boolean' ? res.hasMore : null;
-      this.hasMore = hasMoreFromApi ?? (
-        typeof res?.total === 'number'
-          ? this.page * this.limit < res.total
-          : (historial.length === this.limit)
-      );
-      if (this.hasMore) {
-        this.page = typeof res?.nextPage === 'number' ? res.nextPage : this.page + 1;
+        // debug opcional
+        console.log('DEBUG page=', this.page, 'limit=', this.limit, 'total=', res?.total, 'hasMore=', this.hasMore, 'nextPage=', res?.nextPage, 'items=', historial.length);
+      },
+      error: (err) => console.error('❌ Error al cargar historial:', err),
+      complete: async () => {
+        this.loading = false;
+
+        // ✅ Si hay infinite-scroll en pantalla, asegúrate de re-habilitarlo si había quedado freeze
+        const el = await this.content.getScrollElement();
+
+        // autoload si aún no alcanza a scrollear (pantallas altas)
+        const puedeScroll = el.scrollHeight > el.clientHeight + 10;
+        if (!puedeScroll && this.hasMore) {
+          // pequeño microtask para que el layout ya esté pintado
+          setTimeout(() => this.cargarHistorial(), 0);
+        }
+
+        if (event?.target) (event.target as HTMLIonInfiniteScrollElement).complete();
       }
 
-      // 3) mejorar direcciones luego, sin bloquear (throttle suave)
-      transformados.forEach((v, idx) => {
-        const raw = (v as any).direccion_visita_raw ?? v.direccion_visita;
-        if (!raw || typeof raw !== 'string' || raw.split(',').length !== 2) return;
-
-        setTimeout(async () => {
-          if (!Capacitor.isNativePlatform()) return;
-          const [lat, lon] = raw.split(',').map((n: string) => parseFloat(n.trim()));
-          const exacta = await this.obtenerDireccionExactaSantiago(lat, lon);
-          if (exacta) {
-            const i = this.visitas.indexOf(v);
-            if (i > -1) this.visitas[i] = { ...this.visitas[i], direccion_visita: exacta };
-          }
-        }, idx * 250);
-      });
-
-      // debug opcional
-      console.log('DEBUG page=', this.page, 'limit=', this.limit, 'total=', res?.total, 'hasMore=', this.hasMore, 'nextPage=', res?.nextPage, 'items=', historial.length);
-    },
-    error: (err) => console.error('❌ Error al cargar historial:', err),
-    complete: async () => {
-  this.loading = false;
-
-  // ✅ Si hay infinite-scroll en pantalla, asegúrate de re-habilitarlo si había quedado freeze
-  const el = await this.content.getScrollElement();
-
-  // autoload si aún no alcanza a scrollear (pantallas altas)
-  const puedeScroll = el.scrollHeight > el.clientHeight + 10;
-  if (!puedeScroll && this.hasMore) {
-    // pequeño microtask para que el layout ya esté pintado
-    setTimeout(() => this.cargarHistorial(), 0);
+    });
   }
 
-  if (event?.target) (event.target as HTMLIonInfiniteScrollElement).complete();
-}
+  public cargarMasManual() {
+    this.cargarHistorial(); // sin event
+  }
 
-  });
-}
+  // handler del infinite scroll
+  cargarMas(event: CustomEvent) {
+    this.cargarHistorial(event);
+  }
 
-public cargarMasManual() {
-  this.cargarHistorial(); // sin event
-}
-
-// handler del infinite scroll
-cargarMas(event: CustomEvent) {
-  this.cargarHistorial(event);
-}
-
-trackByVisita = (_: number, v: any) => v?.id ?? _;
+  trackByVisita = (_: number, v: any) => v?.id ?? _;
   // ✅ Obtener dirección desde coordenadas (usa Nominatim o fallback)
   private async obtenerDireccionDesdeCoordenadasHistorial(coordenadas: string): Promise<string> {
     try {
